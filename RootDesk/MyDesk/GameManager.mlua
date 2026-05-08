@@ -1,0 +1,52 @@
+@Logic
+script GameManager extends Logic
+
+	property any GameData = nil
+
+	property number currentState = 1
+
+	property any selectionData = nil
+
+	@ExecSpace("ClientOnly")
+	method void OnBeginPlay()
+		-- [UI 모듈 스터브]
+		local UIManager = {}
+		
+		function UIManager:ShowPrepUI(target) log("UI: '손질하기' 버튼 표시") end
+		function UIManager:ShowDiscardUI(target) log("UI: '버리기' 버튼 표시") end
+		function UIManager:ShowMixUI(target) log("UI: '믹싱하기' 버튼 표시") end
+		function UIManager:HideAllUI() log("UI: 모든 상호작용 UI 숨김") end
+		
+		-- [게임 데이터 모델]
+		local GameData = {
+		    -- 1. 재료 슬롯 (state: "EMPTY", "RAW", "PREPPED")
+		    IngredientSlots = {
+		        [1] = { id = "Slot_1", state = "EMPTY", ingredientId = nil },
+		        [2] = { id = "Slot_2", state = "RAW", ingredientId = "Apple" },
+		    },
+		    
+		    -- 2. 컵 슬롯 (index 1~3은 커피머신, 4~5는 대기공간으로 가정)
+		    CupSlots = {
+		        [1] = { id = "CupSlot_1", isCoffeeMachine = true, hasCup = false, cupData = nil },
+		        [2] = { id = "CupSlot_2", isCoffeeMachine = true, hasCup = false, cupData = nil },
+		        [3] = { id = "CupSlot_3", isCoffeeMachine = true, hasCup = false, cupData = nil },
+		        [4] = { id = "CupSlot_4", isCoffeeMachine = false, hasCup = false, cupData = nil },
+		        [5] = { id = "CupSlot_5", isCoffeeMachine = false, hasCup = false, cupData = nil },
+		    },
+		    
+		    -- 3. 믹서
+		    Mixer = {
+		        id = "Mixer_1",
+		        ingredients = {},
+		        isMixed = false,
+		        isTrash = false,
+		        resultId = nil -- 믹싱 완료 시 생성된 결과물 ID
+		    }
+		}
+	end
+
+	method void Function1()
+		
+	end
+
+end

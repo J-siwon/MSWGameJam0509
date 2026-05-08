@@ -1,0 +1,25 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "scriptfile://f8af2d0f-ddec-49ae-aeea-40694cdb101d",
+  "ContentType": "x-mod/scriptfile",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "Name": "NewScript",
+      "Id": "f8af2d0f-ddec-49ae-aeea-40694cdb101d",
+      "Script": "",
+      "ModifyTime": "05/08/2026 22:40:47",
+      "worldCoreVersion": "26.3.0.0",
+      "worldStudioVersion": "0.1.0.0",
+      "useService": 0
+    }
+  }
+}
