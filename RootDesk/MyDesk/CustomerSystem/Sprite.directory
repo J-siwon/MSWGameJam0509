@@ -1,7 +1,7 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "directory://ffae2a2ce90c414daa9b90118ec61161",
+  "EntryKey": "directory://0e47ec31095741fda08d0e4f43d06bae",
   "ContentType": "x-mod/directory",
   "Content": "",
   "Usage": 0,
@@ -13,14 +13,11 @@
   "ContentProto": {
     "Use": "Json",
     "Json": {
-      "entry_id": "directory://ffae2a2ce90c414daa9b90118ec61161",
-      "name": "World",
+      "entry_id": "directory://0e47ec31095741fda08d0e4f43d06bae",
+      "name": "Sprite",
       "lock": false,
       "folding": false,
-      "nameEditable": true,
-      "worldCoreVersion": "26.3.0.0",
-      "worldStudioVersion": "0.1.0.0",
-      "useService": 0
+      "nameEditable": true
     }
   }
 }
