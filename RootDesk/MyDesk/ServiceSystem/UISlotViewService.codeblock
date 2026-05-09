@@ -1,14 +1,14 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "codeblock://bfc85a1c-911c-4a57-9f6d-d146b1504b49",
+  "EntryKey": "codeblock://4e2a5328-5902-4063-a56e-7666af4a82de",
   "ContentType": "x-mod/codeblock",
   "Content": "",
   "Usage": 0,
   "UsePublish": 1,
   "UseService": 0,
   "CoreVersion": "26.3.0.0",
-  "StudioVersion": "0.1.0.0",
+  "StudioVersion": "",
   "DynamicLoading": 0,
   "ContentProto": {
     "Use": "Json",
@@ -22,15 +22,12 @@
         "Minor": 1
       },
       "Description": "",
-      "Id": "bfc85a1c-911c-4a57-9f6d-d146b1504b49",
+      "Id": "4e2a5328-5902-4063-a56e-7666af4a82de",
       "Language": 1,
-      "Name": "DataFactory",
+      "Name": "UISlotViewService",
       "Type": 5,
       "Source": 0,
-      "Target": null,
-      "worldCoreVersion": "26.3.0.0",
-      "worldStudioVersion": "0.1.0.0",
-      "useService": 0
+      "Target": null
     }
   }
 }

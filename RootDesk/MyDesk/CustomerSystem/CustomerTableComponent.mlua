@@ -7,13 +7,15 @@ script CustomerTableComponent extends Component
 
 	property Entity CustomerTemplate = nil
 
-	property boolean AutoSpawn = true
+	property boolean AutoSpawn = false
 
-	property boolean FillOnBeginPlay = true
+	property boolean FillOnBeginPlay = false
 
 	property number SpawnIntervalSeconds = 4
 
 	property Entity TestCompleteTopButton = nil
+
+	property string DayManagerPath = "/ui/DayInfoGroup/DayManager"
 
 	property number CustomerSpacingY = 110
 
@@ -36,15 +38,10 @@ script CustomerTableComponent extends Component
 		self.Runtime.state = "Waiting"
 		self:ConnectTestCompleteButton()
 		
-		if self.FillOnBeginPlay == true then
-			self:FillEmptySlots()
-		end
-		
 		if self.AutoSpawn == true then
-			local spawn = function()
-				self:SpawnRandomCustomer()
-			end
-			self.Runtime.spawnTimerId = _TimerService:SetTimerRepeat(spawn, math.max(0.1, self.SpawnIntervalSeconds))
+			self:StartSpawning(self.SpawnIntervalSeconds, self.FillOnBeginPlay)
+		elseif self.FillOnBeginPlay == true then
+			self:FillEmptySlots()
 		end
 		
 	end
@@ -74,8 +71,65 @@ script CustomerTableComponent extends Component
 			spawnTimerId = 0,
 			rearrangeTimerId = 0,
 			testCompleteHandler = nil,
-			customerSerial = 0
+			customerSerial = 0,
+			lastResolvePrice = 0
 		}
+	end
+
+	method void StartSpawning(number spawnIntervalSeconds, boolean fillOnStart)
+		self:EnsureRuntime()
+		self:StopSpawning()
+
+		self.SpawnIntervalSeconds = math.max(0.1, spawnIntervalSeconds)
+		self.Runtime.state = "Waiting"
+
+		if fillOnStart == true then
+			self:FillEmptySlots()
+		end
+
+		local spawn = function()
+			self:SpawnRandomCustomer()
+		end
+		self.Runtime.spawnTimerId = _TimerService:SetTimerRepeat(spawn, self.SpawnIntervalSeconds)
+	end
+
+	method void StopSpawning()
+		self:EnsureRuntime()
+		if self.Runtime.spawnTimerId > 0 then
+			_TimerService:ClearTimer(self.Runtime.spawnTimerId)
+			self.Runtime.spawnTimerId = 0
+		end
+	end
+
+	method void CloseTable()
+		self:EnsureRuntime()
+		self:StopSpawning()
+		self.Runtime.state = "Closed"
+	end
+
+	method void ClearCustomers()
+		self:EnsureRuntime()
+
+		for i = 1, #self.Runtime.customers do
+			local record = self.Runtime.customers[i]
+			if record.moveTimerId > 0 then
+				_TimerService:ClearTimer(record.moveTimerId)
+				record.moveTimerId = 0
+			end
+			if record.entity ~= nil then
+				record.entity:Destroy(0)
+			end
+		end
+
+		self.Runtime.customers = {}
+		if self.Runtime.state ~= "Closed" then
+			self.Runtime.state = "Waiting"
+		end
+	end
+
+	method number GetLastResolvePrice()
+		self:EnsureRuntime()
+		return self.Runtime.lastResolvePrice
 	end
 
 	method void ConnectTestCompleteButton()
@@ -184,17 +238,35 @@ script CustomerTableComponent extends Component
 	end
 
 	method void OnClickTestCompleteTop()
+		local dayManager = self:GetDayManager()
+		if dayManager ~= nil then
+			dayManager:SubmitTopCustomerForTest()
+			return
+		end
+
 		self:CompleteTopCustomerForTest()
 	end
 
 	method boolean CompleteTopCustomerForTest()
 		self:EnsureRuntime()
-		if #self.Runtime.customers <= 1 then
+		if #self.Runtime.customers <= 0 then
 			return false
 		end
-		
-		local topCustomer = self.Runtime.customers[2]
-		return self:ResolveCustomerAt(2, topCustomer.data.desiredDrinkId)
+
+		local topCustomer = self.Runtime.customers[1]
+		return self:ResolveCustomerAt(1, topCustomer.data.desiredDrinkId)
+	end
+
+	method any GetDayManager()
+		if self.DayManagerPath == nil or self.DayManagerPath == "" then
+			return nil
+		end
+
+		local dayManagerEntity = _EntityService:GetEntityByPath(self.DayManagerPath)
+		if dayManagerEntity == nil then
+			return nil
+		end
+		return dayManagerEntity.DayManager
 	end
 
 	method boolean ResolveCustomerAt(number index, string drinkId)
@@ -262,6 +334,7 @@ script CustomerTableComponent extends Component
 		if resolved == true then
 			record.data.state = "Resolved"
 			record.data.resolvePrice = record.component:GetLastResolvePrice()
+			self.Runtime.lastResolvePrice = record.data.resolvePrice
 		end
 		return resolved
 	end

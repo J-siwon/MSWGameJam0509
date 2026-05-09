@@ -1,7 +1,7 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "ui://0bc398f9-29cb-4d89-a78d-f24742b117e8",
+  "EntryKey": "ui://a31f4e4e-7a9a-4ac5-8b8a-1e2b74d90101",
   "ContentType": "x-mod/ui",
   "Content": "",
   "Usage": 0,
@@ -14,22 +14,22 @@
     "Use": "Binary",
     "Entities": [
       {
-        "id": "0bc398f9-29cb-4d89-a78d-f24742b117e8",
-        "path": "/ui/ToastGroup",
+        "id": "a31f4e4e-7a9a-4ac5-8b8a-1e2b74d90101",
+        "path": "/ui/DayIntroGroup",
         "componentNames": "MOD.Core.UITransformComponent,MOD.Core.UIGroupComponent,MOD.Core.CanvasGroupComponent",
         "jsonString": {
-          "name": "ToastGroup",
-          "path": "/ui/ToastGroup",
+          "name": "DayIntroGroup",
+          "path": "/ui/DayIntroGroup",
           "nameEditable": true,
           "enable": true,
           "visible": true,
           "localize": true,
-          "displayOrder": 4,
+          "displayOrder": 6,
           "pathConstraints": "//",
-          "revision": 2,
+          "revision": 1,
           "origin": {
             "type": "Model",
-            "entry_id": "uigroup",
+            "entry_id": "UIGroup",
             "sub_entity_id": null,
             "root_entity_id": null,
             "replaced_model_id": null
@@ -95,16 +95,16 @@
             },
             {
               "@type": "MOD.Core.UIGroupComponent",
-              "DefaultShow": false,
-              "GroupOrder": 4,
+              "DefaultShow": true,
+              "GroupOrder": 7,
               "GroupType": 1,
               "Enable": true
             },
             {
               "@type": "MOD.Core.CanvasGroupComponent",
               "BlocksRaycasts": true,
-              "GroupAlpha": 1.0,
-              "Interactable": true,
+              "GroupAlpha": 0.0,
+              "Interactable": false,
               "Enable": true
             }
           ],
@@ -112,12 +112,12 @@
         }
       },
       {
-        "id": "7af9e538-1713-49f7-a83e-711c0f4b4a3c",
-        "path": "/ui/ToastGroup/Toast_message",
-        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.TextComponent,MOD.Core.CanvasGroupComponent",
+        "id": "a31f4e4e-7a9a-4ac5-8b8a-1e2b74d90102",
+        "path": "/ui/DayIntroGroup/Black",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent",
         "jsonString": {
-          "name": "Toast_message",
-          "path": "/ui/ToastGroup/Toast_message",
+          "name": "Black",
+          "path": "/ui/DayIntroGroup/Black",
           "nameEditable": true,
           "enable": true,
           "visible": true,
@@ -136,46 +136,41 @@
           "@components": [
             {
               "@type": "MOD.Core.UITransformComponent",
-              "AlignmentOption": 3,
+              "AlignmentOption": 15,
               "AnchorsMax": {
-                "x": 0.5,
+                "x": 1.0,
                 "y": 1.0
               },
               "AnchorsMin": {
-                "x": 0.5,
-                "y": 1.0
+                "x": 0.0,
+                "y": 0.0
               },
               "MobileOnly": false,
               "OffsetMax": {
-                "x": 106.5,
-                "y": -24.0
+                "x": 0.0,
+                "y": 0.0
               },
               "OffsetMin": {
-                "x": -106.5,
-                "y": -104.0
+                "x": 0.0,
+                "y": 0.0
               },
               "Pivot": {
                 "x": 0.5,
                 "y": 0.5
               },
               "RectSize": {
-                "x": 213.0,
-                "y": 80.0
+                "x": 1920.0,
+                "y": 1080.0
               },
               "UIMode": 1,
-              "UIScale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-              },
               "UIVersion": 2,
               "anchoredPosition": {
                 "x": 0.0,
-                "y": -64.0
+                "y": 0.0
               },
               "Position": {
                 "x": 0.0,
-                "y": 476.0,
+                "y": 0.0,
                 "z": 0.0
               },
               "QuaternionRotation": {
@@ -184,71 +179,103 @@
                 "z": 0.0,
                 "w": 1.0
               },
-              "Scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-              },
               "Enable": true
             },
             {
               "@type": "MOD.Core.SpriteGUIRendererComponent",
-              "AnimClipPlayType": 0,
-              "EndFrameIndex": 2147483647,
               "ImageRUID": {
-                "DataId": "7d614552ba7843049bb48ebd4509fb8f"
-              },
-              "LocalPosition": {
-                "x": 0.0,
-                "y": 0.0
-              },
-              "LocalScale": {
-                "x": 1.0,
-                "y": 1.0
+                "DataId": ""
               },
               "OverrideSorting": false,
-              "PlayRate": 1.0,
-              "StartFrameIndex": 0,
               "Color": {
-                "r": 1.0,
-                "g": 1.0,
-                "b": 1.0,
-                "a": 0.6
-              },
-              "DropShadow": false,
-              "DropShadowAngle": 30.0,
-              "DropShadowColor": {
                 "r": 0.0,
                 "g": 0.0,
                 "b": 0.0,
-                "a": 0.72
-              },
-              "DropShadowDistance": 32.0,
-              "FillAmount": 1.0,
-              "FillCenter": true,
-              "FillClockWise": true,
-              "FillMethod": 0,
-              "FillOrigin": 0,
-              "FlipX": false,
-              "FlipY": false,
-              "FrameColumn": 1,
-              "FrameRate": 0,
-              "FrameRow": 1,
-              "Outline": false,
-              "OutlineColor": {
-                "r": 1.0,
-                "g": 1.0,
-                "b": 1.0,
                 "a": 1.0
               },
-              "OutlineWidth": 3.0,
+              "FlipX": false,
               "RaycastTarget": true,
               "Type": 1,
+              "Enable": true
+            }
+          ],
+          "@version": 1
+        }
+      },
+      {
+        "id": "a31f4e4e-7a9a-4ac5-8b8a-1e2b74d90103",
+        "path": "/ui/DayIntroGroup/DayText",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.TextComponent",
+        "jsonString": {
+          "name": "DayText",
+          "path": "/ui/DayIntroGroup/DayText",
+          "nameEditable": true,
+          "enable": true,
+          "visible": true,
+          "localize": true,
+          "displayOrder": 1,
+          "pathConstraints": "///",
+          "revision": 1,
+          "origin": {
+            "type": "Model",
+            "entry_id": "UIText",
+            "sub_entity_id": null,
+            "root_entity_id": null,
+            "replaced_model_id": null
+          },
+          "modelId": "uitext",
+          "@components": [
+            {
+              "@type": "MOD.Core.UITransformComponent",
+              "AlignmentOption": 0,
+              "AnchorsMax": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "AnchorsMin": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "MobileOnly": false,
+              "OffsetMax": {
+                "x": 320.0,
+                "y": 60.0
+              },
+              "OffsetMin": {
+                "x": -320.0,
+                "y": -60.0
+              },
+              "Pivot": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "RectSize": {
+                "x": 640.0,
+                "y": 120.0
+              },
+              "UIMode": 1,
+              "UIVersion": 2,
+              "anchoredPosition": {
+                "x": 0.0,
+                "y": 0.0
+              },
+              "Position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "QuaternionRotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0
+              },
               "Enable": true
             },
             {
               "@type": "MOD.Core.TextComponent",
               "Alignment": 4,
+              "Bold": true,
               "Font": 0,
               "FontColor": {
                 "r": 1.0,
@@ -256,37 +283,18 @@
                 "b": 1.0,
                 "a": 1.0
               },
-              "FontSize": 27,
-              "MaxSize": 40,
-              "MinSize": 10,
-              "OutlineColor": {
-                "r": 0.7,
-                "g": 0.7,
-                "b": 0.7,
-                "a": 1.0
-              },
+              "FontSize": 72,
+              "MaxSize": 82,
+              "MinSize": 24,
               "OutlineDistance": {
                 "x": 1.0,
                 "y": -1.0
               },
               "Overflow": 0,
               "OverrideSorting": false,
-              "Padding": {
-                "left": 50,
-                "right": 50,
-                "top": 20,
-                "bottom": 20
-              },
-              "SizeFit": true,
-              "Text": "message",
+              "SizeFit": false,
+              "Text": "DAY 1",
               "UseOutLine": false,
-              "Enable": true
-            },
-            {
-              "@type": "MOD.Core.CanvasGroupComponent",
-              "BlocksRaycasts": true,
-              "GroupAlpha": 1.0,
-              "Interactable": true,
               "Enable": true
             }
           ],

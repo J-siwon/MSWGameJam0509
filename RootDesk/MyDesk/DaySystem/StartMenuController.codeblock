@@ -1,7 +1,7 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "codeblock://e6e32ef5-429c-4a95-aeb5-be2d17561561",
+  "EntryKey": "codeblock://b8c5e810-1d42-4c62-a624-7a4413d90100",
   "ContentType": "x-mod/codeblock",
   "Content": "",
   "Usage": 0,
@@ -22,15 +22,12 @@
         "Minor": 1
       },
       "Description": "",
-      "Id": "e6e32ef5-429c-4a95-aeb5-be2d17561561",
+      "Id": "b8c5e810-1d42-4c62-a624-7a4413d90100",
       "Language": 1,
-      "Name": "WorkProcessService",
-      "Type": 5,
+      "Name": "StartMenuController",
+      "Type": 1,
       "Source": 0,
-      "Target": null,
-      "worldCoreVersion": "26.3.0.0",
-      "worldStudioVersion": "0.1.0.0",
-      "useService": 0
+      "Target": null
     }
   }
 }

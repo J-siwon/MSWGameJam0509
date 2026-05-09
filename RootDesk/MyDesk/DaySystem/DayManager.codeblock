@@ -1,7 +1,7 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "codeblock://34d1fa75-66fe-4a97-981b-627f863c1cc0",
+  "EntryKey": "codeblock://560c868f-58ba-4f96-9831-56dc086244c5",
   "ContentType": "x-mod/codeblock",
   "Content": "",
   "Usage": 0,
@@ -22,15 +22,12 @@
         "Minor": 1
       },
       "Description": "",
-      "Id": "34d1fa75-66fe-4a97-981b-627f863c1cc0",
+      "Id": "560c868f-58ba-4f96-9831-56dc086244c5",
       "Language": 1,
-      "Name": "UISlotViewService",
-      "Type": 5,
+      "Name": "DayManager",
+      "Type": 1,
       "Source": 0,
-      "Target": null,
-      "worldCoreVersion": "26.3.0.0",
-      "worldStudioVersion": "0.1.0.0",
-      "useService": 0
+      "Target": null
     }
   }
 }

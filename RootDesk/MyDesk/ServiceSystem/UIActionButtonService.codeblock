@@ -1,14 +1,14 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "codeblock://0dc90cfd-1e07-4533-8bba-be62450d9f95",
+  "EntryKey": "codeblock://b6a584b3-9e3b-4942-b62c-6be9cfe1f6d4",
   "ContentType": "x-mod/codeblock",
   "Content": "",
   "Usage": 0,
   "UsePublish": 1,
   "UseService": 0,
   "CoreVersion": "26.3.0.0",
-  "StudioVersion": "0.1.0.0",
+  "StudioVersion": "",
   "DynamicLoading": 0,
   "ContentProto": {
     "Use": "Json",
@@ -22,15 +22,12 @@
         "Minor": 1
       },
       "Description": "",
-      "Id": "0dc90cfd-1e07-4533-8bba-be62450d9f95",
+      "Id": "b6a584b3-9e3b-4942-b62c-6be9cfe1f6d4",
       "Language": 1,
-      "Name": "NewComponent",
-      "Type": 1,
+      "Name": "UIActionButtonService",
+      "Type": 5,
       "Source": 0,
-      "Target": null,
-      "worldCoreVersion": "26.3.0.0",
-      "worldStudioVersion": "0.1.0.0",
-      "useService": 0
+      "Target": null
     }
   }
 }
