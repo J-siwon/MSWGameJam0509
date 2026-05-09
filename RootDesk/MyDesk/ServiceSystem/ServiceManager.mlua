@@ -285,6 +285,8 @@ script ServiceManager extends Logic
 			log("Clicked cup slot: " .. slot.id .. " / hasCup: false")
 			return
 		end
+
+		-- 도현아 컵 데이터 받아라 cupinfo가 컵 데이터다 가져가라
 		
 		log("Clicked cup slot: " .. slot.id .. " / hasCup: true / " .. self:GetCupInfoText(cupInfo))
 	end

@@ -1,7 +1,11 @@
 {
   "Id": "",
   "GameId": "",
+<<<<<<< HEAD
+  "EntryKey": "directory://6f9a0c5849bf43b79af37c344486374c",
+=======
   "EntryKey": "directory://0529dbc2926a47bf860de13cf7bd5f8d",
+>>>>>>> 7c91cbb16e0e84e0d621a161b05fe5acd913fb9b
   "ContentType": "x-mod/directory",
   "Content": "",
   "Usage": 0,
@@ -13,7 +17,11 @@
   "ContentProto": {
     "Use": "Json",
     "Json": {
+<<<<<<< HEAD
+      "entry_id": "directory://6f9a0c5849bf43b79af37c344486374c",
+=======
       "entry_id": "directory://0529dbc2926a47bf860de13cf7bd5f8d",
+>>>>>>> 7c91cbb16e0e84e0d621a161b05fe5acd913fb9b
       "name": "ServiceSystem",
       "lock": false,
       "folding": false,
