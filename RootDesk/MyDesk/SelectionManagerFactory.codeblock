@@ -1,14 +1,14 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "codeblock://f9b8319e-e701-49ee-abeb-8c991ccd86aa",
+  "EntryKey": "codeblock://bf568e82-51f3-4d01-9867-247fc79bcdce",
   "ContentType": "x-mod/codeblock",
   "Content": "",
   "Usage": 0,
   "UsePublish": 1,
   "UseService": 0,
   "CoreVersion": "26.3.0.0",
-  "StudioVersion": "",
+  "StudioVersion": "0.1.0.0",
   "DynamicLoading": 0,
   "ContentProto": {
     "Use": "Json",
@@ -22,9 +22,9 @@
         "Minor": 1
       },
       "Description": "",
-      "Id": "f9b8319e-e701-49ee-abeb-8c991ccd86aa",
+      "Id": "bf568e82-51f3-4d01-9867-247fc79bcdce",
       "Language": 1,
-      "Name": "ServiceManager",
+      "Name": "SelectionManagerFactory",
       "Type": 5,
       "Source": 0,
       "Target": null

@@ -1,59 +1,102 @@
 @Logic
 script ServiceManager extends Logic
 
-	-- 런타임에서 공유하는 핵심 상태와 서비스 설정값
 	property any GameData = nil
+
 	property any SelectionManager = nil
+
 	property any selectedButtonEntity = nil
+
 	property any prepTargetSlot = nil
+
 	property any brewShotTargetSlot = nil
+
 	property any mixTargetMixer = nil
+
 	property any actionButtonConfigs = nil
+
 	property any actionButtonTweenIds = nil
+
 	property any progressTimerIds = nil
+
 	property string cupImageRUID = "95c000a4a32d9e74392498f59cd99651"
+
 	property number prepDuration = 1
+
 	property number brewShotDuration = 1
+
 	property number mixDuration = 1
+
 	property number prepButtonShowX = 880
+
 	property number prepButtonHideX = 1040
+
 	property number prepButtonY = 0
+
 	property number prepButtonTweenDuration = 0.15
+
 	property number brewShotButtonY = -95
+
 	property number mixButtonY = -190
+
 	property number discardButtonX = 0
+
 	property number discardButtonShowY = -460
+
 	property number discardButtonHideY = -620
-	
-	-- 기본 조작 버튼: 컵/물/얼음/재료 선택 버튼
+
 	property ButtonComponent btnIceCup = "c3ca0001-cafe-cafe-cafe-c3cafe000002"
+
 	property ButtonComponent btnHotCup = "c3ca0001-cafe-cafe-cafe-c3cafe000003"
+
 	property ButtonComponent btnIceMaker = "c3ca0001-cafe-cafe-cafe-c3cafe000004"
+
 	property ButtonComponent btnColdWater = "c3ca0001-cafe-cafe-cafe-c3cafe000005"
+
 	property ButtonComponent btnHotWater = "c3ca0001-cafe-cafe-cafe-c3cafe000006"
+
 	property ButtonComponent btnIng1 = "c3ca0001-cafe-cafe-cafe-c3cafe000007"
+
 	property ButtonComponent btnIng2 = "c3ca0001-cafe-cafe-cafe-c3cafe000008"
+
 	property ButtonComponent btnIng3 = "c3ca0001-cafe-cafe-cafe-c3cafe000009"
+
 	property ButtonComponent btnIng4 = "c3ca0001-cafe-cafe-cafe-c3cafe000010"
+
 	property ButtonComponent btnIng5 = "c3ca0001-cafe-cafe-cafe-c3cafe000011"
+
 	property ButtonComponent btnIng6 = "c3ca0001-cafe-cafe-cafe-c3cafe000012"
+
 	property ButtonComponent btnIng7 = "c3ca0001-cafe-cafe-cafe-c3cafe000013"
+
 	property ButtonComponent btnIng8 = "c3ca0001-cafe-cafe-cafe-c3cafe000014"
-	-- 동적 상태를 가지는 슬롯 버튼: 컵 슬롯, 재료 슬롯, 믹서 슬롯
+
 	property ButtonComponent slotCup1 = "c3ca0001-cafe-cafe-cafe-c3cafe000015"
+
 	property ButtonComponent slotCup2 = "c3ca0001-cafe-cafe-cafe-c3cafe000016"
+
 	property ButtonComponent slotCup3 = "c3ca0001-cafe-cafe-cafe-c3cafe000017"
+
 	property ButtonComponent slotCup4 = "c3ca0001-cafe-cafe-cafe-c3cafe000018"
+
 	property ButtonComponent slotCup5 = "c3ca0001-cafe-cafe-cafe-c3cafe000019"
+
 	property ButtonComponent slotIng1 = "c3ca0001-cafe-cafe-cafe-c3cafe000020"
+
 	property ButtonComponent slotIng2 = "c3ca0001-cafe-cafe-cafe-c3cafe000021"
+
 	property ButtonComponent slotMixer1 = "c3ca0001-cafe-cafe-cafe-c3cafe000022"
+
 	property ButtonComponent slotMixer2 = "c3ca0001-cafe-cafe-cafe-c3cafe000023"
+
 	property ButtonComponent slotMixer3 = "c3ca0001-cafe-cafe-cafe-c3cafe000024"
-	-- 선택된 대상에 따라 오른쪽/아래쪽에서 나타나는 공용 액션 버튼
+
 	property ButtonComponent btnPrepAction = "c3ca0001-cafe-cafe-cafe-c3cafe000025"
+
 	property ButtonComponent btnBrewShotAction = "c3ca0001-cafe-cafe-cafe-c3cafe000026"
+
 	property ButtonComponent btnMixAction = "c3ca0001-cafe-cafe-cafe-c3cafe000027"
+
 	property ButtonComponent btnDiscardAction = "c3ca0001-cafe-cafe-cafe-c3cafe000028"
 
 	@ExecSpace("ClientOnly")
@@ -284,7 +327,7 @@ script ServiceManager extends Logic
 			log("Clicked cup slot: " .. slot.id .. " / hasCup: false")
 			return
 		end
-
+		
 		-- 도현아 컵 데이터 받아라 cupinfo가 컵 데이터다 가져가라
 		
 		log("Clicked cup slot: " .. slot.id .. " / hasCup: true / " .. self:GetCupInfoText(cupInfo))

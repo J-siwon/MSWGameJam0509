@@ -1,7 +1,6 @@
 @Logic
 script SelectionManagerFactory extends Logic
 
-	-- 선택 상태는 항상 하나만 유지되며, 모든 클릭 규칙은 이 매니저가 중앙에서 판단한다.
 	method any CreateSelectionManager(any gameManager)
 		local manager = {
 			state = "NONE",

@@ -1,18 +1,14 @@
 {
   "Id": "",
   "GameId": "",
-<<<<<<< HEAD
-  "EntryKey": "codeblock://bf568e82-51f3-4d01-9867-247fc79bcdce",
-=======
-  "EntryKey": "codeblock://6a52ea7a-4d4a-4146-914b-894c7a39070e",
->>>>>>> 7c91cbb16e0e84e0d621a161b05fe5acd913fb9b
+  "EntryKey": "codeblock://a7c51bf3-f842-49ce-bf3b-ec966d32a33a",
   "ContentType": "x-mod/codeblock",
   "Content": "",
   "Usage": 0,
   "UsePublish": 1,
   "UseService": 0,
   "CoreVersion": "26.3.0.0",
-  "StudioVersion": "",
+  "StudioVersion": "0.1.0.0",
   "DynamicLoading": 0,
   "ContentProto": {
     "Use": "Json",
@@ -26,13 +22,9 @@
         "Minor": 1
       },
       "Description": "",
-<<<<<<< HEAD
-      "Id": "bf568e82-51f3-4d01-9867-247fc79bcdce",
-=======
-      "Id": "6a52ea7a-4d4a-4146-914b-894c7a39070e",
->>>>>>> 7c91cbb16e0e84e0d621a161b05fe5acd913fb9b
+      "Id": "a7c51bf3-f842-49ce-bf3b-ec966d32a33a",
       "Language": 1,
-      "Name": "SelectionManagerFactory",
+      "Name": "WorkProcessService",
       "Type": 5,
       "Source": 0,
       "Target": null

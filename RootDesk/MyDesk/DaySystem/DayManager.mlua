@@ -2,37 +2,63 @@
 script DayManager extends Component
 
 	property Entity CustomerTableEntity = nil
+
 	property string CustomerTablePath = "/ui/CustomerUIGroup/CustomerTable"
+
 	property string DayGoalDataSetName = "DayGoalData"
+
 	property number MaxDay = 7
+
 	property number DefaultDayDurationSeconds = 180
+
 	property number DefaultGoalMoney = 600
+
 	property number DefaultSpawnIntervalSeconds = 4
+
 	property number DefaultMaxCustomerCount = 5
+
 	property boolean AutoStartOnBeginPlay = false
+
 	property boolean AutoAdvanceDay = true
+
 	property boolean ClearImmediatelyOnGoal = false
+
 	property number NextDayDelaySeconds = 3
+
 	property number HudRefreshIntervalSeconds = 0.1
+
 	property boolean UseDataStorage = true
+
 	property string SaveStorageName = "MSWGameJam0509Save"
+
 	property string SaveKey = "CafeDayProgress"
+
 	property Entity DayIntroGroup = "a31f4e4e-7a9a-4ac5-8b8a-1e2b74d90101"
+
 	property CanvasGroupComponent DayIntroCanvasGroup = "a31f4e4e-7a9a-4ac5-8b8a-1e2b74d90101"
+
 	property TextComponent DayIntroText = "a31f4e4e-7a9a-4ac5-8b8a-1e2b74d90103"
+
 	property number DayIntroHoldSeconds = 1
+
 	property number DayIntroFadeInSeconds = 0.6
+
 	property number DayIntroFadeSeconds = 1.2
+
 	property TextComponent DayText = "7f9f3e00-6df2-4f4a-9b27-5650f0d90003"
+
 	property TextComponent MoneyText = "7f9f3e00-6df2-4f4a-9b27-5650f0d90005"
+
 	property TextComponent GoalText = "7f9f3e00-6df2-4f4a-9b27-5650f0d90006"
+
 	property TextComponent TimeText = "7f9f3e00-6df2-4f4a-9b27-5650f0d90004"
+
 	property any Runtime = nil
 
 	method void OnBeginPlay()
 		self:EnsureRuntime()
 		self:RefreshHud()
-
+		
 		if self.AutoStartOnBeginPlay == true then
 			self:StartFirstDay()
 		end
@@ -48,7 +74,7 @@ script DayManager extends Component
 		if self.Runtime ~= nil then
 			return
 		end
-
+		
 		self.Runtime = {
 			day = 0,
 			status = "Ready",
@@ -94,13 +120,13 @@ script DayManager extends Component
 		self:EnsureRuntime()
 		self:ClearTimers()
 		self:StopCustomerTable()
-
+		
 		local playableDay = self:GetPlayableDay(day)
 		self.Runtime.day = playableDay
 		self.Runtime.status = "Intro"
 		self.Runtime.money = 0
 		self:RefreshHud()
-
+		
 		self:ShowDayIntro(playableDay, function()
 			self:StartDay(playableDay)
 		end, false)
@@ -110,13 +136,13 @@ script DayManager extends Component
 		self:EnsureRuntime()
 		self:ClearTimers()
 		self:StopCustomerTable()
-
+		
 		local playableDay = self:GetPlayableDay(day)
 		self.Runtime.day = playableDay
 		self.Runtime.status = "Intro"
 		self.Runtime.money = 0
 		self:RefreshHud()
-
+		
 		self:ShowDayIntro(playableDay, function()
 			self:StartDay(playableDay)
 		end, true)
@@ -125,12 +151,12 @@ script DayManager extends Component
 	method void StartDay(number day)
 		self:EnsureRuntime()
 		self:ClearTimers()
-
+		
 		if day > self.MaxDay then
 			self:FinishGame()
 			return
 		end
-
+		
 		local config = self:GetDayConfig(day)
 		self.Runtime.day = day
 		self.Runtime.status = "Playing"
@@ -139,11 +165,11 @@ script DayManager extends Component
 		self.Runtime.durationSeconds = config.durationSeconds
 		self.Runtime.startedAt = _UtilLogic.ElapsedSeconds
 		self.Runtime.endsAt = self.Runtime.startedAt + config.durationSeconds
-
+		
 		self:StartCustomerTable(config)
 		self:StartTickTimer()
 		self:RefreshHud()
-
+		
 		log("Day " .. tostring(day) .. " started. Goal: " .. tostring(config.goalMoney))
 	end
 
@@ -154,14 +180,14 @@ script DayManager extends Component
 			end
 			return
 		end
-
+		
 		if self.DayIntroText ~= nil then
 			self.DayIntroText.Text = "DAY " .. tostring(day)
 		end
-
+		
 		self.DayIntroGroup.Enable = true
 		self.DayIntroGroup.Visible = true
-
+		
 		if fadeIn == true then
 			self.DayIntroCanvasGroup.GroupAlpha = 0
 			self:FadeInDayIntro(function()
@@ -169,7 +195,7 @@ script DayManager extends Component
 			end)
 			return
 		end
-
+		
 		self.DayIntroCanvasGroup.GroupAlpha = 1
 		self:HoldDayIntro(onFinished)
 	end
@@ -179,7 +205,7 @@ script DayManager extends Component
 			self.Runtime.introTimerId = 0
 			self:FadeOutDayIntro(onFinished)
 		end
-
+		
 		self.Runtime.introTimerId = _TimerService:SetTimerOnce(finishHold, math.max(0, self.DayIntroHoldSeconds))
 	end
 
@@ -190,24 +216,24 @@ script DayManager extends Component
 			end
 			return
 		end
-
+		
 		if self.Runtime.introFadeTimerId > 0 then
 			_TimerService:ClearTimer(self.Runtime.introFadeTimerId)
 			self.Runtime.introFadeTimerId = 0
 		end
-
+		
 		local duration = math.max(0.01, self.DayIntroFadeInSeconds)
 		local elapsed = 0
 		local previousTime = _UtilLogic.ElapsedSeconds
-
+		
 		local fade = function()
 			local now = _UtilLogic.ElapsedSeconds
 			elapsed = elapsed + now - previousTime
 			previousTime = now
-
+		
 			local alpha = math.min(1, elapsed / duration)
 			self.DayIntroCanvasGroup.GroupAlpha = alpha
-
+		
 			if elapsed >= duration then
 				self.DayIntroCanvasGroup.GroupAlpha = 1
 				_TimerService:ClearTimer(self.Runtime.introFadeTimerId)
@@ -217,7 +243,7 @@ script DayManager extends Component
 				end
 			end
 		end
-
+		
 		self.Runtime.introFadeTimerId = _TimerService:SetTimerRepeat(fade, 1 / 60)
 	end
 
@@ -228,24 +254,24 @@ script DayManager extends Component
 			end
 			return
 		end
-
+		
 		if self.Runtime.introFadeTimerId > 0 then
 			_TimerService:ClearTimer(self.Runtime.introFadeTimerId)
 			self.Runtime.introFadeTimerId = 0
 		end
-
+		
 		local duration = math.max(0.01, self.DayIntroFadeSeconds)
 		local elapsed = 0
 		local previousTime = _UtilLogic.ElapsedSeconds
-
+		
 		local fade = function()
 			local now = _UtilLogic.ElapsedSeconds
 			elapsed = elapsed + now - previousTime
 			previousTime = now
-
+		
 			local alpha = 1 - math.min(1, elapsed / duration)
 			self.DayIntroCanvasGroup.GroupAlpha = alpha
-
+		
 			if elapsed >= duration then
 				self.DayIntroCanvasGroup.GroupAlpha = 0
 				self.DayIntroGroup.Enable = false
@@ -256,7 +282,7 @@ script DayManager extends Component
 				end
 			end
 		end
-
+		
 		self.Runtime.introFadeTimerId = _TimerService:SetTimerRepeat(fade, 1 / 60)
 	end
 
@@ -266,7 +292,7 @@ script DayManager extends Component
 			_TimerService:ClearTimer(self.Runtime.tickTimerId)
 			self.Runtime.tickTimerId = 0
 		end
-
+		
 		local tick = function()
 			self:TickDay()
 		end
@@ -277,12 +303,12 @@ script DayManager extends Component
 		if self.Runtime.status ~= "Playing" then
 			return
 		end
-
+		
 		if self:GetRemainingSeconds() <= 0 then
 			self:EndCurrentDay()
 			return
 		end
-
+		
 		self:RefreshHud()
 	end
 
@@ -290,7 +316,7 @@ script DayManager extends Component
 		if self.Runtime.status ~= "Playing" then
 			return
 		end
-
+		
 		if self.Runtime.money >= self.Runtime.goalMoney then
 			self:ClearCurrentDay()
 		else
@@ -305,14 +331,14 @@ script DayManager extends Component
 		self:ClearTimers()
 		self:StopCustomerTable()
 		self:RefreshHud()
-
+		
 		log("Day " .. tostring(self.Runtime.day) .. " cleared. Earned: " .. tostring(self.Runtime.money))
-
+		
 		if self.Runtime.day >= self.MaxDay then
 			self:FinishGame()
 			return
 		end
-
+		
 		if self.AutoAdvanceDay == true then
 			local nextDay = function()
 				self.Runtime.nextDayTimerId = 0
@@ -328,7 +354,7 @@ script DayManager extends Component
 		self:ClearTimers()
 		self:StopCustomerTable()
 		self:RefreshHud()
-
+		
 		log("Day " .. tostring(self.Runtime.day) .. " failed. Earned: " .. tostring(self.Runtime.money) .. " / Goal: " .. tostring(self.Runtime.goalMoney))
 	end
 
@@ -337,7 +363,7 @@ script DayManager extends Component
 		self:ClearTimers()
 		self:StopCustomerTable()
 		self:RefreshHud()
-
+		
 		log("Game finished. Total money: " .. tostring(self.Runtime.totalMoney))
 	end
 
@@ -347,19 +373,19 @@ script DayManager extends Component
 			log("Cannot submit drink. Day is not playing.")
 			return false
 		end
-
+		
 		local customerTable = self:GetCustomerTable()
 		if customerTable == nil then
 			log("DayManager: CustomerTableEntity is not set.")
 			return false
 		end
-
+		
 		local success = customerTable:ResolveFirstMatchingDrink(drinkId)
 		if success == false then
 			log("Submit failed. No customer wants drink: " .. tostring(drinkId))
 			return false
 		end
-
+		
 		local earnedMoney = customerTable:GetLastResolvePrice()
 		self:AddMoney(earnedMoney)
 		log("Submit success. Drink: " .. tostring(drinkId) .. " / Earned: " .. tostring(earnedMoney))
@@ -372,19 +398,19 @@ script DayManager extends Component
 			log("Cannot submit top customer. Day is not playing.")
 			return false
 		end
-
+		
 		local customerTable = self:GetCustomerTable()
 		if customerTable == nil then
 			log("DayManager: CustomerTableEntity is not set.")
 			return false
 		end
-
+		
 		local success = customerTable:CompleteTopCustomerForTest()
 		if success == false then
 			log("Submit failed. No waiting customer.")
 			return false
 		end
-
+		
 		local earnedMoney = customerTable:GetLastResolvePrice()
 		self:AddMoney(earnedMoney)
 		log("Submit top customer success. Earned: " .. tostring(earnedMoney))
@@ -401,10 +427,10 @@ script DayManager extends Component
 		if self.Runtime.status ~= "Playing" then
 			return
 		end
-
+		
 		self.Runtime.money = self.Runtime.money + math.max(0, math.floor(amount + 0.5))
 		self:RefreshHud()
-
+		
 		if self.ClearImmediatelyOnGoal == true and self.Runtime.status == "Playing" and self.Runtime.money >= self.Runtime.goalMoney then
 			self:ClearCurrentDay()
 		end
@@ -415,13 +441,13 @@ script DayManager extends Component
 		if self.Runtime.status ~= "Playing" then
 			return 0
 		end
-
+		
 		return math.max(0, self.Runtime.endsAt - _UtilLogic.ElapsedSeconds)
 	end
 
 	method void RefreshHud()
 		self:EnsureRuntime()
-
+		
 		if self.DayText ~= nil then
 			self.DayText.Text = "Day " .. tostring(math.max(1, self.Runtime.day)) .. " / " .. tostring(self.MaxDay)
 		end
@@ -440,7 +466,7 @@ script DayManager extends Component
 		local totalSeconds = math.max(0, math.floor(seconds + 0.5))
 		local minutes = math.floor(totalSeconds / 60)
 		local remainSeconds = totalSeconds - minutes * 60
-
+		
 		if remainSeconds < 10 then
 			return tostring(minutes) .. ":0" .. tostring(remainSeconds)
 		end
@@ -453,7 +479,7 @@ script DayManager extends Component
 			log("DayManager: CustomerTableEntity is not set.")
 			return
 		end
-
+		
 		customerTable:StopSpawning()
 		customerTable:ClearCustomers()
 		customerTable.AutoSpawn = true
@@ -467,7 +493,7 @@ script DayManager extends Component
 		if customerTable == nil then
 			return
 		end
-
+		
 		customerTable:CloseTable()
 		customerTable:ClearCustomers()
 	end
@@ -510,18 +536,18 @@ script DayManager extends Component
 
 	method number LoadSavedDay()
 		self:EnsureRuntime()
-
+		
 		local storedDay = self:LoadProgressDayFromStorage()
 		if storedDay > 0 then
 			self.Runtime.savedDay = storedDay
 		end
-
+		
 		return self:GetPlayableDay(self.Runtime.savedDay)
 	end
 
 	method void SaveProgressDay(number day)
 		self:EnsureRuntime()
-
+		
 		local savedDay = math.max(1, math.floor(day + 0.5))
 		self.Runtime.savedDay = savedDay
 		self:SaveProgressDayToStorage(savedDay)
@@ -550,12 +576,12 @@ script DayManager extends Component
 		if _UserService == nil or _UserService.LocalPlayer == nil then
 			return ""
 		end
-
+		
 		local player = _UserService.LocalPlayer
 		if player.PlayerComponent == nil then
 			return ""
 		end
-
+		
 		if player.PlayerComponent.UserId == nil then
 			return ""
 		end
@@ -566,7 +592,7 @@ script DayManager extends Component
 		if self.UseDataStorage ~= true or _DataStorageService == nil then
 			return 0
 		end
-
+		
 		local ok, value = pcall(function()
 			local userId = self:GetLocalUserId()
 			if userId ~= nil and userId ~= "" then
@@ -578,18 +604,18 @@ script DayManager extends Component
 					end
 				end
 			end
-
+		
 			local globalData = _DataStorageService:GetAndWait(self.SaveStorageName, self:GetStorageKey())
 			if globalData == nil or globalData == "" then
 				return 0
 			end
 			return tonumber(globalData) or 0
 		end)
-
+		
 		if ok == true and value ~= nil then
 			return tonumber(value) or 0
 		end
-
+		
 		self:LogStorageWarning("load", tostring(value))
 		return 0
 	end
@@ -598,7 +624,7 @@ script DayManager extends Component
 		if self.UseDataStorage ~= true or _DataStorageService == nil then
 			return
 		end
-
+		
 		local ok, errorMessage = pcall(function()
 			local text = tostring(math.max(1, math.floor(day + 0.5)))
 			local userId = self:GetLocalUserId()
@@ -609,10 +635,10 @@ script DayManager extends Component
 					return
 				end
 			end
-
+		
 			_DataStorageService:SetAndWait(self.SaveStorageName, self:GetStorageKey(), text)
 		end)
-
+		
 		if ok ~= true then
 			self:LogStorageWarning("save", tostring(errorMessage))
 		end
@@ -623,7 +649,7 @@ script DayManager extends Component
 		if self.Runtime.storageWarningLogged == true then
 			return
 		end
-
+		
 		self.Runtime.storageWarningLogged = true
 		log("DayManager: progress storage " .. tostring(action) .. " skipped. " .. tostring(reason))
 	end
@@ -633,7 +659,7 @@ script DayManager extends Component
 		if config ~= nil then
 			return config
 		end
-
+		
 		return {
 			goalMoney = self.DefaultGoalMoney + (day - 1) * 400,
 			durationSeconds = self.DefaultDayDurationSeconds,
@@ -646,12 +672,12 @@ script DayManager extends Component
 		if _EntryService == nil or _DataService == nil then
 			return nil
 		end
-
+		
 		local dataSetId = _EntryService:GetDataSetIdByName(self.DayGoalDataSetName)
 		if dataSetId == nil or dataSetId == "" then
 			return nil
 		end
-
+		
 		local rowCount = _DataService:GetRowCount(self.DayGoalDataSetName)
 		for rowIndex = 1, rowCount do
 			local rowDay = self:GetNumberCell(rowIndex, "Day", 0)
@@ -664,7 +690,7 @@ script DayManager extends Component
 				}
 			end
 		end
-
+		
 		return nil
 	end
 
@@ -673,7 +699,7 @@ script DayManager extends Component
 		if value == nil or value == "" then
 			return fallback
 		end
-
+		
 		local numberValue = tonumber(value)
 		if numberValue == nil then
 			return fallback

@@ -561,7 +561,7 @@
       {
         "id": "86fdece9-0ca1-4983-b47a-9db1b4b7d4ec",
         "path": "/ui/CustomerUIGroup/CustomerTemplate",
-        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.TextComponent,script.CustomerComponent,MOD.Core.CanvasGroupComponent",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.TextComponent,MOD.Core.CanvasGroupComponent,script.CustomerComponent",
         "jsonString": {
           "name": "CustomerTemplate",
           "path": "/ui/CustomerUIGroup/CustomerTemplate",
@@ -648,6 +648,11 @@
               "Enable": true
             },
             {
+              "@type": "MOD.Core.CanvasGroupComponent",
+              "GroupAlpha": 1.0,
+              "Enable": true
+            },
+            {
               "@type": "script.CustomerComponent",
               "Enable": true,
               "CharacterIconEntity": {
@@ -674,11 +679,6 @@
                 "EntityId": "3edcef3f-5e07-4f3f-98c7-f8b99a8fdf0d",
                 "Version2": false
               }
-            },
-            {
-              "@type": "MOD.Core.CanvasGroupComponent",
-              "GroupAlpha": 1.0,
-              "Enable": true
             }
           ],
           "@version": 1

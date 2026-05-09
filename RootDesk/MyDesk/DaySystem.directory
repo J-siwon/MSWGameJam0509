@@ -1,20 +1,20 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "directory://6f9a0c5849bf43b79af37c344486374c",
+  "EntryKey": "directory://8f4caf66c62f48dd92d29d013a3149a2",
   "ContentType": "x-mod/directory",
   "Content": "",
   "Usage": 0,
   "UsePublish": 1,
   "UseService": 0,
   "CoreVersion": "26.3.0.0",
-  "StudioVersion": "0.1.0.0",
+  "StudioVersion": "",
   "DynamicLoading": 0,
   "ContentProto": {
     "Use": "Json",
     "Json": {
-      "entry_id": "directory://6f9a0c5849bf43b79af37c344486374c",
-      "name": "ServiceSystem",
+      "entry_id": "directory://8f4caf66c62f48dd92d29d013a3149a2",
+      "name": "DaySystem",
       "lock": false,
       "folding": false,
       "nameEditable": true

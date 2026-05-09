@@ -1,7 +1,6 @@
 @Logic
 script MixerService extends Logic
 
-	-- 믹서 결과는 정렬된 재료 키를 기준으로 레시피 테이블에서 찾는다.
 	method string GetMixerResultId(any gameManager, any mixer)
 		local recipeKey = self:GetMixerRecipeKey(mixer)
 		local resultId = gameManager.GameData.MixerRecipes[recipeKey]
@@ -30,7 +29,6 @@ script MixerService extends Logic
 		}
 	end
 
-	-- 믹서 투입 가능 여부와 공간 제한을 검사한 뒤 재료를 추가한다.
 	method boolean AddIngredientToMixer(any gameManager, any mixer, string ingredientId)
 		if mixer.isMixed == true or mixer.isMixing == true then
 			log("Cannot add ingredient to mixer: " .. mixer.id)
@@ -59,7 +57,6 @@ script MixerService extends Logic
 		return true
 	end
 
-	-- 레시피 비교는 순서를 무시하기 위해 재료 ID를 정렬한 문자열 키로 처리한다.
 	method string GetMixerRecipeKey(any mixer)
 		local ingredients = {}
 		
