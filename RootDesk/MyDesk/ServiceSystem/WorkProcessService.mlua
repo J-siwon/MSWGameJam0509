@@ -29,6 +29,7 @@ script WorkProcessService extends Logic
 		slot.state = "PREPPED"
 		slot.ingredientId = self:GetPreppedIngredientId(slot.ingredientId)
 		slot.uiButton.Enable = true
+		gameManager:SetSlotImage(slot, gameManager:GetPrepImageRUID(slot.ingredientId))
 		self:SetPrepSlotProgress(slot, 0)
 		log("Finished prepping ingredient slot: " .. slot.id .. " / ingredient: " .. slot.ingredientId)
 	end
@@ -79,6 +80,7 @@ script WorkProcessService extends Logic
 		mixer.resultId = resultId
 		mixer.isTrash = gameManager:IsTrashMixerResult(mixer)
 		mixer.uiButton.Enable = true
+		gameManager:SetSlotImage(mixer, gameManager:GetMixerImageRUID(resultId))
 		self:SetPrepSlotProgress(mixer, 0)
 		
 		log("Finished mixing: " .. mixer.id .. " / result: " .. resultId)

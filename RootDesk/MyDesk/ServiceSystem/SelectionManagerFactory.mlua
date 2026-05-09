@@ -106,6 +106,7 @@ script SelectionManagerFactory extends Logic
 				elseif targetType == "INGREDIENT_SLOT" and target.state == "EMPTY" then
 					target.state = "RAW"
 					target.ingredientId = self.data
+					gameManager:SetSlotImage(target, gameManager:GetPrepImageRUID(target.ingredientId))
 					self:Clear()
 				elseif targetType == "MIXER" and target.isMixed == false then
 					if gameManager:AddIngredientToMixer(target, self.data) == true then
@@ -117,7 +118,7 @@ script SelectionManagerFactory extends Logic
 				if targetType == "CUP_SLOT" and target.hasCup == false then
 					target.hasCup = true
 					target.cupData = gameManager:CreateCup(self.data)
-					gameManager:SetSlotImage(target, gameManager.cupImageRUID)
+					gameManager:RefreshCupSlotImage(target)
 					self:Clear()
 				end
 				
@@ -147,6 +148,7 @@ script SelectionManagerFactory extends Logic
 						if gameManager:AddIngredientToMixer(target, slot.ingredientId) == true then
 							slot.state = "EMPTY"
 							slot.ingredientId = nil
+							gameManager:SetSlotImage(slot, "")
 							gameManager:SetPrepSlotProgress(slot, 0)
 							handled = true
 							self:Clear()
@@ -155,6 +157,7 @@ script SelectionManagerFactory extends Logic
 						if gameManager:AddIngredientToCup(target.cupData, slot.ingredientId) == true then
 							slot.state = "EMPTY"
 							slot.ingredientId = nil
+							gameManager:SetSlotImage(slot, "")
 							gameManager:SetPrepSlotProgress(slot, 0)
 							handled = true
 							self:Clear()
@@ -247,13 +250,14 @@ script SelectionManagerFactory extends Logic
 					log("Discard ingredient slot: " .. slot.id .. " / ingredient: " .. tostring(slot.ingredientId))
 					slot.state = "EMPTY"
 					slot.ingredientId = nil
+					gameManager:SetSlotImage(slot, "")
 					gameManager:SetPrepSlotProgress(slot, 0)
 				elseif self.state == "PLACED_CUP" then
 					local slot = self.data
 					log("Discard cup slot: " .. slot.id)
 					slot.hasCup = false
 					slot.cupData = nil
-					gameManager:SetSlotImage(slot, "")
+					gameManager:RefreshCupSlotImage(slot)
 					gameManager:SetPrepSlotProgress(slot, 0)
 				elseif self.state == "MIXER" then
 					local mixer = self.data

@@ -23,8 +23,50 @@ script UISlotViewService extends Logic
 		
 		if slot.hasCup == true then
 			self:SetSlotImage(slot, gameManager.cupImageRUID)
+			self:RefreshCupLayerImages(gameManager, slot)
 		else
 			self:SetSlotImage(slot, "")
+			self:ClearCupLayerImages(slot)
+		end
+	end
+
+	method void RefreshCupLayerImages(any gameManager, any slot)
+		if slot == nil or slot.cupData == nil or slot.cupData.ingredients == nil then
+			self:ClearCupLayerImages(slot)
+			return
+		end
+		
+		local maxLayerCount = slot.cupData.maxSpaceIngredientCount
+		if maxLayerCount == nil then
+			maxLayerCount = 4
+		end
+		
+		for layerIndex = 1, maxLayerCount do
+			local layerEntity = self:GetCupLayerEntity(slot, layerIndex)
+			if layerEntity ~= nil then
+				local ingredientId = slot.cupData.ingredients[layerIndex]
+				local imageRUID = ""
+				if ingredientId ~= nil then
+					imageRUID = gameManager:GetCupLayerImageRUID(ingredientId)
+				end
+				
+				self:SetEntityImage(layerEntity, imageRUID)
+				layerEntity.Enable = imageRUID ~= nil and imageRUID ~= ""
+			end
+		end
+	end
+
+	method void ClearCupLayerImages(any slot)
+		if slot == nil or slot.uiButton == nil then
+			return
+		end
+		
+		for layerIndex = 1, 4 do
+			local layerEntity = self:GetCupLayerEntity(slot, layerIndex)
+			if layerEntity ~= nil then
+				self:SetEntityImage(layerEntity, "")
+				layerEntity.Enable = false
+			end
 		end
 	end
 
@@ -34,6 +76,14 @@ script UISlotViewService extends Logic
 		end
 		
 		return self:FindDescendant(slot.uiButton.Entity, "SlotIcon")
+	end
+
+	method Entity GetCupLayerEntity(any slot, number layerIndex)
+		if slot == nil or slot.uiButton == nil then
+			return nil
+		end
+		
+		return self:FindDescendant(slot.uiButton.Entity, "CupLayer" .. tostring(layerIndex))
 	end
 
 	method Entity FindDescendant(Entity root, string childName)
@@ -66,11 +116,12 @@ script UISlotViewService extends Logic
 			ruid = ""
 		end
 		
-		if entity.SpriteGUIRendererComponent.ImageRUID ~= nil then
-			entity.SpriteGUIRendererComponent.ImageRUID.DataId = ruid
-		else
-			entity.SpriteGUIRendererComponent.ImageRUID = DataRef(ruid)
+		local renderer = entity.SpriteGUIRendererComponent
+		if renderer.ImageRUID ~= nil and renderer.ImageRUID.DataId == ruid then
+			return
 		end
+		
+		renderer.ImageRUID = DataRef(ruid)
 	end
 
 	method void ShowSelectedButtonVisual(any gameManager, ButtonComponent button)

@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://77e22bff1dbb4a05b5eaa1d2114bfb1f",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/77e22bff1dbb4a05b5eaa1d2114bfb1f/639139253127717638",
+      "upload_hash": "DCF603F43556202BE074D44CF95499F29C4F97A47FA9549146131D7300C71A18",
+      "name": "ice",
+      "resource_guid": "77e22bff1dbb4a05b5eaa1d2114bfb1f",
+      "resource_version": "69ff23c0e1293a08c1288f6d"
+    }
+  }
+}

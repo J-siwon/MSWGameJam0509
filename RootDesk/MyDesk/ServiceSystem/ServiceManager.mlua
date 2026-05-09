@@ -23,7 +23,7 @@ script ServiceManager extends Logic
 
 	property boolean IsPaused = false
 
-	property string cupImageRUID = "95c000a4a32d9e74392498f59cd99651"
+	property string cupImageRUID = "c1cc66398f0e42d5be21315c1adeb34c"
 
 	property number prepDuration = 1
 
@@ -268,7 +268,11 @@ script ServiceManager extends Logic
 		if slot.uiButton ~= nil then
 			slot.uiButton.Enable = true
 		end
-		self:SetSlotImage(slot, "")
+		if slot.hasCup ~= nil then
+			self:RefreshCupSlotImage(slot)
+		else
+			self:SetSlotImage(slot, "")
+		end
 		self:SetPrepSlotProgress(slot, 0)
 	end
 
@@ -339,7 +343,11 @@ script ServiceManager extends Logic
 
 	method boolean AddIngredientToCup(any cupData, string ingredientId)
 		if _CupService ~= nil then
-			return _CupService:AddIngredientToCup(self, cupData, ingredientId)
+			local added = _CupService:AddIngredientToCup(self, cupData, ingredientId)
+			if added == true then
+				self:RefreshCupSlotByCupData(cupData)
+			end
+			return added
 		end
 		
 		log("CupService is not loaded.")
@@ -353,6 +361,51 @@ script ServiceManager extends Logic
 		end
 		
 		return self.GameData.IngredientDefs[ingredientId]
+	end
+
+	method any GetIngredientImageMap(string ingredientId)
+		if ingredientId == nil or ingredientId == "" then
+			return nil
+		end
+		if self.GameData == nil or self.GameData.IngredientImageMap == nil then
+			return nil
+		end
+		
+		return self.GameData.IngredientImageMap[ingredientId]
+	end
+
+	method string GetMappedIngredientImageRUID(string ingredientId, string imageField)
+		local imageMap = self:GetIngredientImageMap(ingredientId)
+		if imageMap ~= nil then
+			local imageRUID = imageMap[imageField]
+			if imageRUID ~= nil and imageRUID ~= "" then
+				return imageRUID
+			end
+			
+			imageRUID = imageMap.prepImageRUID
+			if imageRUID ~= nil and imageRUID ~= "" then
+				return imageRUID
+			end
+		end
+		
+		local ingredientDef = self:GetIngredientDef(ingredientId)
+		if ingredientDef ~= nil and ingredientDef.imageRUID ~= nil then
+			return ingredientDef.imageRUID
+		end
+		
+		return ""
+	end
+
+	method string GetPrepImageRUID(string ingredientId)
+		return self:GetMappedIngredientImageRUID(ingredientId, "prepImageRUID")
+	end
+
+	method string GetCupLayerImageRUID(string ingredientId)
+		return self:GetMappedIngredientImageRUID(ingredientId, "cupLayerImageRUID")
+	end
+
+	method string GetMixerImageRUID(string ingredientId)
+		return self:GetMappedIngredientImageRUID(ingredientId, "mixerImageRUID")
 	end
 
 	method boolean CanAddIngredientToCup(string ingredientId)
@@ -723,6 +776,20 @@ script ServiceManager extends Logic
 		log("UISlotViewService is not loaded.")
 	end
 
+	method void RefreshCupSlotByCupData(any cupData)
+		if cupData == nil or self.GameData == nil or self.GameData.CupSlots == nil then
+			return
+		end
+		
+		for i = 1, #self.GameData.CupSlots do
+			local slot = self.GameData.CupSlots[i]
+			if slot ~= nil and slot.cupData == cupData then
+				self:RefreshCupSlotImage(slot)
+				return
+			end
+		end
+	end
+
 	method void MoveOrSwapCupSlot(any fromSlot, any toSlot)
 		-- 컵이 있는 슬롯을 선택한 상태에서 다른 컵 슬롯을 누르면 이동 또는 스왑한다.
 		if fromSlot == nil or toSlot == nil then
@@ -860,7 +927,7 @@ script ServiceManager extends Logic
 
 		slot.hasCup = false
 		slot.cupData = nil
-		self:SetSlotImage(slot, "")
+		self:RefreshCupSlotImage(slot)
 		self:SetPrepSlotProgress(slot, 0)
 		self:ClearOrderPreview()
 		if self.SelectionManager ~= nil then

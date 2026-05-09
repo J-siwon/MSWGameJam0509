@@ -1,7 +1,7 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "directory://db0163d4a67048569d98a1bcb6f38440",
+  "EntryKey": "directory://cc1a7ecd4f764020ae7c8eeea4645daa",
   "ContentType": "x-mod/directory",
   "Content": "",
   "Usage": 0,
@@ -13,8 +13,8 @@
   "ContentProto": {
     "Use": "Json",
     "Json": {
-      "entry_id": "directory://db0163d4a67048569d98a1bcb6f38440",
-      "name": "Character",
+      "entry_id": "directory://cc1a7ecd4f764020ae7c8eeea4645daa",
+      "name": "ImageResources",
       "lock": false,
       "folding": false,
       "nameEditable": true

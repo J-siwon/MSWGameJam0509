@@ -1,20 +1,20 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "directory://12fa90158a3f44c19e8fe4d3d455e4f5",
+  "EntryKey": "directory://d3581334ccc6468abf3c3b373bf0a0f6",
   "ContentType": "x-mod/directory",
   "Content": "",
   "Usage": 0,
   "UsePublish": 1,
   "UseService": 0,
   "CoreVersion": "26.3.0.0",
-  "StudioVersion": "",
+  "StudioVersion": "0.1.0.0",
   "DynamicLoading": 0,
   "ContentProto": {
     "Use": "Json",
     "Json": {
-      "entry_id": "directory://12fa90158a3f44c19e8fe4d3d455e4f5",
-      "name": "UI",
+      "entry_id": "directory://d3581334ccc6468abf3c3b373bf0a0f6",
+      "name": "drive-download-20260509T114628Z-3-001",
       "lock": false,
       "folding": false,
       "nameEditable": true

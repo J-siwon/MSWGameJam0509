@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://70497b0983814ecbb3c7f5692976e91d",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/70497b0983814ecbb3c7f5692976e91d/639139253128468258",
+      "upload_hash": "9649888D3AD6E898F3FF49BB0F49AB5B6047961BB5F7189BDF6A99ADD5D33D5F",
+      "name": "slimesyrup",
+      "resource_guid": "70497b0983814ecbb3c7f5692976e91d",
+      "resource_version": "69ff23c06076e9172600ac19"
+    }
+  }
+}

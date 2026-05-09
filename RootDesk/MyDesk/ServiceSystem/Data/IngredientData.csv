@@ -1,7 +1,7 @@
 Id,DisplayName,UseCupSpace,CanPrep,CanMix,CanAddToCup,ImageRUID,ButtonIndex
-Ingredient_1,Ingredient 1,true,true,true,true,,1
-Ingredient_2,Ingredient 2,true,true,true,true,,2
-Ingredient_3,Ingredient 3,true,true,true,true,,3
+Ingredient_1,Coffee,true,false,true,true,,1
+Ingredient_2,Milk,true,false,false,true,,2
+Ingredient_3,Maple Syrup,false,false,false,true,,3
 Ingredient_4,Ingredient 4,true,true,true,true,,4
 Ingredient_5,Ingredient 5,true,true,true,true,,5
 Ingredient_6,Ingredient 6,true,true,true,true,,6
