@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://d44c3274b6f740a1b7c702295a0e40fa",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/d44c3274b6f740a1b7c702295a0e40fa/639139397174495092",
+      "upload_hash": "39DAA53454005731B9C1644599E7BC2948BA5242865CE93A466A9D6F98895FF1",
+      "name": "UI_Mixer",
+      "resource_guid": "d44c3274b6f740a1b7c702295a0e40fa",
+      "resource_version": "69ff5c05354d4eb86f67936b"
+    }
+  }
+}

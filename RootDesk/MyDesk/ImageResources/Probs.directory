@@ -1,7 +1,7 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "directory://cc1a7ecd4f764020ae7c8eeea4645daa",
+  "EntryKey": "directory://bd04a748de96482e946b9454f9146b5b",
   "ContentType": "x-mod/directory",
   "Content": "",
   "Usage": 0,
@@ -13,8 +13,8 @@
   "ContentProto": {
     "Use": "Json",
     "Json": {
-      "entry_id": "directory://cc1a7ecd4f764020ae7c8eeea4645daa",
-      "name": "ImageResources",
+      "entry_id": "directory://bd04a748de96482e946b9454f9146b5b",
+      "name": "Probs",
       "lock": false,
       "folding": false,
       "nameEditable": true

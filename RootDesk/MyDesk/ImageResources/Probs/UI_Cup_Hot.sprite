@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://d49c1527ba664e839364a6de98ae384e",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/d49c1527ba664e839364a6de98ae384e/639139407034550927",
+      "upload_hash": "D1A3A309DDB059A9BBFE0CFFFC5D49B647EFFF9C4E6004FBBD0C0B0C7D7A02BD",
+      "name": "UI_Cup_Hot",
+      "resource_guid": "d49c1527ba664e839364a6de98ae384e",
+      "resource_version": "69ff5fdf5b1f79a0d73923a9"
+    }
+  }
+}

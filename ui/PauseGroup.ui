@@ -24,7 +24,7 @@
           "enable": false,
           "visible": false,
           "localize": true,
-          "displayOrder": 8,
+          "displayOrder": 7,
           "pathConstraints": "//",
           "revision": 1,
           "origin": {

@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://686e5f7ac5aa44afa533d7da96b92e3f",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/686e5f7ac5aa44afa533d7da96b92e3f/639139407034585276",
+      "upload_hash": "4D8C8EF7E9E21D8E509C8E80A0669E573903B01FF8C51564AD2CD7389E510F24",
+      "name": "UI_Water",
+      "resource_guid": "686e5f7ac5aa44afa533d7da96b92e3f",
+      "resource_version": "69ff5fdf86656e13589cce0f"
+    }
+  }
+}

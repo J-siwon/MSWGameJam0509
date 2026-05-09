@@ -1,7 +1,7 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "directory://d3581334ccc6468abf3c3b373bf0a0f6",
+  "EntryKey": "directory://96a262159fb84312985059bb5fa59302",
   "ContentType": "x-mod/directory",
   "Content": "",
   "Usage": 0,
@@ -13,8 +13,8 @@
   "ContentProto": {
     "Use": "Json",
     "Json": {
-      "entry_id": "directory://d3581334ccc6468abf3c3b373bf0a0f6",
-      "name": "drive-download-20260509T114628Z-3-001",
+      "entry_id": "directory://96a262159fb84312985059bb5fa59302",
+      "name": "BG",
       "lock": false,
       "folding": false,
       "nameEditable": true

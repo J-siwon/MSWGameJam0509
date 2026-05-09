@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://98780a3f67b14858a14a15f534abb5b9",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/98780a3f67b14858a14a15f534abb5b9/639139407034723518",
+      "upload_hash": "6F5BF657B2DF32866D2905AFF761B642CD81B1FE4053504C41CE137D6F0ACC1E",
+      "name": "UI_Cup_Ice",
+      "resource_guid": "98780a3f67b14858a14a15f534abb5b9",
+      "resource_version": "69ff5fdf9b6455dd38d069d1"
+    }
+  }
+}
