@@ -1,5 +1,5 @@
 @Logic
-script ActionButtonService extends Logic
+script UIActionButtonService extends Logic
 
 	method void Initialize(any gameManager)
 		gameManager.actionButtonConfigs = self:CreateActionButtonConfigs(gameManager)

@@ -1,7 +1,7 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "codeblock://32407e15-9495-49b2-a3f8-b60e21ae4835",
+  "EntryKey": "codeblock://eb16a078-53bb-430b-bf72-3cbef7629028",
   "ContentType": "x-mod/codeblock",
   "Content": "",
   "Usage": 0,
@@ -22,9 +22,9 @@
         "Minor": 1
       },
       "Description": "",
-      "Id": "32407e15-9495-49b2-a3f8-b60e21ae4835",
+      "Id": "eb16a078-53bb-430b-bf72-3cbef7629028",
       "Language": 1,
-      "Name": "ActionButtonService",
+      "Name": "UIActionButtonService",
       "Type": 5,
       "Source": 0,
       "Target": null,

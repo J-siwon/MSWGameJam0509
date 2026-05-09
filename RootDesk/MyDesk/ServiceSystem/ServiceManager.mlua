@@ -93,12 +93,12 @@ script ServiceManager extends Logic
 	end
 
 	method void InitializeActionButtons()
-		if _ActionButtonService ~= nil then
-			_ActionButtonService:Initialize(self)
+		if _UIActionButtonService ~= nil then
+			_UIActionButtonService:Initialize(self)
 			return
 		end
 		
-		log("ActionButtonService is not loaded.")
+		log("UIActionButtonService is not loaded.")
 		self.actionButtonConfigs = {}
 		self.actionButtonTweenIds = {}
 	end
@@ -316,11 +316,11 @@ script ServiceManager extends Logic
 	end
 
 	method any CreateActionButtonConfigs()
-		if _ActionButtonService ~= nil then
-			return _ActionButtonService:CreateActionButtonConfigs(self)
+		if _UIActionButtonService ~= nil then
+			return _UIActionButtonService:CreateActionButtonConfigs(self)
 		end
 		
-		log("ActionButtonService is not loaded.")
+		log("UIActionButtonService is not loaded.")
 		return {}
 	end
 
@@ -373,75 +373,75 @@ script ServiceManager extends Logic
 	end
 
 	method void HideActionButtonsImmediately()
-		if _ActionButtonService ~= nil then
-			_ActionButtonService:HideAllImmediately(self)
+		if _UIActionButtonService ~= nil then
+			_UIActionButtonService:HideAllImmediately(self)
 			return
 		end
 		
-		log("ActionButtonService is not loaded.")
+		log("UIActionButtonService is not loaded.")
 	end
 
 	method void ShowActionButton(string actionKey)
-		if _ActionButtonService ~= nil then
-			_ActionButtonService:Show(self, actionKey)
+		if _UIActionButtonService ~= nil then
+			_UIActionButtonService:Show(self, actionKey)
 			return
 		end
 		
-		log("ActionButtonService is not loaded.")
+		log("UIActionButtonService is not loaded.")
 	end
 
 	method void HideActionButton(string actionKey)
-		if _ActionButtonService ~= nil then
-			_ActionButtonService:Hide(self, actionKey)
+		if _UIActionButtonService ~= nil then
+			_UIActionButtonService:Hide(self, actionKey)
 			return
 		end
 		
-		log("ActionButtonService is not loaded.")
+		log("UIActionButtonService is not loaded.")
 	end
 
 	method void HideActionButtonImmediately(string actionKey)
-		if _ActionButtonService ~= nil then
-			_ActionButtonService:HideImmediately(self, actionKey)
+		if _UIActionButtonService ~= nil then
+			_UIActionButtonService:HideImmediately(self, actionKey)
 			return
 		end
 		
-		log("ActionButtonService is not loaded.")
+		log("UIActionButtonService is not loaded.")
 	end
 
 	method any GetActionButtonConfig(string actionKey)
-		if _ActionButtonService ~= nil then
-			return _ActionButtonService:GetConfig(self, actionKey)
+		if _UIActionButtonService ~= nil then
+			return _UIActionButtonService:GetConfig(self, actionKey)
 		end
 		
-		log("ActionButtonService is not loaded.")
+		log("UIActionButtonService is not loaded.")
 		return nil
 	end
 
 	method void ClearActionButtonTween(string actionKey)
-		if _ActionButtonService ~= nil then
-			_ActionButtonService:ClearTween(self, actionKey)
+		if _UIActionButtonService ~= nil then
+			_UIActionButtonService:ClearTween(self, actionKey)
 			return
 		end
 		
-		log("ActionButtonService is not loaded.")
+		log("UIActionButtonService is not loaded.")
 	end
 
 	method void StartActionButtonTween(string actionKey, boolean show)
-		if _ActionButtonService ~= nil then
-			_ActionButtonService:StartTween(self, actionKey, show)
+		if _UIActionButtonService ~= nil then
+			_UIActionButtonService:StartTween(self, actionKey, show)
 			return
 		end
 		
-		log("ActionButtonService is not loaded.")
+		log("UIActionButtonService is not loaded.")
 	end
 
 	method void SetUIPosition(any transform, number x, number y)
-		if _ActionButtonService ~= nil then
-			_ActionButtonService:SetUIPosition(transform, x, y)
+		if _UIActionButtonService ~= nil then
+			_UIActionButtonService:SetUIPosition(transform, x, y)
 			return
 		end
 		
-		log("ActionButtonService is not loaded.")
+		log("UIActionButtonService is not loaded.")
 	end
 
 	method void StartPrepIngredientSlot(any slot)
@@ -541,23 +541,21 @@ script ServiceManager extends Logic
 
 	method void SetSlotImage(any slot, string imageRUID)
 		-- 슬롯의 기본 스프라이트를 교체한다. UI 이미지가 확정되면 이 경로를 주로 사용한다.
-		if slot == nil or slot.uiButton == nil then
+		if _UISlotViewService ~= nil then
+			_UISlotViewService:SetSlotImage(slot, imageRUID)
 			return
 		end
 		
-		slot.uiButton.Entity.SpriteGUIRendererComponent.ImageRUID.DataId = imageRUID
+		log("UISlotViewService is not loaded.")
 	end
 
 	method void RefreshCupSlotImage(any slot)
-		if slot == nil then
+		if _UISlotViewService ~= nil then
+			_UISlotViewService:RefreshCupSlotImage(self, slot)
 			return
 		end
 		
-		if slot.hasCup == true then
-			self:SetSlotImage(slot, self.cupImageRUID)
-		else
-			self:SetSlotImage(slot, "")
-		end
+		log("UISlotViewService is not loaded.")
 	end
 
 	method void MoveOrSwapCupSlot(any fromSlot, any toSlot)
@@ -601,27 +599,22 @@ script ServiceManager extends Logic
 
 	method void ShowSelectedButtonVisual(ButtonComponent button)
 		-- 현재 선택된 버튼은 노란 외곽선으로 표시한다.
-		self:ClearSelectedButtonVisual()
+		if _UISlotViewService ~= nil then
+			_UISlotViewService:ShowSelectedButtonVisual(self, button)
+			return
+		end
 		
-		log("Showing selected button visual for button: " .. button.Entity.Name)
-		self.selectedButtonEntity = button.Entity
-		local sprite = button.Entity.SpriteGUIRendererComponent
-		sprite.Outline = true
-		sprite.OutlineWidth = 10
-		sprite.OutlineColor = Color(1, 0.9, 0, 1)
+		log("UISlotViewService is not loaded.")
 	end
 
 	method void ClearSelectedButtonVisual()
 		-- 이전 선택 표시를 기본 외곽선으로 되돌린다.
-		if self.selectedButtonEntity == nil then
+		if _UISlotViewService ~= nil then
+			_UISlotViewService:ClearSelectedButtonVisual(self)
 			return
 		end
-		log("Clearing selected button visual")
-		local sprite = self.selectedButtonEntity.SpriteGUIRendererComponent
-		sprite.Outline = true
-		sprite.OutlineWidth = 3
-		sprite.OutlineColor = Color(0, 0, 0, 1)
-		self.selectedButtonEntity = nil
+		
+		log("UISlotViewService is not loaded.")
 	end
 
 	method void ConnectGameButtons()
