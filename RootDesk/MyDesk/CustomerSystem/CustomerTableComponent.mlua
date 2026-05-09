@@ -13,6 +13,8 @@ script CustomerTableComponent extends Component
 
 	property number SpawnIntervalSeconds = 4
 
+	property number InitialFillIntervalSeconds = 0.1
+
 	property Entity TestCompleteTopButton = nil
 
 	property string DayManagerPath = "/ui/DayInfoGroup/DayManager"
@@ -41,7 +43,7 @@ script CustomerTableComponent extends Component
 		if self.AutoSpawn == true then
 			self:StartSpawning(self.SpawnIntervalSeconds, self.FillOnBeginPlay)
 		elseif self.FillOnBeginPlay == true then
-			self:FillEmptySlots()
+			self:StartInitialFill()
 		end
 		
 	end
@@ -53,6 +55,10 @@ script CustomerTableComponent extends Component
 		if self.Runtime.spawnTimerId > 0 then
 			_TimerService:ClearTimer(self.Runtime.spawnTimerId)
 			self.Runtime.spawnTimerId = 0
+		end
+		if self.Runtime.fillTimerId > 0 then
+			_TimerService:ClearTimer(self.Runtime.fillTimerId)
+			self.Runtime.fillTimerId = 0
 		end
 		if self.Runtime.rearrangeTimerId > 0 then
 			_TimerService:ClearTimer(self.Runtime.rearrangeTimerId)
@@ -69,22 +75,27 @@ script CustomerTableComponent extends Component
 			customers = {},
 			state = "Waiting",
 			spawnTimerId = 0,
+			fillTimerId = 0,
 			rearrangeTimerId = 0,
 			testCompleteHandler = nil,
 			customerSerial = 0,
-			lastResolvePrice = 0
+			lastResolvePrice = 0,
+			pausedState = "Waiting",
+			wasSpawningBeforePause = false,
+			wasFillingBeforePause = false
 		}
 	end
 
 	method void StartSpawning(number spawnIntervalSeconds, boolean fillOnStart)
 		self:EnsureRuntime()
 		self:StopSpawning()
+		self:StopInitialFill()
 
 		self.SpawnIntervalSeconds = math.max(0.1, spawnIntervalSeconds)
 		self.Runtime.state = "Waiting"
 
 		if fillOnStart == true then
-			self:FillEmptySlots()
+			self:StartInitialFill()
 		end
 
 		local spawn = function()
@@ -104,11 +115,63 @@ script CustomerTableComponent extends Component
 	method void CloseTable()
 		self:EnsureRuntime()
 		self:StopSpawning()
+		self:StopInitialFill()
 		self.Runtime.state = "Closed"
+	end
+
+	method void PauseTable()
+		self:EnsureRuntime()
+		if self.Runtime.state == "Paused" or self.Runtime.state == "Closed" then
+			return
+		end
+
+		self.Runtime.pausedState = self.Runtime.state
+		self.Runtime.wasSpawningBeforePause = self.Runtime.spawnTimerId > 0
+		self.Runtime.wasFillingBeforePause = self.Runtime.fillTimerId > 0
+		self:StopSpawning()
+		self:StopInitialFill()
+		self.Runtime.state = "Paused"
+
+		for i = 1, #self.Runtime.customers do
+			local record = self.Runtime.customers[i]
+			if record.component ~= nil then
+				record.component:PauseWaiting()
+			end
+		end
+	end
+
+	method void ResumeTable(number pausedSeconds)
+		self:EnsureRuntime()
+		if self.Runtime.state ~= "Paused" then
+			return
+		end
+
+		local nextState = self.Runtime.pausedState
+		if nextState == nil or nextState == "" or nextState == "Paused" then
+			nextState = "Waiting"
+		end
+		self.Runtime.state = nextState
+
+		for i = 1, #self.Runtime.customers do
+			local record = self.Runtime.customers[i]
+			if record.component ~= nil then
+				record.component:ResumeWaiting(pausedSeconds)
+			end
+		end
+
+		if self.Runtime.wasSpawningBeforePause == true then
+			self:StartSpawning(self.SpawnIntervalSeconds, false)
+		end
+		if self.Runtime.wasFillingBeforePause == true then
+			self:StartInitialFill()
+		end
+		self.Runtime.wasSpawningBeforePause = false
+		self.Runtime.wasFillingBeforePause = false
 	end
 
 	method void ClearCustomers()
 		self:EnsureRuntime()
+		self:StopInitialFill()
 
 		for i = 1, #self.Runtime.customers do
 			local record = self.Runtime.customers[i]
@@ -159,6 +222,46 @@ script CustomerTableComponent extends Component
 
 	method boolean HasRoom()
 		return self:GetWaitingCount() < self.MaxCustomerCount
+	end
+
+	method void StartInitialFill()
+		self:EnsureRuntime()
+		self:StopInitialFill()
+
+		if self.Runtime.state ~= "Waiting" then
+			return
+		end
+
+		if self:SpawnInitialFillCustomer() == false then
+			return
+		end
+
+		if self:HasRoom() == false then
+			return
+		end
+
+		local fill = function()
+			if self:SpawnInitialFillCustomer() == false or self:HasRoom() == false then
+				self:StopInitialFill()
+			end
+		end
+		self.Runtime.fillTimerId = _TimerService:SetTimerRepeat(fill, math.max(0.01, self.InitialFillIntervalSeconds))
+	end
+
+	method boolean SpawnInitialFillCustomer()
+		if self.Runtime.state ~= "Waiting" or self:HasRoom() == false then
+			return false
+		end
+
+		return self:SpawnRandomCustomer()
+	end
+
+	method void StopInitialFill()
+		self:EnsureRuntime()
+		if self.Runtime.fillTimerId > 0 then
+			_TimerService:ClearTimer(self.Runtime.fillTimerId)
+			self.Runtime.fillTimerId = 0
+		end
 	end
 
 	method void FillEmptySlots()

@@ -869,7 +869,15 @@
               "@type": "script.DayManager",
               "Enable": true,
               "DefaultDayDurationSeconds": 180.0,
-              "AutoStartOnBeginPlay": false
+              "DefaultSpawnIntervalSeconds": 1.0,
+              "AutoStartOnBeginPlay": false,
+              "AutoAdvanceDay": true,
+              "NextDayDelaySeconds": 2.0,
+              "HudRefreshIntervalSeconds": 0.2,
+              "UseDataStorage": true,
+              "DayIntroHoldSeconds": 2.0,
+              "DayIntroFadeInSeconds": 1.0,
+              "DayIntroFadeSeconds": 2.0
             }
           ],
           "@version": 1

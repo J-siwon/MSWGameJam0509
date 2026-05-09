@@ -101,6 +101,26 @@ script CustomerComponent extends Component
 		return math.max(0, self.Runtime.timeEndsAt - _UtilLogic.ElapsedSeconds)
 	end
 
+	method void PauseWaiting()
+		self:EnsureRuntime()
+		if self:IsWaiting() == false then
+			return
+		end
+
+		self:StopGaugeTimer()
+	end
+
+	method void ResumeWaiting(number pausedSeconds)
+		self:EnsureRuntime()
+		if self:IsWaiting() == false then
+			return
+		end
+
+		self.Runtime.timeEndsAt = self.Runtime.timeEndsAt + math.max(0, pausedSeconds)
+		self:RefreshTimeGauge()
+		self:StartGaugeTimer()
+	end
+
 	method number GetRemainingRatio()
 		self:EnsureRuntime()
 		if self.Runtime.limitSeconds <= 0 then

@@ -84,6 +84,8 @@ script DayManager extends Component
 			durationSeconds = self.DefaultDayDurationSeconds,
 			startedAt = 0,
 			endsAt = 0,
+			pausedRemainingSeconds = 0,
+			pausedStartedAt = 0,
 			tickTimerId = 0,
 			nextDayTimerId = 0,
 			introTimerId = 0,
@@ -125,6 +127,8 @@ script DayManager extends Component
 		self.Runtime.day = playableDay
 		self.Runtime.status = "Intro"
 		self.Runtime.money = 0
+		self.Runtime.pausedRemainingSeconds = 0
+		self.Runtime.pausedStartedAt = 0
 		self:RefreshHud()
 		
 		self:ShowDayIntro(playableDay, function()
@@ -135,17 +139,15 @@ script DayManager extends Component
 	method void StartNextDayWithIntro(number day)
 		self:EnsureRuntime()
 		self:ClearTimers()
-		self:StopCustomerTable()
-		
+
 		local playableDay = self:GetPlayableDay(day)
-		self.Runtime.day = playableDay
-		self.Runtime.status = "Intro"
-		self.Runtime.money = 0
-		self:RefreshHud()
-		
-		self:ShowDayIntro(playableDay, function()
+		self.Runtime.status = "Transitioning"
+
+		self:ShowDayTransitionIntro(playableDay, function()
+			self:ResetDayBehindIntro(playableDay)
+		end, function()
 			self:StartDay(playableDay)
-		end, true)
+		end)
 	end
 
 	method void StartDay(number day)
@@ -165,7 +167,9 @@ script DayManager extends Component
 		self.Runtime.durationSeconds = config.durationSeconds
 		self.Runtime.startedAt = _UtilLogic.ElapsedSeconds
 		self.Runtime.endsAt = self.Runtime.startedAt + config.durationSeconds
-		
+		self.Runtime.pausedRemainingSeconds = 0
+		self.Runtime.pausedStartedAt = 0
+
 		self:StartCustomerTable(config)
 		self:StartTickTimer()
 		self:RefreshHud()
@@ -198,6 +202,49 @@ script DayManager extends Component
 		
 		self.DayIntroCanvasGroup.GroupAlpha = 1
 		self:HoldDayIntro(onFinished)
+	end
+
+	method void ShowDayTransitionIntro(number day, any onCovered, any onFinished)
+		if self.DayIntroGroup == nil or self.DayIntroCanvasGroup == nil then
+			if onCovered ~= nil then
+				onCovered()
+			end
+			if onFinished ~= nil then
+				onFinished()
+			end
+			return
+		end
+
+		if self.DayIntroText ~= nil then
+			self.DayIntroText.Text = "DAY " .. tostring(day)
+		end
+
+		self.DayIntroGroup.Enable = true
+		self.DayIntroGroup.Visible = true
+		self.DayIntroCanvasGroup.GroupAlpha = 0
+
+		self:FadeInDayIntro(function()
+			if onCovered ~= nil then
+				onCovered()
+			end
+			self:HoldDayIntro(onFinished)
+		end)
+	end
+
+	method void ResetDayBehindIntro(number day)
+		self:StopCustomerTable()
+
+		local config = self:GetDayConfig(day)
+		self.Runtime.day = day
+		self.Runtime.status = "Intro"
+		self.Runtime.goalMoney = config.goalMoney
+		self.Runtime.money = 0
+		self.Runtime.durationSeconds = config.durationSeconds
+		self.Runtime.startedAt = 0
+		self.Runtime.endsAt = 0
+		self.Runtime.pausedRemainingSeconds = 0
+		self.Runtime.pausedStartedAt = 0
+		self:RefreshHud()
 	end
 
 	method void HoldDayIntro(any onFinished)
@@ -329,7 +376,7 @@ script DayManager extends Component
 		self.Runtime.totalMoney = self.Runtime.totalMoney + self.Runtime.money
 		self:SaveProgressDay(self.Runtime.day + 1)
 		self:ClearTimers()
-		self:StopCustomerTable()
+		self:PauseCustomerTableForTransition()
 		self:RefreshHud()
 		
 		log("Day " .. tostring(self.Runtime.day) .. " cleared. Earned: " .. tostring(self.Runtime.money))
@@ -422,6 +469,36 @@ script DayManager extends Component
 		return self.Runtime.status == "Playing"
 	end
 
+	method boolean PauseDayTimer()
+		self:EnsureRuntime()
+		if self.Runtime.status ~= "Playing" then
+			return false
+		end
+
+		self.Runtime.pausedRemainingSeconds = self:GetRemainingSeconds()
+		self.Runtime.pausedStartedAt = _UtilLogic.ElapsedSeconds
+		self.Runtime.status = "Paused"
+		self:ClearTickTimer()
+		self:RefreshHud()
+		return true
+	end
+
+	method boolean ResumeDayTimer()
+		self:EnsureRuntime()
+		if self.Runtime.status ~= "Paused" then
+			return false
+		end
+
+		self.Runtime.endsAt = _UtilLogic.ElapsedSeconds + math.max(0, self.Runtime.pausedRemainingSeconds)
+		self.Runtime.startedAt = self.Runtime.endsAt - self.Runtime.durationSeconds
+		self.Runtime.status = "Playing"
+		self.Runtime.pausedRemainingSeconds = 0
+		self.Runtime.pausedStartedAt = 0
+		self:StartTickTimer()
+		self:RefreshHud()
+		return true
+	end
+
 	method void AddMoney(number amount)
 		self:EnsureRuntime()
 		if self.Runtime.status ~= "Playing" then
@@ -438,6 +515,9 @@ script DayManager extends Component
 
 	method number GetRemainingSeconds()
 		self:EnsureRuntime()
+		if self.Runtime.status == "Paused" then
+			return math.max(0, self.Runtime.pausedRemainingSeconds)
+		end
 		if self.Runtime.status ~= "Playing" then
 			return 0
 		end
@@ -498,6 +578,15 @@ script DayManager extends Component
 		customerTable:ClearCustomers()
 	end
 
+	method void PauseCustomerTableForTransition()
+		local customerTable = self:GetCustomerTable()
+		if customerTable == nil then
+			return
+		end
+
+		customerTable:PauseTable()
+	end
+
 	method any GetCustomerTable()
 		if self.CustomerTableEntity ~= nil then
 			return self.CustomerTableEntity.CustomerTableComponent
@@ -516,10 +605,7 @@ script DayManager extends Component
 
 	method void ClearTimers()
 		self:EnsureRuntime()
-		if self.Runtime.tickTimerId > 0 then
-			_TimerService:ClearTimer(self.Runtime.tickTimerId)
-			self.Runtime.tickTimerId = 0
-		end
+		self:ClearTickTimer()
 		if self.Runtime.nextDayTimerId > 0 then
 			_TimerService:ClearTimer(self.Runtime.nextDayTimerId)
 			self.Runtime.nextDayTimerId = 0
@@ -531,6 +617,14 @@ script DayManager extends Component
 		if self.Runtime.introFadeTimerId > 0 then
 			_TimerService:ClearTimer(self.Runtime.introFadeTimerId)
 			self.Runtime.introFadeTimerId = 0
+		end
+	end
+
+	method void ClearTickTimer()
+		self:EnsureRuntime()
+		if self.Runtime.tickTimerId > 0 then
+			_TimerService:ClearTimer(self.Runtime.tickTimerId)
+			self.Runtime.tickTimerId = 0
 		end
 	end
 

@@ -100,6 +100,11 @@ script WorkProcessService extends Logic
 		local service = self
 		
 		local tick = function()
+			if gameManager.IsPaused == true then
+				preTime = _UtilLogic.ElapsedSeconds
+				return
+			end
+
 			local delta = _UtilLogic.ElapsedSeconds - preTime
 			preTime = _UtilLogic.ElapsedSeconds
 			time = time + delta
