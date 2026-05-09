@@ -1,5 +1,5 @@
 @Logic
-script GameManager extends Logic
+script ServiceManager extends Logic
 
 	-- 런타임에서 공유하는 핵심 상태와 서비스 설정값
 	property any GameData = nil
@@ -11,6 +11,8 @@ script GameManager extends Logic
 	property any actionButtonConfigs = nil
 	property any actionButtonTweenIds = nil
 	property any progressTimerIds = nil
+	property string IngredientDataSetName = "IngredientData"
+	property string MixerRecipeDataSetName = "MixerRecipeData"
 	property string cupImageRUID = "95c000a4a32d9e74392498f59cd99651"
 	property number prepDuration = 1
 	property number brewShotDuration = 1
@@ -58,7 +60,7 @@ script GameManager extends Logic
 
 	@ExecSpace("ClientOnly")
 	method void OnBeginPlay()
-		-- GameManager는 데이터 생성, 선택 규칙, UI 버튼 연결을 조율하는 시작점이다.
+		-- ServiceManager는 데이터 생성, 선택 규칙, UI 버튼 연결을 조율하는 시작점이다.
 		self.GameData = self:CreateInitialGameData()
 		self.SelectionManager = self:CreateInitialSelectionManager()
 		self.actionButtonConfigs = self:CreateActionButtonConfigs()
@@ -74,7 +76,7 @@ script GameManager extends Logic
 			return _DataFactory:CreateGameData()
 		end
 		
-		log("DataFactory is not loaded. Use GameManager fallback data factory.")
+		log("DataFactory is not loaded. Use ServiceManager fallback data factory.")
 		return self:CreateGameData()
 	end
 
@@ -84,7 +86,7 @@ script GameManager extends Logic
 			return _SelectionManagerFactory:CreateSelectionManager(self)
 		end
 		
-		log("SelectionManagerFactory is not loaded. Use GameManager fallback selection manager.")
+		log("SelectionManagerFactory is not loaded. Use ServiceManager fallback selection manager.")
 		return self:CreateSelectionManager()
 	end
 
@@ -117,6 +119,12 @@ script GameManager extends Logic
 	end
 
 	method any CreateIngredientDefs()
+		local ingredientDefs = self:CreateIngredientDefsFromDataSet()
+		if ingredientDefs ~= nil then
+			return ingredientDefs
+		end
+		
+		log("IngredientData dataset is not loaded. Use fallback ingredient definitions.")
 		return {
 			Ingredient_1 = { useCupSpace = true, displayName = "Ingredient 1", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
 			Ingredient_2 = { useCupSpace = true, displayName = "Ingredient 2", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
@@ -147,12 +155,130 @@ script GameManager extends Logic
 		}
 	end
 
+	method any CreateIngredientDefsFromDataSet()
+		if _EntryService == nil or _DataService == nil then
+			return nil
+		end
+		
+		local dataSetId = _EntryService:GetDataSetIdByName(self.IngredientDataSetName)
+		if dataSetId == nil or dataSetId == "" then
+			return nil
+		end
+		
+		local rowCount = _DataService:GetRowCount(self.IngredientDataSetName)
+		if rowCount <= 0 then
+			return nil
+		end
+		
+		local ingredientDefs = {}
+		for rowIndex = 1, rowCount do
+			local ingredientId = self:Trim(_DataService:GetCell(self.IngredientDataSetName, rowIndex, "Id"))
+			if ingredientId ~= "" then
+				ingredientDefs[ingredientId] = {
+					useCupSpace = self:ParseBoolean(_DataService:GetCell(self.IngredientDataSetName, rowIndex, "UseCupSpace"), true),
+					displayName = self:Trim(_DataService:GetCell(self.IngredientDataSetName, rowIndex, "DisplayName")),
+					canPrep = self:ParseBoolean(_DataService:GetCell(self.IngredientDataSetName, rowIndex, "CanPrep"), false),
+					canMix = self:ParseBoolean(_DataService:GetCell(self.IngredientDataSetName, rowIndex, "CanMix"), true),
+					canAddToCup = self:ParseBoolean(_DataService:GetCell(self.IngredientDataSetName, rowIndex, "CanAddToCup"), true),
+					imageRUID = self:Trim(_DataService:GetCell(self.IngredientDataSetName, rowIndex, "ImageRUID")),
+				}
+			end
+		end
+		
+		return ingredientDefs
+	end
+
 	method any CreateMixerRecipes()
+		local recipes = self:CreateMixerRecipesFromDataSet()
+		if recipes ~= nil then
+			return recipes
+		end
+		
+		log("MixerRecipeData dataset is not loaded. Use fallback mixer recipes.")
 		return {
 			["ColdWater|prepped_Ingredient_1"] = "Mixed_Cold_Ingredient_1",
 			["HotWater|prepped_Ingredient_2"] = "Mixed_Hot_Ingredient_2",
 			["ColdWater|prepped_Ingredient_3"] = "Mixed_Cold_Ingredient_3",
 		}
+	end
+
+	method any CreateMixerRecipesFromDataSet()
+		if _EntryService == nil or _DataService == nil then
+			return nil
+		end
+		
+		local dataSetId = _EntryService:GetDataSetIdByName(self.MixerRecipeDataSetName)
+		if dataSetId == nil or dataSetId == "" then
+			return nil
+		end
+		
+		local rowCount = _DataService:GetRowCount(self.MixerRecipeDataSetName)
+		if rowCount <= 0 then
+			return nil
+		end
+		
+		local recipes = {}
+		for rowIndex = 1, rowCount do
+			local ingredientsText = _DataService:GetCell(self.MixerRecipeDataSetName, rowIndex, "Ingredients")
+			local resultIngredient = _DataService:GetCell(self.MixerRecipeDataSetName, rowIndex, "ResultIngredient")
+			local recipeKey = self:CreateRecipeKeyFromText(ingredientsText)
+			
+			if recipeKey ~= "" and resultIngredient ~= nil and resultIngredient ~= "" then
+				recipes[recipeKey] = self:Trim(resultIngredient)
+			end
+		end
+		
+		return recipes
+	end
+
+	method string CreateRecipeKeyFromText(string ingredientsText)
+		if ingredientsText == nil or ingredientsText == "" then
+			return ""
+		end
+		
+		local ingredients = {}
+		for ingredientId in string.gmatch(ingredientsText, "([^|]+)") do
+			local trimmed = self:Trim(ingredientId)
+			if trimmed ~= "" then
+				table.insert(ingredients, trimmed)
+			end
+		end
+		
+		table.sort(ingredients)
+		
+		local key = ""
+		for index, ingredientId in pairs(ingredients) do
+			if key ~= "" then
+				key = key .. "|"
+			end
+			key = key .. ingredientId
+		end
+		
+		return key
+	end
+
+	method string Trim(string value)
+		if value == nil then
+			return ""
+		end
+		
+		return string.gsub(value, "^%s*(.-)%s*$", "%1")
+	end
+
+	method boolean ParseBoolean(string value, boolean fallback)
+		if value == nil or value == "" then
+			return fallback
+		end
+		
+		local normalized = string.lower(self:Trim(value))
+		if normalized == "true" or normalized == "1" or normalized == "yes" or normalized == "y" then
+			return true
+		end
+		if normalized == "false" or normalized == "0" or normalized == "no" or normalized == "n" then
+			return false
+		end
+		
+		return fallback
 	end
 
 	method any CreateMixers()

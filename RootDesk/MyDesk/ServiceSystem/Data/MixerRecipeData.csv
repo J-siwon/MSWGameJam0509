@@ -1,0 +1,4 @@
+Id,Ingredients,ResultIngredient
+MixedColdIngredient1,ColdWater|prepped_Ingredient_1,Mixed_Cold_Ingredient_1
+MixedHotIngredient2,HotWater|prepped_Ingredient_2,Mixed_Hot_Ingredient_2
+MixedColdIngredient3,ColdWater|prepped_Ingredient_3,Mixed_Cold_Ingredient_3

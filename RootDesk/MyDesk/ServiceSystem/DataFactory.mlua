@@ -1,6 +1,9 @@
 @Logic
 script DataFactory extends Logic
 
+	property string IngredientDataSetName = "IngredientData"
+	property string MixerRecipeDataSetName = "MixerRecipeData"
+
 	-- 게임 시작 시 필요한 순수 데이터 테이블을 한 번에 구성한다.
 	method any CreateGameData()
 		return {
@@ -30,6 +33,12 @@ script DataFactory extends Logic
 	end
 
 	method any CreateIngredientDefs()
+		local ingredientDefs = self:CreateIngredientDefsFromDataSet()
+		if ingredientDefs ~= nil then
+			return ingredientDefs
+		end
+		
+		log("IngredientData dataset is not loaded. Use fallback ingredient definitions.")
 		return {
 			-- 원재료는 손질 가능하며, 손질 후 컵/믹서에 넣을 수 있다.
 			Ingredient_1 = { useCupSpace = true, displayName = "Ingredient 1", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
@@ -63,12 +72,130 @@ script DataFactory extends Logic
 		}
 	end
 
+	method any CreateIngredientDefsFromDataSet()
+		if _EntryService == nil or _DataService == nil then
+			return nil
+		end
+		
+		local dataSetId = _EntryService:GetDataSetIdByName(self.IngredientDataSetName)
+		if dataSetId == nil or dataSetId == "" then
+			return nil
+		end
+		
+		local rowCount = _DataService:GetRowCount(self.IngredientDataSetName)
+		if rowCount <= 0 then
+			return nil
+		end
+		
+		local ingredientDefs = {}
+		for rowIndex = 1, rowCount do
+			local ingredientId = self:Trim(_DataService:GetCell(self.IngredientDataSetName, rowIndex, "Id"))
+			if ingredientId ~= "" then
+				ingredientDefs[ingredientId] = {
+					useCupSpace = self:ParseBoolean(_DataService:GetCell(self.IngredientDataSetName, rowIndex, "UseCupSpace"), true),
+					displayName = self:Trim(_DataService:GetCell(self.IngredientDataSetName, rowIndex, "DisplayName")),
+					canPrep = self:ParseBoolean(_DataService:GetCell(self.IngredientDataSetName, rowIndex, "CanPrep"), false),
+					canMix = self:ParseBoolean(_DataService:GetCell(self.IngredientDataSetName, rowIndex, "CanMix"), true),
+					canAddToCup = self:ParseBoolean(_DataService:GetCell(self.IngredientDataSetName, rowIndex, "CanAddToCup"), true),
+					imageRUID = self:Trim(_DataService:GetCell(self.IngredientDataSetName, rowIndex, "ImageRUID")),
+				}
+			end
+		end
+		
+		return ingredientDefs
+	end
+
 	method any CreateMixerRecipes()
+		local recipes = self:CreateMixerRecipesFromDataSet()
+		if recipes ~= nil then
+			return recipes
+		end
+		
+		log("MixerRecipeData dataset is not loaded. Use fallback mixer recipes.")
 		return {
 			["ColdWater|prepped_Ingredient_1"] = "Mixed_Cold_Ingredient_1",
 			["HotWater|prepped_Ingredient_2"] = "Mixed_Hot_Ingredient_2",
 			["ColdWater|prepped_Ingredient_3"] = "Mixed_Cold_Ingredient_3",
 		}
+	end
+
+	method any CreateMixerRecipesFromDataSet()
+		if _EntryService == nil or _DataService == nil then
+			return nil
+		end
+		
+		local dataSetId = _EntryService:GetDataSetIdByName(self.MixerRecipeDataSetName)
+		if dataSetId == nil or dataSetId == "" then
+			return nil
+		end
+		
+		local rowCount = _DataService:GetRowCount(self.MixerRecipeDataSetName)
+		if rowCount <= 0 then
+			return nil
+		end
+		
+		local recipes = {}
+		for rowIndex = 1, rowCount do
+			local ingredientsText = _DataService:GetCell(self.MixerRecipeDataSetName, rowIndex, "Ingredients")
+			local resultIngredient = _DataService:GetCell(self.MixerRecipeDataSetName, rowIndex, "ResultIngredient")
+			local recipeKey = self:CreateRecipeKeyFromText(ingredientsText)
+			
+			if recipeKey ~= "" and resultIngredient ~= nil and resultIngredient ~= "" then
+				recipes[recipeKey] = self:Trim(resultIngredient)
+			end
+		end
+		
+		return recipes
+	end
+
+	method string CreateRecipeKeyFromText(string ingredientsText)
+		if ingredientsText == nil or ingredientsText == "" then
+			return ""
+		end
+		
+		local ingredients = {}
+		for ingredientId in string.gmatch(ingredientsText, "([^|]+)") do
+			local trimmed = self:Trim(ingredientId)
+			if trimmed ~= "" then
+				table.insert(ingredients, trimmed)
+			end
+		end
+		
+		table.sort(ingredients)
+		
+		local key = ""
+		for index, ingredientId in pairs(ingredients) do
+			if key ~= "" then
+				key = key .. "|"
+			end
+			key = key .. ingredientId
+		end
+		
+		return key
+	end
+
+	method string Trim(string value)
+		if value == nil then
+			return ""
+		end
+		
+		return string.gsub(value, "^%s*(.-)%s*$", "%1")
+	end
+
+	method boolean ParseBoolean(string value, boolean fallback)
+		if value == nil or value == "" then
+			return fallback
+		end
+		
+		local normalized = string.lower(self:Trim(value))
+		if normalized == "true" or normalized == "1" or normalized == "yes" or normalized == "y" then
+			return true
+		end
+		if normalized == "false" or normalized == "0" or normalized == "no" or normalized == "n" then
+			return false
+		end
+		
+		return fallback
 	end
 
 	method any CreateMixers()

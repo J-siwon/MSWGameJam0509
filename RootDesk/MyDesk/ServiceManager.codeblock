@@ -24,7 +24,7 @@
       "Description": "",
       "Id": "7ca48899-f731-4ba2-a838-5ab1721a1636",
       "Language": 1,
-      "Name": "GameManager",
+      "Name": "ServiceManager",
       "Type": 5,
       "Source": 0,
       "Target": null,
