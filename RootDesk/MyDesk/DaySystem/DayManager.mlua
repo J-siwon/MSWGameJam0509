@@ -33,6 +33,12 @@ script DayManager extends Component
 
 	property string SaveKey = "CafeDayProgress"
 
+	property string RankingStorageName = "MSWGameJam0509Ranking"
+
+	property string RankingKey = "CafeTotalMoneyRanking"
+
+	property number MaxRankingRecords = 20
+
 	property Entity DayIntroGroup = "a31f4e4e-7a9a-4ac5-8b8a-1e2b74d90101"
 
 	property CanvasGroupComponent DayIntroCanvasGroup = "a31f4e4e-7a9a-4ac5-8b8a-1e2b74d90101"
@@ -53,10 +59,15 @@ script DayManager extends Component
 
 	property TextComponent TimeText = "7f9f3e00-6df2-4f4a-9b27-5650f0d90004"
 
+	property ButtonComponent EndDayTestButton = "7f9f3e00-6df2-4f4a-9b27-5650f0d90007"
+
+	property string StartMenuControllerPath = "/ui/StartMenuGroup/StartMenuController"
+
 	property any Runtime = nil
 
 	method void OnBeginPlay()
 		self:EnsureRuntime()
+		self:ConnectEndDayTestButton()
 		self:RefreshHud()
 		
 		if self.AutoStartOnBeginPlay == true then
@@ -66,6 +77,7 @@ script DayManager extends Component
 
 	method void OnEndPlay()
 		self:EnsureRuntime()
+		self:DisconnectEndDayTestButton()
 		self:ClearTimers()
 		self:StopCustomerTable()
 	end
@@ -90,9 +102,42 @@ script DayManager extends Component
 			nextDayTimerId = 0,
 			introTimerId = 0,
 			introFadeTimerId = 0,
+			rankingRecords = {},
+			endDayTestHandler = nil,
 			savedDay = 1,
 			storageWarningLogged = false
 		}
+	end
+
+	method void ConnectEndDayTestButton()
+		self:EnsureRuntime()
+		if self.EndDayTestButton == nil or self.Runtime.endDayTestHandler ~= nil then
+			return
+		end
+
+		self.Runtime.endDayTestHandler = self.EndDayTestButton.Entity:ConnectEvent(ButtonClickEvent, function()
+			self:OnClickEndDayTest()
+		end)
+	end
+
+	method void DisconnectEndDayTestButton()
+		self:EnsureRuntime()
+		if self.EndDayTestButton == nil or self.Runtime.endDayTestHandler == nil then
+			return
+		end
+
+		self.EndDayTestButton.Entity:DisconnectEvent(ButtonClickEvent, self.Runtime.endDayTestHandler)
+		self.Runtime.endDayTestHandler = nil
+	end
+
+	method void OnClickEndDayTest()
+		self:EnsureRuntime()
+		if self.Runtime.status ~= "Playing" then
+			log("Cannot end day for test. Day is not playing.")
+			return
+		end
+
+		self:EndCurrentDay()
 	end
 
 	method void StartFirstDay()
@@ -412,6 +457,9 @@ script DayManager extends Component
 		self:ClearTimers()
 		self:StopCustomerTable()
 		self:RefreshHud()
+		local finalScore = self:GetFinalRankingScore(false)
+		self:RecordRankingScore(finalScore, self.Runtime.day, false)
+		self:ShowGameOverPopup(false, finalScore)
 		
 		log("Day " .. tostring(self.Runtime.day) .. " failed. Earned: " .. tostring(self.Runtime.money) .. " / Goal: " .. tostring(self.Runtime.goalMoney))
 	end
@@ -421,8 +469,333 @@ script DayManager extends Component
 		self:ClearTimers()
 		self:StopCustomerTable()
 		self:RefreshHud()
+		local finalScore = self:GetFinalRankingScore(true)
+		self:RecordRankingScore(finalScore, self.Runtime.day, true)
+		self:ShowGameOverPopup(true, finalScore)
 		
 		log("Game finished. Total money: " .. tostring(self.Runtime.totalMoney))
+	end
+
+	method void ShowGameOverPopup(boolean cleared, number finalScore)
+		if _UIPopup == nil then
+			log("Game over popup is not loaded.")
+			return
+		end
+
+		local message = "GAME OVER\nDay " .. tostring(self.Runtime.day) .. "\nEarned $" .. tostring(self.Runtime.money) .. " / Goal $" .. tostring(self.Runtime.goalMoney)
+		if cleared == true then
+			message = "GAME CLEAR\nTotal $" .. tostring(finalScore)
+		else
+			message = message .. "\nTotal $" .. tostring(finalScore)
+		end
+
+		_UIPopup:OpenWithButtons(message, "다시하기", "메인으로 가기", function()
+			self:RetryFromGameOver(cleared)
+		end, function()
+			self:ReturnToMainMenu()
+		end)
+	end
+
+	method void RetryFromGameOver(boolean cleared)
+		self:StartFirstDay()
+	end
+
+	method void ReturnToMainMenu()
+		self:ClearTimers()
+		self:StopCustomerTable()
+		self:ResetServiceStateForDay()
+		self.Runtime.status = "Ready"
+		self:RefreshHud()
+
+		local startMenuController = self:GetStartMenuController()
+		if startMenuController ~= nil then
+			startMenuController:ShowStartMenu()
+		end
+	end
+
+	method any GetStartMenuController()
+		if self.StartMenuControllerPath == nil or self.StartMenuControllerPath == "" then
+			return nil
+		end
+
+		local entity = _EntityService:GetEntityByPath(self.StartMenuControllerPath)
+		if entity == nil then
+			return nil
+		end
+		return entity.StartMenuController
+	end
+
+	method number GetFinalRankingScore(boolean cleared)
+		self:EnsureRuntime()
+		if cleared == true then
+			return self.Runtime.totalMoney
+		end
+
+		return self.Runtime.totalMoney + self.Runtime.money
+	end
+
+	method void RecordRankingScore(number score, number reachedDay, boolean cleared)
+		self:EnsureRuntime()
+		score = math.max(0, math.floor(score + 0.5))
+		reachedDay = math.max(1, math.floor(reachedDay + 0.5))
+
+		local userId = self:GetLocalUserId()
+		if userId == "" then
+			userId = self:GetLocalPlayerName()
+		end
+		if userId == "" then
+			userId = "LocalPlayer"
+		end
+		userId = self:SanitizeRankingText(userId)
+
+		local playerName = self:GetLocalPlayerName()
+		if playerName == "" then
+			playerName = "Player"
+		end
+		playerName = self:SanitizeRankingText(playerName)
+		if playerName == "" then
+			playerName = "Player"
+		end
+
+		local records = self:LoadRankingRecords()
+		local updated = false
+		for index = 1, #records do
+			local record = records[index]
+			if record.userId == userId then
+				if self:IsBetterRankingRecord(score, reachedDay, cleared, record) == true then
+					record.name = playerName
+					record.score = score
+					record.reachedDay = reachedDay
+					record.cleared = cleared
+				end
+				updated = true
+				break
+			end
+		end
+
+		if updated == false then
+			table.insert(records, {
+				userId = userId,
+				name = playerName,
+				score = score,
+				reachedDay = reachedDay,
+				cleared = cleared
+			})
+		end
+
+		self:SortRankingRecords(records)
+		local maxRecords = math.max(1, math.floor((self.MaxRankingRecords or 20) + 0.5))
+		while #records > maxRecords do
+			table.remove(records)
+		end
+
+		self:SaveRankingRecords(records)
+		log("Ranking saved. Player: " .. tostring(playerName) .. " / Score: " .. tostring(score))
+	end
+
+	method boolean IsBetterRankingRecord(number score, number reachedDay, boolean cleared, table record)
+		if record == nil then
+			return true
+		end
+
+		local recordScore = tonumber(record.score) or 0
+		if score > recordScore then
+			return true
+		end
+		if score < recordScore then
+			return false
+		end
+		if cleared == true and record.cleared ~= true then
+			return true
+		end
+		if reachedDay > (tonumber(record.reachedDay) or 1) then
+			return true
+		end
+
+		return false
+	end
+
+	method table GetRankingRecords()
+		local records = self:LoadRankingRecords()
+		self:SortRankingRecords(records)
+		return records
+	end
+
+	method table LoadRankingRecords()
+		self:EnsureRuntime()
+		local text = self:LoadRankingTextFromStorage()
+		if text ~= nil and text ~= "" then
+			local records = self:ParseRankingRecords(text)
+			if #records > 0 or string.find(text, "|") ~= nil then
+				self.Runtime.rankingRecords = records
+				return records
+			end
+		end
+
+		if self.Runtime.rankingRecords == nil then
+			self.Runtime.rankingRecords = {}
+		end
+
+		return self.Runtime.rankingRecords
+	end
+
+	method void SaveRankingRecords(table records)
+		self:EnsureRuntime()
+		self:SortRankingRecords(records)
+		self.Runtime.rankingRecords = records
+		self:SaveRankingTextToStorage(self:SerializeRankingRecords(records))
+	end
+
+	method string LoadRankingTextFromStorage()
+		if self.UseDataStorage ~= true or _DataStorageService == nil then
+			return ""
+		end
+		local storageName = self.RankingStorageName
+		if storageName == nil or storageName == "" then
+			storageName = "MSWGameJam0509Ranking"
+		end
+		local rankingKey = self.RankingKey
+		if rankingKey == nil or rankingKey == "" then
+			rankingKey = "CafeTotalMoneyRanking"
+		end
+
+		local ok, firstValue, secondValue = pcall(function()
+			return _DataStorageService:GetAndWait(storageName, rankingKey)
+		end)
+
+		if ok == true then
+			local value = firstValue
+			if secondValue ~= nil then
+				if tonumber(firstValue) == 0 then
+					value = secondValue
+				else
+					return ""
+				end
+			end
+			if value == nil or value == "" then
+				return ""
+			end
+			return tostring(value)
+		end
+
+		self:LogStorageWarning("ranking load", tostring(firstValue))
+
+		return ""
+	end
+
+	method void SaveRankingTextToStorage(string text)
+		if self.UseDataStorage ~= true or _DataStorageService == nil then
+			return
+		end
+		local storageName = self.RankingStorageName
+		if storageName == nil or storageName == "" then
+			storageName = "MSWGameJam0509Ranking"
+		end
+		local rankingKey = self.RankingKey
+		if rankingKey == nil or rankingKey == "" then
+			rankingKey = "CafeTotalMoneyRanking"
+		end
+
+		local ok, errorCode = pcall(function()
+			return _DataStorageService:SetAndWait(storageName, rankingKey, text)
+		end)
+
+		if ok ~= true then
+			self:LogStorageWarning("ranking save", tostring(errorCode))
+			return
+		end
+		if errorCode ~= nil and tonumber(errorCode) ~= nil and tonumber(errorCode) ~= 0 then
+			self:LogStorageWarning("ranking save", tostring(errorCode))
+		end
+	end
+
+	method table ParseRankingRecords(string text)
+		local records = {}
+		if text == nil or text == "" then
+			return records
+		end
+
+		for entry in string.gmatch(text, "([^;]+)") do
+			local userId, name, scoreText, dayText, clearedText = string.match(entry, "^([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)$")
+			if userId ~= nil then
+				table.insert(records, {
+					userId = userId,
+					name = name,
+					score = math.max(0, tonumber(scoreText) or 0),
+					reachedDay = math.max(1, tonumber(dayText) or 1),
+					cleared = clearedText == "1"
+				})
+			end
+		end
+
+		self:SortRankingRecords(records)
+		return records
+	end
+
+	method string SerializeRankingRecords(table records)
+		local text = ""
+		for index = 1, #records do
+			local record = records[index]
+			local entry = self:SanitizeRankingText(record.userId) .. "|" ..
+				self:SanitizeRankingText(record.name) .. "|" ..
+				tostring(math.max(0, tonumber(record.score) or 0)) .. "|" ..
+				tostring(math.max(1, tonumber(record.reachedDay) or 1)) .. "|" ..
+				(record.cleared == true and "1" or "0")
+
+			if text == "" then
+				text = entry
+			else
+				text = text .. ";" .. entry
+			end
+		end
+
+		return text
+	end
+
+	method string SanitizeRankingText(any value)
+		if value == nil then
+			return ""
+		end
+
+		local text = string.gsub(tostring(value), "[|;\r\n]", " ")
+		return text
+	end
+
+	method void SortRankingRecords(table records)
+		table.sort(records, function(a, b)
+			local scoreA = tonumber(a.score) or 0
+			local scoreB = tonumber(b.score) or 0
+			if scoreA ~= scoreB then
+				return scoreA > scoreB
+			end
+
+			local dayA = tonumber(a.reachedDay) or 1
+			local dayB = tonumber(b.reachedDay) or 1
+			if dayA ~= dayB then
+				return dayA > dayB
+			end
+
+			return tostring(a.name) < tostring(b.name)
+		end)
+	end
+
+	method string GetLocalPlayerName()
+		if _UserService == nil or _UserService.LocalPlayer == nil then
+			return "Player"
+		end
+
+		local player = _UserService.LocalPlayer.PlayerComponent
+		if player == nil then
+			return "Player"
+		end
+		if player.Nickname ~= nil then
+			return tostring(player.Nickname)
+		end
+		if player.Name ~= nil then
+			return tostring(player.Name)
+		end
+
+		return "Player"
 	end
 
 	method boolean SubmitDrink(string drinkId)
@@ -715,7 +1088,7 @@ script DayManager extends Component
 		if player.PlayerComponent.UserId == nil then
 			return ""
 		end
-		return player.PlayerComponent.UserId
+		return tostring(player.PlayerComponent.UserId)
 	end
 
 	method number LoadProgressDayFromStorage()

@@ -7,6 +7,10 @@ script UIPopup extends Logic
 
 	property ButtonComponent btnCancel = "0f5de49b-2adc-409a-816d-15aa43df8e0d"
 
+	property TextComponent okText = "94a274e4-4111-40f1-924d-c95a3a1f14d5"
+
+	property TextComponent cancelText = "0f5de49b-2adc-409a-816d-15aa43df8e0d"
+
 	property Entity popupGroup = "fb7a3b06-7026-4590-8efe-bb33416dd8f9"
 
 	property Entity popup = "aa954759-0e39-430f-85fa-80bf2e5fe31d"
@@ -32,19 +36,38 @@ script UIPopup extends Logic
 	property any cancelHandler = nil
 
 	method void Open(string message, any onOk, any onCancel)
+		self:OpenWithButtons(message, "확인", "취소", onOk, onCancel)
+	end
+
+	method void OpenWithButtons(string message, string okButtonText, string cancelButtonText, any onOk, any onCancel)
 		if self.isOpen == true then
 			return
 		end
 		self.isOpen = true
 		self.popupGroup.Enable = true
+		self.popupGroup.Visible = true
 		self.message.Text = message
+		self:SetButtonTexts(okButtonText, cancelButtonText)
 		self.onOk = onOk
 		self.onCancel = onCancel
 		
 		
-		self.okHandler = self.btnOk.Entity:ConnectEvent(ButtonClickEvent,self.OnClickOk)
-		self.cancelHandler = self.btnCancel.Entity:ConnectEvent(ButtonClickEvent,self.OnClickCancel)
+		self.okHandler = self.btnOk.Entity:ConnectEvent(ButtonClickEvent, function()
+			self:OnClickOk()
+		end)
+		self.cancelHandler = self.btnCancel.Entity:ConnectEvent(ButtonClickEvent, function()
+			self:OnClickCancel()
+		end)
 		self:StartTween(true)
+	end
+
+	method void SetButtonTexts(string okButtonText, string cancelButtonText)
+		if self.okText ~= nil then
+			self.okText.Text = okButtonText
+		end
+		if self.cancelText ~= nil then
+			self.cancelText.Text = cancelButtonText
+		end
 	end
 
 	method void OnClickOk()
@@ -70,8 +93,14 @@ script UIPopup extends Logic
 	end
 
 	method void Close()
-		self.btnOk.Entity:DisconnectEvent(ButtonClickEvent,self.okHandler)
-		self.btnCancel.Entity:DisconnectEvent(ButtonClickEvent,self.cancelHandler)
+		if self.okHandler ~= nil then
+			self.btnOk.Entity:DisconnectEvent(ButtonClickEvent,self.okHandler)
+			self.okHandler = nil
+		end
+		if self.cancelHandler ~= nil then
+			self.btnCancel.Entity:DisconnectEvent(ButtonClickEvent,self.cancelHandler)
+			self.cancelHandler = nil
+		end
 		self:StartTween(false)
 	end
 
@@ -101,6 +130,7 @@ script UIPopup extends Logic
 				timeValue = self.duration
 				if open == false then
 					self.popupGroup.Enable = false
+					self.popupGroup.Visible = false
 					self.isOpen = false
 				end
 				self.isTweenPlaying = false

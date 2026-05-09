@@ -96,7 +96,7 @@
             {
               "@type": "MOD.Core.UIGroupComponent",
               "DefaultShow": true,
-              "GroupOrder": 8,
+              "GroupOrder": 7,
               "GroupType": 1,
               "Enable": true
             },

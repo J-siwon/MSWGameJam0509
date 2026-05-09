@@ -1,5 +1,5 @@
 ﻿Id,IconRUID,Price,MinPrice,FailPrice,Ingredients
-Coffee,4b0e92dd6438484888003858f2e2ba80,300,100,50,CoffeeShot
+Coffee,4b0e92dd6438484888003858f2e2ba80,300,100,50,HotWater
 Latte,5dedc243f5904fd3a9f1f8b02aa4408f,420,140,70,CoffeeShot|HotWater|prepped_Ingredient_2
 Ade,ba8a5f1c30ab442fb25ee4127e239b1d,360,120,60,Ice|ColdWater|Mixed_Cold_Ingredient_1
 Tea,5dac5303750744f78c7291eeb64e6ee5,260,80,40,HotWater|prepped_Ingredient_3

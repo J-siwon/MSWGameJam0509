@@ -19,6 +19,8 @@ script StartMenuController extends Component
 
 	property Entity PauseGroup = "f7a28b22-9bd0-4f20-a7d5-c28c0f090101"
 
+	property string LeaderboardPath = "/ui/StartMenuGroup/Leaderboard"
+
 	property string DayManagerPath = "/ui/DayInfoGroup/DayManager"
 
 	property string PlayMapName = "map01"
@@ -65,11 +67,15 @@ script StartMenuController extends Component
 
 	method void ConnectButtons()
 		if self.ContinueButton ~= nil and self.Runtime.continueHandler == nil then
-			self.Runtime.continueHandler = self.ContinueButton.Entity:ConnectEvent(ButtonClickEvent, self.OnClickContinue)
+			self.Runtime.continueHandler = self.ContinueButton.Entity:ConnectEvent(ButtonClickEvent, function()
+				self:OnClickContinue()
+			end)
 		end
 		
 		if self.NewGameButton ~= nil and self.Runtime.newGameHandler == nil then
-			self.Runtime.newGameHandler = self.NewGameButton.Entity:ConnectEvent(ButtonClickEvent, self.OnClickNewGame)
+			self.Runtime.newGameHandler = self.NewGameButton.Entity:ConnectEvent(ButtonClickEvent, function()
+				self:OnClickNewGame()
+			end)
 		end
 	end
 
@@ -131,6 +137,7 @@ script StartMenuController extends Component
 		self:SetCanvasAlpha(self.StartMenuGroup, 1)
 		self:SetCanvasInput(self.StartMenuGroup, true)
 		self:RefreshContinueButton()
+		self:RefreshLeaderboard()
 		self:HideGameplayUI()
 	end
 
@@ -173,6 +180,27 @@ script StartMenuController extends Component
 		end
 		
 		self.ContinueButtonText.Text = "Continue  Day " .. tostring(savedDay)
+	end
+
+	method void RefreshLeaderboard()
+		local leaderboard = self:GetLeaderboard()
+		if leaderboard ~= nil then
+			leaderboard:RefreshLeaderboard()
+		end
+	end
+
+	method any GetLeaderboard()
+		local path = self.LeaderboardPath
+		if path == nil or path == "" then
+			path = "/ui/StartMenuGroup/Leaderboard"
+		end
+
+		local entity = _EntityService:GetEntityByPath(path)
+		if entity == nil then
+			return nil
+		end
+
+		return entity.UILeaderboard
 	end
 
 	method number GetSavedDay()

@@ -1,0 +1,219 @@
+@Component
+script UILeaderboard extends Component
+
+	property number RefreshIntervalSeconds = 1
+
+	property number refreshTime = 0
+
+	property string DayManagerPath = "/ui/DayInfoGroup/DayManager"
+
+	property string StartMenuGroupPath = "/ui/StartMenuGroup"
+
+	property number MaxVisibleRows = 20
+
+	property Entity item = nil
+
+	property table itemTable = {}
+
+	property TextComponent myRank = nil
+
+	property TextComponent myName = nil
+
+	property TextComponent myScore = nil
+
+	@ExecSpace("ClientOnly")
+	method void OnBeginPlay()
+		self.itemTable = {}
+		self:BindUI()
+		self:RefreshLeaderboard()
+	end
+
+	@ExecSpace("ClientOnly")
+	method void OnUpdate(number delta)
+		local interval = self.RefreshIntervalSeconds or 0
+		if interval <= 0 then
+			return
+		end
+		if self.refreshTime == nil then
+			self.refreshTime = 0
+		end
+		if self.refreshTime > 0 then
+			self.refreshTime = self.refreshTime - delta
+			return
+		end
+
+		self.refreshTime = interval
+		if self:IsStartMenuVisible() == false then
+			return
+		end
+
+		self:RefreshLeaderboard()
+	end
+
+	method void BindUI()
+		local currentPath = self.Entity.Path
+		self.item = _EntityService:GetEntityByPath(currentPath .. "/ScrollLayout/Item")
+		if self.item ~= nil then
+			self.item.Enable = false
+		end
+
+		local rankEntity = _EntityService:GetEntityByPath(currentPath .. "/My_rank/Text_rank")
+		local nameEntity = _EntityService:GetEntityByPath(currentPath .. "/My_rank/Text_name")
+		local scoreEntity = _EntityService:GetEntityByPath(currentPath .. "/My_rank/Text_score")
+
+		if rankEntity ~= nil then
+			self.myRank = rankEntity.TextComponent
+		end
+		if nameEntity ~= nil then
+			self.myName = nameEntity.TextComponent
+		end
+		if scoreEntity ~= nil then
+			self.myScore = scoreEntity.TextComponent
+		end
+	end
+
+	method void RefreshLeaderboard()
+		if self.item == nil then
+			self:BindUI()
+		end
+
+		local records = {}
+		local localUserId = ""
+		local localName = "Player"
+		local dayManager = self:GetDayManager()
+		if dayManager ~= nil then
+			records = dayManager:GetRankingRecords()
+			localUserId = dayManager:GetLocalUserId()
+			localName = dayManager:GetLocalPlayerName()
+			if localUserId == "" then
+				localUserId = localName
+			end
+			localUserId = dayManager:SanitizeRankingText(localUserId)
+			localName = dayManager:SanitizeRankingText(localName)
+			if localName == "" then
+				localName = "Player"
+			end
+		end
+		if records == nil then
+			records = {}
+		end
+
+		self:RenderRows(records)
+		self:RenderMyRow(records, localUserId, localName)
+	end
+
+	method any GetDayManager()
+		local path = self.DayManagerPath
+		if path == nil or path == "" then
+			path = "/ui/DayInfoGroup/DayManager"
+		end
+
+		local entity = _EntityService:GetEntityByPath(path)
+		if entity == nil then
+			return nil
+		end
+
+		return entity.DayManager
+	end
+
+	method boolean IsStartMenuVisible()
+		local path = self.StartMenuGroupPath
+		if path == nil or path == "" then
+			path = "/ui/StartMenuGroup"
+		end
+
+		local menu = _EntityService:GetEntityByPath(path)
+		if menu == nil then
+			return true
+		end
+		if menu.Enable == false or menu.Visible == false then
+			return false
+		end
+
+		return true
+	end
+
+	method void RenderRows(table records)
+		if self.item == nil then
+			return
+		end
+		if self.itemTable == nil then
+			self.itemTable = {}
+		end
+
+		local maxRows = self.MaxVisibleRows or 20
+		local visibleCount = math.min(#records, math.max(0, math.floor(maxRows + 0.5)))
+		while #self.itemTable < visibleCount do
+			local tableIndex = #self.itemTable + 1
+			self.itemTable[tableIndex] = self.item:Clone("Item" .. tostring(tableIndex))
+		end
+
+		for index = 1, #self.itemTable do
+			local currentItem = self.itemTable[index]
+			if currentItem ~= nil and index <= visibleCount then
+				currentItem.Enable = true
+				self:SetRowText(currentItem, tostring(index), self:GetRecordName(records[index]), self:FormatScore(records[index].score))
+			elseif currentItem ~= nil then
+				currentItem.Enable = false
+			end
+		end
+	end
+
+	method void RenderMyRow(table records, string localUserId, string localName)
+		local rankText = "-"
+		local nameText = localName
+		local scoreText = "$0"
+
+		for index = 1, #records do
+			local record = records[index]
+			if record.userId == localUserId or (localUserId == "" and record.name == localName) then
+				rankText = tostring(index)
+				nameText = self:GetRecordName(record)
+				scoreText = self:FormatScore(record.score)
+				break
+			end
+		end
+
+		if self.myRank ~= nil then
+			self.myRank.Text = rankText
+		end
+		if self.myName ~= nil then
+			self.myName.Text = nameText
+		end
+		if self.myScore ~= nil then
+			self.myScore.Text = scoreText
+		end
+	end
+
+	method void SetRowText(Entity rowEntity, string rankText, string nameText, string scoreText)
+		if rowEntity == nil then
+			return
+		end
+
+		self:SetChildText(rowEntity, "Text_rank", rankText)
+		self:SetChildText(rowEntity, "Text_name", nameText)
+		self:SetChildText(rowEntity, "Text_score", scoreText)
+	end
+
+	method void SetChildText(Entity rowEntity, string childName, string text)
+		local child = _EntityService:GetEntityByPath(rowEntity.Path .. "/" .. childName)
+		if child == nil or child.TextComponent == nil then
+			return
+		end
+
+		child.TextComponent.Text = text
+	end
+
+	method string GetRecordName(table record)
+		if record == nil or record.name == nil or record.name == "" then
+			return "Player"
+		end
+
+		return tostring(record.name)
+	end
+
+	method string FormatScore(number score)
+		return "$" .. tostring(math.max(0, math.floor((score or 0) + 0.5)))
+	end
+
+end

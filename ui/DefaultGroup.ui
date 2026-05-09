@@ -264,7 +264,7 @@
           "name": "UIChat",
           "path": "/ui/DefaultGroup/UIChat",
           "nameEditable": true,
-          "enable": true,
+          "enable": false,
           "visible": true,
           "localize": true,
           "displayOrder": 1,
