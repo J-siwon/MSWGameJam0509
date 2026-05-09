@@ -1,14 +1,14 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "codeblock://e6e32ef5-429c-4a95-aeb5-be2d17561561",
+  "EntryKey": "codeblock://efa2b4a5-560b-4292-b148-af655d2016c0",
   "ContentType": "x-mod/codeblock",
   "Content": "",
   "Usage": 0,
   "UsePublish": 1,
   "UseService": 0,
   "CoreVersion": "26.3.0.0",
-  "StudioVersion": "0.1.0.0",
+  "StudioVersion": "",
   "DynamicLoading": 0,
   "ContentProto": {
     "Use": "Json",
@@ -22,15 +22,12 @@
         "Minor": 1
       },
       "Description": "",
-      "Id": "e6e32ef5-429c-4a95-aeb5-be2d17561561",
+      "Id": "efa2b4a5-560b-4292-b148-af655d2016c0",
       "Language": 1,
-      "Name": "WorkProcessService",
+      "Name": "MixerService",
       "Type": 5,
       "Source": 0,
-      "Target": null,
-      "worldCoreVersion": "26.3.0.0",
-      "worldStudioVersion": "0.1.0.0",
-      "useService": 0
+      "Target": null
     }
   }
 }

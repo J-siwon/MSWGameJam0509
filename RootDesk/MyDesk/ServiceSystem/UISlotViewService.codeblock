@@ -1,14 +1,14 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "codeblock://8a2d15f8-b62a-482a-a782-7ec96fb1eb6d",
+  "EntryKey": "codeblock://c87a7ab5-1b0f-4564-a989-fdf92cd274bb",
   "ContentType": "x-mod/codeblock",
   "Content": "",
   "Usage": 0,
   "UsePublish": 1,
   "UseService": 0,
   "CoreVersion": "26.3.0.0",
-  "StudioVersion": "0.1.0.0",
+  "StudioVersion": "",
   "DynamicLoading": 0,
   "ContentProto": {
     "Use": "Json",
@@ -22,15 +22,12 @@
         "Minor": 1
       },
       "Description": "",
-      "Id": "8a2d15f8-b62a-482a-a782-7ec96fb1eb6d",
+      "Id": "c87a7ab5-1b0f-4564-a989-fdf92cd274bb",
       "Language": 1,
-      "Name": "CupService",
+      "Name": "UISlotViewService",
       "Type": 5,
       "Source": 0,
-      "Target": null,
-      "worldCoreVersion": "26.3.0.0",
-      "worldStudioVersion": "0.1.0.0",
-      "useService": 0
+      "Target": null
     }
   }
 }

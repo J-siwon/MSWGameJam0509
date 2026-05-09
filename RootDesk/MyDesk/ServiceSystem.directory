@@ -1,20 +1,20 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "directory://9d2f4f8fba814966ae1cb83c0f036b17",
+  "EntryKey": "directory://6f9a0c5849bf43b79af37c344486374c",
   "ContentType": "x-mod/directory",
   "Content": "",
   "Usage": 0,
   "UsePublish": 1,
   "UseService": 0,
   "CoreVersion": "26.3.0.0",
-  "StudioVersion": "0.1.0.0",
+  "StudioVersion": "",
   "DynamicLoading": 0,
   "ContentProto": {
     "Use": "Json",
     "Json": {
-      "entry_id": "directory://9d2f4f8fba814966ae1cb83c0f036b17",
-      "name": "Character",
+      "entry_id": "directory://6f9a0c5849bf43b79af37c344486374c",
+      "name": "ServiceSystem",
       "lock": false,
       "folding": false,
       "nameEditable": true
