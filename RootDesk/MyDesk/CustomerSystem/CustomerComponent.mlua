@@ -1,0 +1,363 @@
+@Component
+script CustomerComponent extends Component
+
+	property Entity StateIconEntity = nil
+	property Entity CharacterIconEntity = nil
+	property Entity DrinkIconEntity = nil
+	property Entity TimeGaugeEntity = nil
+	property Entity FlashEntity = nil
+
+	property number IconMaxSize = 100
+	property number StateIconMaxSize = 36
+
+	property number TimeGaugeLowRatio = 0.25
+	property number TimeGaugeHighRatio = 0.65
+	property number GaugeRefreshIntervalSeconds = 0.05
+	property Color TimeGaugeHighColor = Color(0.180, 0.850, 0.360, 1.000)
+	property Color TimeGaugeMiddleColor = Color(1.000, 0.760, 0.180, 1.000)
+	property Color TimeGaugeLowColor = Color(1.000, 0.230, 0.180, 1.000)
+	property Color TimeGaugeTimeOverColor = Color(0.750, 0.000, 0.000, 1.000)
+
+	property boolean FlashEnabled = true
+	property number FlashDurationSeconds = 0.35
+	property number FlashBlinkIntervalSeconds = 0.07
+	property number FlashMaxAlpha = 0.85
+	property Color SuccessFlashColor = Color(1.000, 0.960, 0.350, 1.000)
+
+	property any Runtime = nil
+
+	method void OnEndPlay()
+		self:EnsureRuntime()
+		self:StopGaugeTimer()
+		self:ClearFlashTimer()
+	end
+
+	method void EnsureRuntime()
+		if self.Runtime ~= nil then
+			return
+		end
+
+		self.Runtime = {
+			desiredDrinkId = "",
+			characterId = "",
+			limitSeconds = 0,
+			price = 0,
+			minPrice = 0,
+			failPrice = 0,
+			priceBonusPercent = 0,
+			waitingIconRUID = "",
+			resolvedIconRUID = "",
+			drinkIconRUID = "",
+			characterBaseIconRUID = "",
+			characterHighIconRUID = "",
+			characterMiddleIconRUID = "",
+			characterLowIconRUID = "",
+			state = "Idle",
+			createdAt = 0,
+			timeEndsAt = 0,
+			lastResolvePrice = 0,
+			flashTimerId = 0,
+			gaugeTimerId = 0
+		}
+	end
+
+	method void Setup(string desiredDrinkId, string characterId, number limitSeconds, number price, number minPrice, number failPrice, number priceBonusPercent, string waitingIconRUID, string resolvedIconRUID, string characterHighIconRUID, string characterMiddleIconRUID, string characterLowIconRUID, string drinkIconRUID)
+		self:EnsureRuntime()
+
+		self.Runtime.desiredDrinkId = desiredDrinkId
+		self.Runtime.characterId = characterId
+		self.Runtime.limitSeconds = math.max(0, limitSeconds)
+		self.Runtime.price = math.max(price, minPrice)
+		self.Runtime.minPrice = math.min(price, minPrice)
+		self.Runtime.failPrice = math.max(0, failPrice)
+		self.Runtime.priceBonusPercent = math.max(0, priceBonusPercent)
+		self.Runtime.waitingIconRUID = waitingIconRUID
+		self.Runtime.resolvedIconRUID = resolvedIconRUID
+		self.Runtime.drinkIconRUID = drinkIconRUID
+		self.Runtime.characterBaseIconRUID = characterHighIconRUID
+		self.Runtime.characterHighIconRUID = characterHighIconRUID
+		self.Runtime.characterMiddleIconRUID = characterMiddleIconRUID
+		self.Runtime.characterLowIconRUID = characterLowIconRUID
+		self.Runtime.createdAt = _UtilLogic.ElapsedSeconds
+		self.Runtime.timeEndsAt = self.Runtime.createdAt + self.Runtime.limitSeconds
+		self.Runtime.lastResolvePrice = 0
+		self.Runtime.state = "Waiting"
+
+		self:RefreshVisual()
+		self:HideFlash()
+		self:StartGaugeTimer()
+	end
+
+	method boolean IsWaiting()
+		self:EnsureRuntime()
+		return self.Runtime.state == "Waiting"
+	end
+
+	method number GetRemainingSeconds()
+		self:EnsureRuntime()
+		if self:IsWaiting() == false then
+			return 0
+		end
+		return math.max(0, self.Runtime.timeEndsAt - _UtilLogic.ElapsedSeconds)
+	end
+
+	method number GetRemainingRatio()
+		self:EnsureRuntime()
+		if self.Runtime.limitSeconds <= 0 then
+			return 0
+		end
+		return math.min(1, math.max(0, self:GetRemainingSeconds() / self.Runtime.limitSeconds))
+	end
+
+	method boolean WantsDrink(string drinkId)
+		self:EnsureRuntime()
+		return self.Runtime.desiredDrinkId == drinkId
+	end
+
+	method boolean ResolveWithDrink(string drinkId)
+		if self:IsWaiting() == false or self:WantsDrink(drinkId) == false then
+			return false
+		end
+
+		self.Runtime.lastResolvePrice = self:CalculateCurrentPrice()
+		self:StopGaugeTimer()
+		self.Runtime.state = "Resolved"
+		self:SetIcon(self.StateIconEntity, self:GetStateIconRUID(), self.StateIconMaxSize, false)
+		return true
+	end
+
+	method number GetLastResolvePrice()
+		self:EnsureRuntime()
+		return self.Runtime.lastResolvePrice
+	end
+
+	method number CalculateCurrentPrice()
+		self:EnsureRuntime()
+		if self:GetRemainingSeconds() <= 0 then
+			return self.Runtime.failPrice
+		end
+
+		local ratio = self:GetRemainingRatio()
+		local basePrice = self.Runtime.minPrice + (self.Runtime.price - self.Runtime.minPrice) * ratio
+		local bonusScale = 1 + self.Runtime.priceBonusPercent / 100
+		return math.floor(basePrice * bonusScale + 0.5)
+	end
+
+	method string GetStateIconRUID()
+		self:EnsureRuntime()
+		if self.Runtime.state == "Resolved" then
+			return self.Runtime.resolvedIconRUID
+		end
+		return self.Runtime.waitingIconRUID
+	end
+
+	method void RefreshVisual()
+		self:EnsureRuntime()
+		self:SetIcon(self.StateIconEntity, self:GetStateIconRUID(), self.StateIconMaxSize, false)
+		self:SetIcon(self.DrinkIconEntity, self.Runtime.drinkIconRUID, self.IconMaxSize, true)
+		self:RefreshTimeGauge()
+	end
+
+	method void RefreshTimeGauge()
+		if self:IsWaiting() == false then
+			return
+		end
+
+		local ratio = self:GetRemainingRatio()
+		self:SetIcon(self.CharacterIconEntity, self:GetCharacterIconRUID(ratio), self.IconMaxSize, true)
+
+		if self.TimeGaugeEntity == nil or self.TimeGaugeEntity.SpriteGUIRendererComponent == nil then
+			return
+		end
+
+		local renderer = self.TimeGaugeEntity.SpriteGUIRendererComponent
+		renderer.Type = ImageType.Filled
+		renderer.FillMethod = FillMethodType.Horizontal
+		renderer.FillAmount = ratio
+
+		if self:GetRemainingSeconds() <= 0 then
+			renderer.Color = self.TimeGaugeTimeOverColor
+		elseif ratio <= self.TimeGaugeLowRatio then
+			renderer.Color = self.TimeGaugeLowColor
+		elseif ratio >= self.TimeGaugeHighRatio then
+			renderer.Color = self.TimeGaugeHighColor
+		else
+			renderer.Color = self.TimeGaugeMiddleColor
+		end
+	end
+
+	method string GetCharacterIconRUID(number ratio)
+		self:EnsureRuntime()
+
+		local ruid = self.Runtime.characterMiddleIconRUID
+		if ratio <= self.TimeGaugeLowRatio then
+			ruid = self.Runtime.characterLowIconRUID
+		elseif ratio >= self.TimeGaugeHighRatio then
+			ruid = self.Runtime.characterHighIconRUID
+		end
+
+		if ruid ~= "" then
+			return ruid
+		end
+		if self.Runtime.characterBaseIconRUID ~= "" then
+			return self.Runtime.characterBaseIconRUID
+		end
+		if self.Runtime.characterHighIconRUID ~= "" then
+			return self.Runtime.characterHighIconRUID
+		end
+		if self.Runtime.characterMiddleIconRUID ~= "" then
+			return self.Runtime.characterMiddleIconRUID
+		end
+		return self.Runtime.characterLowIconRUID
+	end
+
+	method void StartGaugeTimer()
+		self:EnsureRuntime()
+		self:StopGaugeTimer()
+
+		local refresh = function()
+			self:RefreshTimeGauge()
+			if self:IsWaiting() == false or self:GetRemainingSeconds() <= 0 then
+				self:StopGaugeTimer()
+			end
+		end
+
+		self.Runtime.gaugeTimerId = _TimerService:SetTimerRepeat(refresh, math.max(0.02, self.GaugeRefreshIntervalSeconds))
+	end
+
+	method void StopGaugeTimer()
+		self:EnsureRuntime()
+		if self.Runtime.gaugeTimerId <= 0 then
+			return
+		end
+
+		_TimerService:ClearTimer(self.Runtime.gaugeTimerId)
+		self.Runtime.gaugeTimerId = 0
+	end
+
+	method void PlaySuccessFlash()
+		self:EnsureRuntime()
+		if self.FlashEnabled == false or self.FlashEntity == nil or self.FlashEntity.SpriteGUIRendererComponent == nil then
+			return
+		end
+
+		self:ClearFlashTimer()
+
+		local renderer = self.FlashEntity.SpriteGUIRendererComponent
+		local flashColor = self.SuccessFlashColor
+		local elapsed = 0
+		local previousTime = _UtilLogic.ElapsedSeconds
+		local duration = math.max(0.01, self.FlashDurationSeconds)
+		local interval = math.max(0.01, self.FlashBlinkIntervalSeconds)
+
+		local flash = function()
+			local now = _UtilLogic.ElapsedSeconds
+			elapsed = elapsed + now - previousTime
+			previousTime = now
+
+			local alpha = self.FlashMaxAlpha
+			if math.floor(elapsed / interval) % 2 == 1 then
+				alpha = 0
+			end
+			renderer.Color = Color(flashColor.r, flashColor.g, flashColor.b, alpha)
+
+			if elapsed >= duration then
+				renderer.Color = Color(flashColor.r, flashColor.g, flashColor.b, 0)
+				self:ClearFlashTimer()
+			end
+		end
+
+		self.Runtime.flashTimerId = _TimerService:SetTimerRepeat(flash, 1 / 60)
+	end
+
+	method void ClearFlashTimer()
+		self:EnsureRuntime()
+		if self.Runtime.flashTimerId <= 0 then
+			return
+		end
+
+		_TimerService:ClearTimer(self.Runtime.flashTimerId)
+		self.Runtime.flashTimerId = 0
+	end
+
+	method void HideFlash()
+		if self.FlashEntity == nil or self.FlashEntity.SpriteGUIRendererComponent == nil then
+			return
+		end
+
+		local color = self.FlashEntity.SpriteGUIRendererComponent.Color
+		self.FlashEntity.SpriteGUIRendererComponent.Color = Color(color.r, color.g, color.b, 0)
+	end
+
+	method void SetIcon(Entity entity, string ruid, number maxSize, boolean keepOriginalPosition)
+		if ruid == "" then
+			return
+		end
+
+		if entity == nil then
+			return
+		end
+
+		if entity.SpriteRendererComponent ~= nil and entity.SpriteRendererComponent.SpriteRUID ~= ruid then
+			entity.SpriteRendererComponent.SpriteRUID = ruid
+		end
+		if entity.SpriteGUIRendererComponent == nil then
+			return
+		end
+
+		local currentRUID = ""
+		if entity.SpriteGUIRendererComponent.ImageRUID ~= nil then
+			currentRUID = entity.SpriteGUIRendererComponent.ImageRUID.DataId
+		end
+		if currentRUID == ruid then
+			return
+		end
+
+		entity.SpriteGUIRendererComponent.ImageRUID = DataRef(ruid)
+		self:FitIconSize(entity, maxSize, keepOriginalPosition)
+	end
+
+	method void FitIconSize(Entity entity, number maxSize, boolean keepOriginalPosition)
+		if entity.UITransformComponent == nil or entity.SpriteGUIRendererComponent == nil then
+			return
+		end
+
+		local limit = math.max(1, maxSize)
+		local renderer = entity.SpriteGUIRendererComponent
+		local transform = entity.UITransformComponent
+		local anchoredPosition = Vector2(transform.anchoredPosition.x, transform.anchoredPosition.y)
+		local position = Vector3(transform.Position.x, transform.Position.y, transform.Position.z)
+		local pivot = Vector2(transform.Pivot.x, transform.Pivot.y)
+
+		renderer.LocalPosition = Vector2(0, 0)
+		renderer.LocalScale = Vector2(1, 1)
+		renderer.PreserveSprite = PreserveSpriteType.NativeSize
+		renderer:SetNativeSize()
+		self:ApplyIconTransform(transform, keepOriginalPosition, anchoredPosition, position, pivot)
+
+		local size = transform.RectSize
+		if size.x <= 0 or size.y <= 0 then
+			transform.RectSize = Vector2(limit, limit)
+		else
+			local scale = math.min(1, limit / size.x, limit / size.y)
+			transform.RectSize = Vector2(size.x * scale, size.y * scale)
+		end
+
+		self:ApplyIconTransform(transform, keepOriginalPosition, anchoredPosition, position, pivot)
+		renderer.PreserveSprite = PreserveSpriteType.AspectOnly
+	end
+
+	method void ApplyIconTransform(UITransformComponent transform, boolean keepOriginalPosition, Vector2 anchoredPosition, Vector3 position, Vector2 pivot)
+		if keepOriginalPosition == true then
+			transform.Pivot = pivot
+			transform.anchoredPosition = anchoredPosition
+			transform.Position = position
+			return
+		end
+
+		transform.Pivot = Vector2(0.5, 0.5)
+		transform.anchoredPosition = Vector2(0, 0)
+		transform.Position = Vector3(0, 0, 0)
+	end
+
+end

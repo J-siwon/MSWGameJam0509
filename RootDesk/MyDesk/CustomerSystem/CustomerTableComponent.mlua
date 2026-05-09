@@ -1,0 +1,627 @@
+@Component
+script CustomerTableComponent extends Component
+
+	property number MaxCustomerCount = 5
+
+	property Entity CustomerRoot = nil
+
+	property Entity CustomerTemplate = nil
+
+	property boolean AutoSpawn = true
+
+	property boolean FillOnBeginPlay = true
+
+	property number SpawnIntervalSeconds = 4
+
+	property Entity TestCompleteTopButton = nil
+
+	property number CustomerSpacingY = 110
+
+	property number EnterOffsetY = 120
+
+	property number MoveDurationSeconds = 0.35
+
+	property boolean PlaySuccessFlashBeforeLeave = true
+
+	property number SuccessEffectDelaySeconds = 0.35
+
+	property string CharacterDataSetName = "CustomerCharacterData"
+
+	property string DrinkDataSetName = "CustomerDrinkData"
+
+	property any Runtime = nil
+
+	method void OnBeginPlay()
+		self:EnsureRuntime()
+		self.Runtime.state = "Waiting"
+		self:ConnectTestCompleteButton()
+		
+		if self.FillOnBeginPlay == true then
+			self:FillEmptySlots()
+		end
+		
+		if self.AutoSpawn == true then
+			local spawn = function()
+				self:SpawnRandomCustomer()
+			end
+			self.Runtime.spawnTimerId = _TimerService:SetTimerRepeat(spawn, math.max(0.1, self.SpawnIntervalSeconds))
+		end
+		
+	end
+
+	method void OnEndPlay()
+		self:EnsureRuntime()
+		self:DisconnectTestCompleteButton()
+		
+		if self.Runtime.spawnTimerId > 0 then
+			_TimerService:ClearTimer(self.Runtime.spawnTimerId)
+			self.Runtime.spawnTimerId = 0
+		end
+		if self.Runtime.rearrangeTimerId > 0 then
+			_TimerService:ClearTimer(self.Runtime.rearrangeTimerId)
+			self.Runtime.rearrangeTimerId = 0
+		end
+	end
+
+	method void EnsureRuntime()
+		if self.Runtime ~= nil then
+			return
+		end
+		
+		self.Runtime = {
+			customers = {},
+			state = "Waiting",
+			spawnTimerId = 0,
+			rearrangeTimerId = 0,
+			testCompleteHandler = nil,
+			customerSerial = 0
+		}
+	end
+
+	method void ConnectTestCompleteButton()
+		if self.TestCompleteTopButton == nil then
+			return
+		end
+		if self.Runtime.testCompleteHandler ~= nil then
+			return
+		end
+		
+		self.Runtime.testCompleteHandler = self.TestCompleteTopButton:ConnectEvent(ButtonClickEvent, self.OnClickTestCompleteTop)
+	end
+
+	method void DisconnectTestCompleteButton()
+		if self.TestCompleteTopButton == nil or self.Runtime.testCompleteHandler == nil then
+			return
+		end
+		
+		self.TestCompleteTopButton:DisconnectEvent(ButtonClickEvent, self.Runtime.testCompleteHandler)
+		self.Runtime.testCompleteHandler = nil
+	end
+
+	method number GetWaitingCount()
+		self:EnsureRuntime()
+		return #self.Runtime.customers
+	end
+
+	method boolean HasRoom()
+		return self:GetWaitingCount() < self.MaxCustomerCount
+	end
+
+	method void FillEmptySlots()
+		while self:HasRoom() == true do
+			if self:SpawnRandomCustomer() == false then
+				return
+			end
+		end
+	end
+
+	method boolean TryEnqueueRandomCustomer()
+		return self:SpawnRandomCustomer()
+	end
+
+	method boolean SpawnRandomCustomer()
+		self:EnsureRuntime()
+		
+		if self.Runtime.state ~= "Waiting" or self:HasRoom() == false then
+			return false
+		end
+		if self.CustomerTemplate == nil then
+			log("CustomerTableComponent: CustomerTemplate is not set.")
+			return false
+		end
+		if self.CustomerRoot == nil then
+			log("CustomerTableComponent: CustomerRoot is not set.")
+			return false
+		end
+		
+		local data = self:CreateCustomerData()
+		
+		self.Runtime.customerSerial = self.Runtime.customerSerial + 1
+		local entity = _SpawnService:SpawnByEntity(self.CustomerTemplate, "Customer_" .. tostring(self.Runtime.customerSerial), Vector3(0, 0, 0), self.CustomerRoot, true)
+		if entity == nil then
+			return false
+		end
+		
+		entity.Enable = true
+		entity.Visible = true
+		if entity.CanvasGroupComponent ~= nil then
+			entity.CanvasGroupComponent.GroupAlpha = 1
+		end
+		
+		local component = entity.CustomerComponent
+		if component == nil then
+			log("CustomerTableComponent: CustomerTemplate needs CustomerComponent.")
+			entity:Destroy(0)
+			return false
+		end
+
+		self:RemapCustomerVisualEntities(component, entity)
+		component:Setup(data.desiredDrinkId, data.characterId, data.limitSeconds, data.price, data.minPrice, data.failPrice, data.priceBonusPercent, data.waitingIconRUID, data.resolvedIconRUID, data.characterHighIconRUID, data.characterMiddleIconRUID, data.characterLowIconRUID, data.drinkIconRUID)
+		
+		data.createdAt = _UtilLogic.ElapsedSeconds
+		data.timeEndsAt = data.createdAt + data.limitSeconds
+		
+		local slotIndex = #self.Runtime.customers + 1
+		local record = {
+			entity = entity,
+			component = component,
+			data = data,
+			moveTimerId = 0
+		}
+		
+		self:SetUIPosition(entity, self:GetSpawnPosition(slotIndex))
+		table.insert(self.Runtime.customers, record)
+		self:MoveCustomer(record, self:GetSlotPosition(slotIndex), self.MoveDurationSeconds)
+		return true
+	end
+
+	method boolean ResolveFirstMatchingDrink(string drinkId)
+		local index = self:GetFirstMatchingCustomerIndex(drinkId)
+		if index <= 0 then
+			return false
+		end
+		return self:ResolveCustomerAt(index, drinkId)
+	end
+
+	method void OnClickTestCompleteTop()
+		self:CompleteTopCustomerForTest()
+	end
+
+	method boolean CompleteTopCustomerForTest()
+		self:EnsureRuntime()
+		if #self.Runtime.customers <= 1 then
+			return false
+		end
+		
+		local topCustomer = self.Runtime.customers[2]
+		return self:ResolveCustomerAt(2, topCustomer.data.desiredDrinkId)
+	end
+
+	method boolean ResolveCustomerAt(number index, string drinkId)
+		self:EnsureRuntime()
+		if self.Runtime.state ~= "Waiting" or index < 1 or index > #self.Runtime.customers then
+			return false
+		end
+		
+		local record = self.Runtime.customers[index]
+		if self:ResolveRecord(record, drinkId) == false then
+			return false
+		end
+		
+		self.Runtime.state = "Resolving"
+		table.remove(self.Runtime.customers, index)
+		self:CloseCustomer(record)
+		self:ScheduleRearrange(self:GetCloseDelay(record))
+		return true
+	end
+
+	method number GetFirstMatchingCustomerIndex(string drinkId)
+		self:EnsureRuntime()
+		for i = 1, #self.Runtime.customers do
+			local record = self.Runtime.customers[i]
+			if record.data.desiredDrinkId == drinkId then
+				return i
+			end
+		end
+		return 0
+	end
+
+	method table GetWaitingCustomerData(number index)
+		self:EnsureRuntime()
+		if index < 1 or index > #self.Runtime.customers then
+			return nil
+		end
+		return self.Runtime.customers[index].data
+	end
+
+	method table GetWaitingCustomersSnapshot()
+		self:EnsureRuntime()
+		local snapshot = {}
+		for i = 1, #self.Runtime.customers do
+			local record = self.Runtime.customers[i]
+			local remainingSeconds = self:GetRemainingSeconds(record)
+			table.insert(snapshot, {
+				desiredDrinkId = record.data.desiredDrinkId,
+				characterId = record.data.characterId,
+				remainingSeconds = remainingSeconds,
+				timeOver = remainingSeconds <= 0,
+				currentPrice = self:GetCurrentPrice(record),
+				price = record.data.price,
+				minPrice = record.data.minPrice,
+				failPrice = record.data.failPrice,
+				priceBonusPercent = record.data.priceBonusPercent,
+				state = record.data.state,
+				slotIndex = i
+			})
+		end
+		return snapshot
+	end
+
+	method boolean ResolveRecord(table record, string drinkId)
+		local resolved = record.component:ResolveWithDrink(drinkId)
+		if resolved == true then
+			record.data.state = "Resolved"
+			record.data.resolvePrice = record.component:GetLastResolvePrice()
+		end
+		return resolved
+	end
+
+	method number GetRemainingSeconds(table record)
+		return record.component:GetRemainingSeconds()
+	end
+
+	method number GetCurrentPrice(table record)
+		return record.component:CalculateCurrentPrice()
+	end
+
+	method void CloseCustomer(table record)
+		if record.entity == nil then
+			return
+		end
+		
+		if self.PlaySuccessFlashBeforeLeave == true then
+			record.component:PlaySuccessFlash()
+		end
+		
+		local fade = function()
+			self:FadeAndDestroy(record)
+		end
+		
+		local delay = self:GetEffectDelay(record)
+		if delay > 0 then
+			_TimerService:SetTimerOnce(fade, delay)
+		else
+			fade()
+		end
+	end
+
+	method number GetEffectDelay(table record)
+		if self.PlaySuccessFlashBeforeLeave == false then
+			return 0
+		end
+		return math.max(0, self.SuccessEffectDelaySeconds)
+	end
+
+	method number GetCloseDelay(table record)
+		return self:GetEffectDelay(record) + math.max(0.01, self.MoveDurationSeconds) + 0.05
+	end
+
+	method void FadeAndDestroy(table record)
+		if record.entity == nil then
+			return
+		end
+		
+		if record.moveTimerId > 0 then
+			_TimerService:ClearTimer(record.moveTimerId)
+			record.moveTimerId = 0
+		end
+		
+		local duration = math.max(0.01, self.MoveDurationSeconds)
+		record.entity:Destroy(duration + 0.05)
+		
+		local canvasGroup = record.entity.CanvasGroupComponent
+		local elapsed = 0
+		local previousTime = _UtilLogic.ElapsedSeconds
+		
+		local fade = function()
+			local now = _UtilLogic.ElapsedSeconds
+			elapsed = elapsed + now - previousTime
+			previousTime = now
+		
+			local alpha = 1 - math.min(1, elapsed / duration)
+			if canvasGroup ~= nil then
+				canvasGroup.GroupAlpha = alpha
+			end
+		
+			if elapsed >= duration then
+				if canvasGroup ~= nil then
+					canvasGroup.GroupAlpha = 0
+				end
+				_TimerService:ClearTimer(record.moveTimerId)
+				record.moveTimerId = 0
+			end
+		end
+		
+		record.moveTimerId = _TimerService:SetTimerRepeat(fade, 1 / 60)
+	end
+
+	method void ScheduleRearrange(number delay)
+		if self.Runtime.rearrangeTimerId > 0 then
+			_TimerService:ClearTimer(self.Runtime.rearrangeTimerId)
+			self.Runtime.rearrangeTimerId = 0
+		end
+		
+		local rearrange = function()
+			self.Runtime.rearrangeTimerId = 0
+			self:RearrangeCustomers()
+		end
+		
+		if delay <= 0 then
+			rearrange()
+			return
+		end
+		
+		self.Runtime.rearrangeTimerId = _TimerService:SetTimerOnce(rearrange, delay)
+	end
+
+	method void RearrangeCustomers()
+		self.Runtime.state = "Rearranging"
+		
+		for i = 1, #self.Runtime.customers do
+			self:MoveCustomer(self.Runtime.customers[i], self:GetSlotPosition(i), self.MoveDurationSeconds)
+		end
+		
+		local finish = function()
+			self.Runtime.state = "Waiting"
+			self.Runtime.rearrangeTimerId = 0
+		end
+		self.Runtime.rearrangeTimerId = _TimerService:SetTimerOnce(finish, math.max(0.01, self.MoveDurationSeconds))
+	end
+
+	method void MoveCustomer(table record, Vector2 targetPosition, number duration)
+		if record.entity == nil then
+			return
+		end
+		
+		if record.moveTimerId > 0 then
+			_TimerService:ClearTimer(record.moveTimerId)
+			record.moveTimerId = 0
+		end
+		
+		local transform = record.entity.UITransformComponent
+		if transform == nil then
+			return
+		end
+		
+		local startPosition = transform.anchoredPosition
+		local elapsed = 0
+		local previousTime = _UtilLogic.ElapsedSeconds
+		duration = math.max(0.01, duration)
+		
+		local move = function()
+			local now = _UtilLogic.ElapsedSeconds
+			elapsed = elapsed + now - previousTime
+			previousTime = now
+		
+			local t = math.min(1, elapsed / duration)
+			local reverse = 1 - t
+			local eased = 1 - reverse * reverse * reverse
+			self:SetUIPosition(record.entity, Vector2(
+				startPosition.x + (targetPosition.x - startPosition.x) * eased,
+				startPosition.y + (targetPosition.y - startPosition.y) * eased
+			))
+		
+			if elapsed >= duration then
+				self:SetUIPosition(record.entity, targetPosition)
+				_TimerService:ClearTimer(record.moveTimerId)
+				record.moveTimerId = 0
+			end
+		end
+		
+		record.moveTimerId = _TimerService:SetTimerRepeat(move, 1 / 60)
+	end
+
+	method void SetUIPosition(Entity entity, Vector2 position)
+		local transform = entity.UITransformComponent
+		if transform == nil then
+			return
+		end
+		
+		transform.anchoredPosition = position
+		transform.Position = Vector3(position.x, position.y, 0)
+	end
+
+	method void RemapCustomerVisualEntities(CustomerComponent component, Entity spawnedRoot)
+		if self.CustomerTemplate == nil or component == nil or spawnedRoot == nil then
+			return
+		end
+		
+		component.StateIconEntity = self:GetMatchingCloneChild(component.StateIconEntity, spawnedRoot)
+		component.CharacterIconEntity = self:GetMatchingCloneChild(component.CharacterIconEntity, spawnedRoot)
+		component.DrinkIconEntity = self:GetMatchingCloneChild(component.DrinkIconEntity, spawnedRoot)
+		component.TimeGaugeEntity = self:GetMatchingCloneChild(component.TimeGaugeEntity, spawnedRoot)
+		component.FlashEntity = self:GetMatchingCloneChild(component.FlashEntity, spawnedRoot)
+	end
+
+	method Entity GetMatchingCloneChild(Entity templateChild, Entity spawnedRoot)
+		if templateChild == nil then
+			return nil
+		end
+		if templateChild == self.CustomerTemplate then
+			return spawnedRoot
+		end
+		
+		local childIndexes = {}
+		local current = templateChild
+		while current ~= nil and current ~= self.CustomerTemplate do
+			local parent = current.Parent
+			if parent == nil then
+				return templateChild
+			end
+		
+			local foundIndex = 0
+			for i = 1, #parent.Children do
+				if parent.Children[i] == current then
+					foundIndex = i
+					break
+				end
+			end
+		
+			if foundIndex <= 0 then
+				return templateChild
+			end
+		
+			table.insert(childIndexes, 1, foundIndex)
+			current = parent
+		end
+		
+		if current ~= self.CustomerTemplate then
+			return templateChild
+		end
+		
+		local cloneChild = spawnedRoot
+		for i = 1, #childIndexes do
+			local childIndex = childIndexes[i]
+			if cloneChild == nil or childIndex > #cloneChild.Children then
+				return templateChild
+			end
+			cloneChild = cloneChild.Children[childIndex]
+		end
+		
+		return cloneChild
+	end
+
+	method Vector2 GetSlotPosition(number slotIndex)
+		return Vector2(0, -self.CustomerSpacingY * math.max(0, slotIndex - 1))
+	end
+
+	method Vector2 GetSpawnPosition(number slotIndex)
+		local slotPosition = self:GetSlotPosition(slotIndex)
+		return Vector2(slotPosition.x, slotPosition.y + self.EnterOffsetY)
+	end
+
+	method table CreateCustomerData()
+		local desiredDrinkId = self:PickDataSetId(self.DrinkDataSetName, "Coffee")
+		local characterId = self:PickDataSetId(self.CharacterDataSetName, "Human")
+		local minLimitSeconds = self:GetNumberValue(self.CharacterDataSetName, characterId, "MinLimitSeconds", 18)
+		local maxLimitSeconds = self:GetNumberValue(self.CharacterDataSetName, characterId, "MaxLimitSeconds", minLimitSeconds)
+		local price = self:GetNumberValue(self.DrinkDataSetName, desiredDrinkId, "Price", 300)
+		local minPrice = self:GetNumberValue(self.DrinkDataSetName, desiredDrinkId, "MinPrice", price)
+		local failPrice = self:GetNumberValue(self.DrinkDataSetName, desiredDrinkId, "FailPrice", minPrice)
+		local minBonusPercent = self:GetNumberValue(self.CharacterDataSetName, characterId, "PriceBonusMinPercent", 0)
+		local maxBonusPercent = self:GetNumberValue(self.CharacterDataSetName, characterId, "PriceBonusMaxPercent", minBonusPercent)
+		
+		return {
+			desiredDrinkId = desiredDrinkId,
+			characterId = characterId,
+			limitSeconds = self:RandomRange(minLimitSeconds, maxLimitSeconds),
+			price = math.max(price, minPrice),
+			minPrice = math.min(price, minPrice),
+			failPrice = math.max(0, failPrice),
+			priceBonusPercent = self:RandomRange(minBonusPercent, maxBonusPercent),
+			waitingIconRUID = self:GetTemporaryIconRUID(1),
+			resolvedIconRUID = self:GetTemporaryIconRUID(2),
+			characterHighIconRUID = self:GetIconRUID(self.CharacterDataSetName, characterId, "HighIconRUID", 2),
+			characterMiddleIconRUID = self:GetIconRUID(self.CharacterDataSetName, characterId, "MiddleIconRUID", 2),
+			characterLowIconRUID = self:GetIconRUID(self.CharacterDataSetName, characterId, "LowIconRUID", 2),
+			drinkIconRUID = self:GetIconRUID(self.DrinkDataSetName, desiredDrinkId, "IconRUID", 5),
+			state = "Waiting"
+		}
+	end
+
+	method string GetIconRUID(string dataSetName, string id, string columnName, number defaultIndex)
+		local ruid = self:FindCellValue(dataSetName, id, columnName)
+		if ruid ~= nil and ruid ~= "" then
+			return ruid
+		end
+		ruid = self:FindCellValue(dataSetName, id, "IconRUID")
+		if ruid ~= nil and ruid ~= "" then
+			return ruid
+		end
+		return self:GetTemporaryIconRUID(defaultIndex)
+	end
+
+	method number GetNumberValue(string dataSetName, string id, string columnName, number fallback)
+		local value = self:FindCellValue(dataSetName, id, columnName)
+		if value == nil or value == "" then
+			return fallback
+		end
+
+		local numberValue = tonumber(value)
+		if numberValue == nil then
+			return fallback
+		end
+		return numberValue
+	end
+
+	method string FindCellValue(string dataSetName, string id, string columnName)
+		if dataSetName == nil or dataSetName == "" then
+			return ""
+		end
+		
+		local dataSetId = _EntryService:GetDataSetIdByName(dataSetName)
+		if dataSetId == nil or dataSetId == "" then
+			return ""
+		end
+		
+		local rowCount = _DataService:GetRowCount(dataSetName)
+		for i = 1, rowCount do
+			local rowId = _DataService:GetCell(dataSetName, i, "Id")
+			if rowId == id then
+				return _DataService:GetCell(dataSetName, i, columnName)
+			end
+		end
+		
+		return ""
+	end
+
+	method string PickDataSetId(string dataSetName, string fallback)
+		if dataSetName == nil or dataSetName == "" then
+			return fallback
+		end
+		
+		local dataSetId = _EntryService:GetDataSetIdByName(dataSetName)
+		if dataSetId == nil or dataSetId == "" then
+			return fallback
+		end
+		
+		local rowCount = _DataService:GetRowCount(dataSetName)
+		if rowCount <= 0 then
+			return fallback
+		end
+		
+		local startIndex = self:RandomInteger(1, rowCount)
+		for offset = 0, rowCount - 1 do
+			local rowIndex = ((startIndex + offset - 1) % rowCount) + 1
+			local id = _DataService:GetCell(dataSetName, rowIndex, "Id")
+			if id ~= nil and id ~= "" then
+				return id
+			end
+		end
+		
+		return fallback
+	end
+
+	method string GetTemporaryIconRUID(number index)
+		if index == 1 then
+			return "24151684e2f84b4a8e7c6b1be2df5412"
+		end
+		if index == 2 then
+			return "499c70eab41cfeb418a3ad9f87fd0285"
+		end
+		return "d122614d7fdd4eecac7532987597b538"
+	end
+
+	method number RandomRange(number minValue, number maxValue)
+		local low = math.min(minValue, maxValue)
+		local high = math.max(minValue, maxValue)
+		return low + math.random() * (high - low)
+	end
+
+	method number RandomInteger(number minValue, number maxValue)
+		local low = math.floor(math.min(minValue, maxValue))
+		local high = math.floor(math.max(minValue, maxValue))
+		return math.min(high, math.floor(low + math.random() * (high - low + 1)))
+	end
+
+end
