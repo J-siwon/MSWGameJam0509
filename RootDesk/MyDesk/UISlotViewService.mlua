@@ -116,11 +116,12 @@ script UISlotViewService extends Logic
 			ruid = ""
 		end
 		
-		if entity.SpriteGUIRendererComponent.ImageRUID ~= nil then
-			entity.SpriteGUIRendererComponent.ImageRUID.DataId = ruid
-		else
-			entity.SpriteGUIRendererComponent.ImageRUID = DataRef(ruid)
+		local renderer = entity.SpriteGUIRendererComponent
+		if renderer.ImageRUID ~= nil and renderer.ImageRUID.DataId == ruid then
+			return
 		end
+		
+		renderer.ImageRUID = DataRef(ruid)
 	end
 
 	method void ShowSelectedButtonVisual(any gameManager, ButtonComponent button)

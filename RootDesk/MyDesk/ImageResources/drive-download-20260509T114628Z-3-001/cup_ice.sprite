@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://c1cc66398f0e42d5be21315c1adeb34c",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/c1cc66398f0e42d5be21315c1adeb34c/639139252751182759",
+      "upload_hash": "0A4E2C8F18DEB879D3FE62085AB159A9FF5B83B36C54739177AE6C0F214F68E1",
+      "name": "cup_ice",
+      "resource_guid": "c1cc66398f0e42d5be21315c1adeb34c",
+      "resource_version": "69ff239bda13cb1e2fe70217"
+    }
+  }
+}

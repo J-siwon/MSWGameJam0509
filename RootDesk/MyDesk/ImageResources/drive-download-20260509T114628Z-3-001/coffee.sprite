@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://43d233ba52494d87ae0ccb98d23be357",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/43d233ba52494d87ae0ccb98d23be357/639139253127911503",
+      "upload_hash": "0118159B3D6F03DD62E7A97D218C4CF9DE08DB6D56C7F2F56A3B0D671790228D",
+      "name": "coffee",
+      "resource_guid": "43d233ba52494d87ae0ccb98d23be357",
+      "resource_version": "69ff23c0d87fdc71a164f997"
+    }
+  }
+}

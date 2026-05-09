@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://0d1b6de679054cf2a25fa6c30ab41909",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/0d1b6de679054cf2a25fa6c30ab41909/639139253127566576",
+      "upload_hash": "7E274700EF65ADFD334AC9412E654483267D3703A8E790E709D06E916EBEF770",
+      "name": "mushroom",
+      "resource_guid": "0d1b6de679054cf2a25fa6c30ab41909",
+      "resource_version": "69ff23c00e26eb7835e80577"
+    }
+  }
+}

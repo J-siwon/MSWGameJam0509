@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://bf4fb7a62ff34cd9b092f91294f26520",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/bf4fb7a62ff34cd9b092f91294f26520/639139253128024856",
+      "upload_hash": "A4EC8B6F0EBFA57AA91A0611502B5B4D4795BC3141D4EEE3C69A443512621372",
+      "name": "banana",
+      "resource_guid": "bf4fb7a62ff34cd9b092f91294f26520",
+      "resource_version": "69ff23c0ff6ac46abf912421"
+    }
+  }
+}

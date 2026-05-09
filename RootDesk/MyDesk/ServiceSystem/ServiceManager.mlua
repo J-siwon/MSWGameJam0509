@@ -23,7 +23,7 @@ script ServiceManager extends Logic
 
 	property boolean IsPaused = false
 
-	property string cupImageRUID = "942836356c634837ab488c7262733e30"
+	property string cupImageRUID = "c1cc66398f0e42d5be21315c1adeb34c"
 
 	property number prepDuration = 1
 

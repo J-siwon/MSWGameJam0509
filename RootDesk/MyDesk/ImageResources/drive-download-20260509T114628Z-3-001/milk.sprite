@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://05d41826c5b94982aa70a839266f73eb",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/05d41826c5b94982aa70a839266f73eb/639139253128128625",
+      "upload_hash": "EB9008F984C520AD069D5520C315FFDA9F4C256ECF6E560E25FBC79FA6F3B390",
+      "name": "milk",
+      "resource_guid": "05d41826c5b94982aa70a839266f73eb",
+      "resource_version": "69ff23c0354d4eb86f67929d"
+    }
+  }
+}

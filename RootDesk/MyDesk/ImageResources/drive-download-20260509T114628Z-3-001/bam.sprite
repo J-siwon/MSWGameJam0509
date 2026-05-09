@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://3acfda0e660b47f3971192edf6f15236",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/3acfda0e660b47f3971192edf6f15236/639139253127993183",
+      "upload_hash": "7CC0F62FCE0A37F706637A97CB46C11C3B1E46E2CEEC4E904B5D4C55F8DA8137",
+      "name": "bam",
+      "resource_guid": "3acfda0e660b47f3971192edf6f15236",
+      "resource_version": "69ff23c0810e94466ff4baca"
+    }
+  }
+}

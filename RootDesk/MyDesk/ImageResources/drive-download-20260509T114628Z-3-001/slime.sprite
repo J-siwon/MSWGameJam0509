@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://ea0b0de443a14459aa4e9bc2b46161b5",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/ea0b0de443a14459aa4e9bc2b46161b5/639139253127631518",
+      "upload_hash": "C737F4BDF5A35323BDA08ABA8699E150CA2143F6F65D8CECC7A44F2C3E40DBB3",
+      "name": "slime",
+      "resource_guid": "ea0b0de443a14459aa4e9bc2b46161b5",
+      "resource_version": "69ff23c05b1f79a0d7392332"
+    }
+  }
+}
