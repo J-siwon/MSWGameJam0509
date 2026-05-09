@@ -13,10 +13,13 @@ script PauseManager extends Component
 
 	property string CustomerTablePath = "/ui/CustomerUIGroup/CustomerTable"
 
+	property number TopGroupOrder = 999
+
 	property any Runtime = nil
 
 	method void OnBeginPlay()
 		self:EnsureRuntime()
+		self:ApplyTopMostOrder()
 		self:ConnectButtons()
 		self:HidePauseOverlay()
 	end
@@ -25,16 +28,22 @@ script PauseManager extends Component
 		self:EnsureRuntime()
 		self:DisconnectButtons()
 		self:ApplyGameplayPaused(false)
+		self.Runtime.paused = false
+		self.Runtime.pausedCustomerTable = false
 	end
 
 	method void EnsureRuntime()
 		if self.Runtime ~= nil then
+			if self.Runtime.pausedCustomerTable == nil then
+				self.Runtime.pausedCustomerTable = false
+			end
 			return
 		end
 		
 		self.Runtime = {
 			paused = false,
 			pausedStartedAt = 0,
+			pausedCustomerTable = false,
 			pauseButtonHandler = nil,
 			resumeButtonHandler = nil
 		}
@@ -43,10 +52,14 @@ script PauseManager extends Component
 	method void ConnectButtons()
 		self:EnsureRuntime()
 		if self.PauseButton ~= nil and self.Runtime.pauseButtonHandler == nil then
-			self.Runtime.pauseButtonHandler = self.PauseButton.Entity:ConnectEvent(ButtonClickEvent, self.OnClickPause)
+			self.Runtime.pauseButtonHandler = self.PauseButton.Entity:ConnectEvent(ButtonClickEvent, function()
+				self:OnClickPause()
+			end)
 		end
 		if self.ResumeButton ~= nil and self.Runtime.resumeButtonHandler == nil then
-			self.Runtime.resumeButtonHandler = self.ResumeButton.Entity:ConnectEvent(ButtonClickEvent, self.OnClickResume)
+			self.Runtime.resumeButtonHandler = self.ResumeButton.Entity:ConnectEvent(ButtonClickEvent, function()
+				self:OnClickResume()
+			end)
 		end
 	end
 
@@ -77,13 +90,21 @@ script PauseManager extends Component
 		end
 		
 		local dayManager = self:GetDayManager()
-		if dayManager == nil or dayManager:PauseDayTimer() == false then
+		if dayManager == nil then
+			return
+		end
+
+		local pauseCustomerTable = dayManager:IsPlaying()
+		if dayManager:PauseGameFlow() == false then
 			return
 		end
 		
 		self.Runtime.paused = true
 		self.Runtime.pausedStartedAt = _UtilLogic.ElapsedSeconds
-		self:PauseCustomerTable()
+		self.Runtime.pausedCustomerTable = pauseCustomerTable
+		if pauseCustomerTable == true then
+			self:PauseCustomerTable()
+		end
 		self:ApplyGameplayPaused(true)
 		self:ShowPauseOverlay()
 	end
@@ -97,17 +118,23 @@ script PauseManager extends Component
 		local pausedSeconds = math.max(0, _UtilLogic.ElapsedSeconds - self.Runtime.pausedStartedAt)
 		local dayManager = self:GetDayManager()
 		if dayManager ~= nil then
-			dayManager:ResumeDayTimer()
+			dayManager:ResumeGameFlow()
 		end
 		
-		self:ResumeCustomerTable(pausedSeconds)
+		if self.Runtime.pausedCustomerTable == true then
+			self:ResumeCustomerTable(pausedSeconds)
+		end
 		self:ApplyGameplayPaused(false)
 		self:HidePauseOverlay()
 		self.Runtime.paused = false
 		self.Runtime.pausedStartedAt = 0
+		self.Runtime.pausedCustomerTable = false
 	end
 
 	method void ShowPauseOverlay()
+		self:ApplyTopMostOrder()
+		self:SetPauseGroupInput(true)
+		self:SetEntityEnabled(self.Entity, true)
 		self:SetEntityEnabled(self.PauseOverlay, true)
 		self:SetEntityEnabled(self.PauseTitle, true)
 		if self.ResumeButton ~= nil then
@@ -116,6 +143,8 @@ script PauseManager extends Component
 	end
 
 	method void HidePauseOverlay()
+		self:ApplyTopMostOrder()
+		self:SetPauseGroupInput(true)
 		self:SetEntityEnabled(self.PauseOverlay, false)
 		self:SetEntityEnabled(self.PauseTitle, false)
 		if self.ResumeButton ~= nil then
@@ -130,6 +159,24 @@ script PauseManager extends Component
 		
 		entity.Enable = enabled
 		entity.Visible = enabled
+	end
+
+	method void ApplyTopMostOrder()
+		if self.Entity == nil or self.Entity.UIGroupComponent == nil then
+			return
+		end
+
+		self.Entity.UIGroupComponent.GroupOrder = self.TopGroupOrder
+	end
+
+	method void SetPauseGroupInput(boolean enabled)
+		if self.Entity == nil or self.Entity.CanvasGroupComponent == nil then
+			return
+		end
+
+		self.Entity.CanvasGroupComponent.GroupAlpha = 1
+		self.Entity.CanvasGroupComponent.BlocksRaycasts = enabled
+		self.Entity.CanvasGroupComponent.Interactable = enabled
 	end
 
 	method void PauseCustomerTable()

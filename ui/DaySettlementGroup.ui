@@ -1,7 +1,7 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "ui://f7a28b22-9bd0-4f20-a7d5-c28c0f090101",
+  "EntryKey": "ui://d9a71e00-0e11-4a7d-9e55-5e7700000001",
   "ContentType": "x-mod/ui",
   "Content": "",
   "Usage": 0,
@@ -14,14 +14,14 @@
     "Use": "Binary",
     "Entities": [
       {
-        "id": "f7a28b22-9bd0-4f20-a7d5-c28c0f090101",
-        "path": "/ui/PauseGroup",
-        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.UIGroupComponent,MOD.Core.CanvasGroupComponent,script.PauseManager",
+        "id": "d9a71e00-0e11-4a7d-9e55-5e7700000001",
+        "path": "/ui/DaySettlementGroup",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.UIGroupComponent,MOD.Core.CanvasGroupComponent",
         "jsonString": {
-          "name": "PauseGroup",
-          "path": "/ui/PauseGroup",
+          "name": "DaySettlementGroup",
+          "path": "/ui/DaySettlementGroup",
           "nameEditable": true,
-          "enable": false,
+          "enable": true,
           "visible": false,
           "localize": true,
           "displayOrder": 7,
@@ -95,36 +95,29 @@
             },
             {
               "@type": "MOD.Core.UIGroupComponent",
-              "DefaultShow": true,
-              "GroupOrder": 8,
+              "DefaultShow": false,
+              "GroupOrder": 7,
               "GroupType": 1,
               "Enable": true
             },
             {
               "@type": "MOD.Core.CanvasGroupComponent",
+              "BlocksRaycasts": false,
+              "GroupAlpha": 1.0,
+              "Interactable": false,
               "Enable": true
-            },
-            {
-              "@type": "script.PauseManager",
-              "Enable": true,
-              "PauseOverlay": {
-                "tempEntityId": null,
-                "IsRelative": false,
-                "EntityId": "377d747e-5cc3-4a8b-bfab-90ba2e503224",
-                "Version2": false
-              }
             }
           ],
           "@version": 1
         }
       },
       {
-        "id": "f7a28b22-9bd0-4f20-a7d5-c28c0f090102",
-        "path": "/ui/PauseGroup/PauseButton",
-        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.ButtonComponent,MOD.Core.TextComponent",
+        "id": "d9a71e00-0e11-4a7d-9e55-5e7700000002",
+        "path": "/ui/DaySettlementGroup/ReceiptPanel",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.ButtonComponent",
         "jsonString": {
-          "name": "PauseButton",
-          "path": "/ui/PauseGroup/PauseButton",
+          "name": "ReceiptPanel",
+          "path": "/ui/DaySettlementGroup/ReceiptPanel",
           "nameEditable": true,
           "enable": true,
           "visible": true,
@@ -134,12 +127,12 @@
           "revision": 1,
           "origin": {
             "type": "Model",
-            "entry_id": "UIButton",
+            "entry_id": "UISprite",
             "sub_entity_id": null,
             "root_entity_id": null,
             "replaced_model_id": null
           },
-          "modelId": "uibutton",
+          "modelId": "uisprite",
           "@components": [
             {
               "@type": "MOD.Core.UITransformComponent",
@@ -154,184 +147,27 @@
               },
               "MobileOnly": false,
               "OffsetMax": {
-                "x": 737.174866,
-                "y": 514.6066
+                "x": 330.0,
+                "y": 270.0
               },
               "OffsetMin": {
-                "x": 643.7963,
-                "y": 421.228119
+                "x": -330.0,
+                "y": -270.0
               },
               "Pivot": {
                 "x": 0.5,
                 "y": 0.5
               },
               "RectSize": {
-                "x": 93.37853,
-                "y": 93.37853
-              },
-              "UIMode": 1,
-              "UIVersion": 2,
-              "anchoredPosition": {
-                "x": 690.4856,
-                "y": 467.9174
-              },
-              "Position": {
-                "x": 690.4856,
-                "y": 467.9174,
-                "z": 0.0
-              },
-              "QuaternionRotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0,
-                "w": 1.0
-              },
-              "Enable": true
-            },
-            {
-              "@type": "MOD.Core.SpriteGUIRendererComponent",
-              "ImageRUID": {
-                "DataId": ""
-              },
-              "OverrideSorting": false,
-              "Color": {
-                "r": 0.18,
-                "g": 0.18,
-                "b": 0.2,
-                "a": 0.9
-              },
-              "RaycastTarget": true,
-              "Type": 1,
-              "Enable": true
-            },
-            {
-              "@type": "MOD.Core.ButtonComponent",
-              "Colors": {
-                "NormalColor": {
-                  "r": 1.0,
-                  "g": 1.0,
-                  "b": 1.0,
-                  "a": 1.0
-                },
-                "HighlightedColor": {
-                  "r": 0.9607843,
-                  "g": 0.9607843,
-                  "b": 0.9607843,
-                  "a": 1.0
-                },
-                "PressedColor": {
-                  "r": 0.784313738,
-                  "g": 0.784313738,
-                  "b": 0.784313738,
-                  "a": 1.0
-                },
-                "SelectedColor": {
-                  "r": 0.9607843,
-                  "g": 0.9607843,
-                  "b": 0.9607843,
-                  "a": 1.0
-                },
-                "DisabledColor": {
-                  "r": 0.784313738,
-                  "g": 0.784313738,
-                  "b": 0.784313738,
-                  "a": 0.5019608
-                },
-                "ColorMultiplier": 1.0,
-                "FadeDuration": 0.1
-              },
-              "ImageRUIDs": {
-                "HighlightedSprite": null,
-                "PressedSprite": null,
-                "SelectedSprite": null,
-                "DisabledSprite": null
-              },
-              "KeyCode": 0,
-              "OverrideSorting": false,
-              "Transition": 1,
-              "Enable": true
-            },
-            {
-              "@type": "MOD.Core.TextComponent",
-              "Alignment": 4,
-              "Bold": true,
-              "Font": 0,
-              "FontColor": {
-                "r": 1.0,
-                "g": 1.0,
-                "b": 1.0,
-                "a": 1.0
-              },
-              "FontSize": 30,
-              "MaxSize": 34,
-              "MinSize": 12,
-              "OutlineDistance": {
-                "x": 1.0,
-                "y": -1.0
-              },
-              "Overflow": 0,
-              "OverrideSorting": false,
-              "SizeFit": false,
-              "Text": "II",
-              "UseOutLine": false,
-              "Enable": true
-            }
-          ],
-          "@version": 1
-        }
-      },
-      {
-        "id": "377d747e-5cc3-4a8b-bfab-90ba2e503224",
-        "path": "/ui/PauseGroup/Panel",
-        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent",
-        "jsonString": {
-          "name": "Panel",
-          "path": "/ui/PauseGroup/Panel",
-          "nameEditable": true,
-          "enable": true,
-          "visible": true,
-          "localize": true,
-          "displayOrder": 1,
-          "pathConstraints": "///",
-          "revision": 1,
-          "origin": {
-            "type": "Model",
-            "entry_id": "uiempty",
-            "sub_entity_id": null,
-            "root_entity_id": "377d747e-5cc3-4a8b-bfab-90ba2e503224",
-            "replaced_model_id": null
-          },
-          "modelId": "uiempty",
-          "@components": [
-            {
-              "@type": "MOD.Core.UITransformComponent",
-              "AlignmentOption": 0,
-              "AnchorsMax": {
-                "x": 0.5,
-                "y": 0.5
-              },
-              "AnchorsMin": {
-                "x": 0.5,
-                "y": 0.5
-              },
-              "MobileOnly": false,
-              "OffsetMax": {
-                "x": 960.0,
+                "x": 660.0,
                 "y": 540.0
               },
-              "OffsetMin": {
-                "x": -960.0,
-                "y": -540.0
-              },
-              "Pivot": {
-                "x": 0.5,
-                "y": 0.5
-              },
-              "RectSize": {
-                "x": 1920.0,
-                "y": 1080.0
-              },
               "UIMode": 1,
+              "UIScale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              },
               "UIVersion": 2,
               "anchoredPosition": {
                 "x": 0.0,
@@ -348,17 +184,75 @@
                 "z": 0.0,
                 "w": 1.0
               },
+              "Scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              },
               "Enable": true
             },
             {
               "@type": "MOD.Core.SpriteGUIRendererComponent",
+              "ImageRUID": {
+                "DataId": ""
+              },
               "OverrideSorting": false,
               "Color": {
-                "r": 0.0,
-                "g": 0.0,
-                "b": 0.0,
-                "a": 0.3
+                "r": 0.96,
+                "g": 0.92,
+                "b": 0.82,
+                "a": 0.96
               },
+              "FlipX": false,
+              "RaycastTarget": true,
+              "Type": 1,
+              "Enable": true
+            },
+            {
+              "@type": "MOD.Core.ButtonComponent",
+              "Colors": {
+                "NormalColor": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0,
+                  "a": 1.0
+                },
+                "HighlightedColor": {
+                  "r": 0.98,
+                  "g": 0.98,
+                  "b": 0.98,
+                  "a": 1.0
+                },
+                "PressedColor": {
+                  "r": 0.9,
+                  "g": 0.9,
+                  "b": 0.9,
+                  "a": 1.0
+                },
+                "SelectedColor": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0,
+                  "a": 1.0
+                },
+                "DisabledColor": {
+                  "r": 0.78,
+                  "g": 0.78,
+                  "b": 0.78,
+                  "a": 0.5
+                },
+                "ColorMultiplier": 1.0,
+                "FadeDuration": 0.08
+              },
+              "ImageRUIDs": {
+                "HighlightedSprite": null,
+                "PressedSprite": null,
+                "SelectedSprite": null,
+                "DisabledSprite": null
+              },
+              "KeyCode": 0,
+              "OverrideSorting": false,
+              "Transition": 1,
               "Enable": true
             }
           ],
@@ -366,18 +260,18 @@
         }
       },
       {
-        "id": "f7a28b22-9bd0-4f20-a7d5-c28c0f090104",
-        "path": "/ui/PauseGroup/PausedText",
+        "id": "d9a71e00-0e11-4a7d-9e55-5e7700000003",
+        "path": "/ui/DaySettlementGroup/ReceiptPanel/TitleText",
         "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.TextComponent",
         "jsonString": {
-          "name": "PausedText",
-          "path": "/ui/PauseGroup/PausedText",
+          "name": "TitleText",
+          "path": "/ui/DaySettlementGroup/ReceiptPanel/TitleText",
           "nameEditable": true,
-          "enable": false,
-          "visible": false,
+          "enable": true,
+          "visible": true,
           "localize": true,
-          "displayOrder": 2,
-          "pathConstraints": "///",
+          "displayOrder": 0,
+          "pathConstraints": "////",
           "revision": 1,
           "origin": {
             "type": "Model",
@@ -401,30 +295,30 @@
               },
               "MobileOnly": false,
               "OffsetMax": {
-                "x": 280.0,
-                "y": 130.0
+                "x": 260.0,
+                "y": 220.0
               },
               "OffsetMin": {
-                "x": -280.0,
-                "y": 20.0
+                "x": -260.0,
+                "y": 160.0
               },
               "Pivot": {
                 "x": 0.5,
                 "y": 0.5
               },
               "RectSize": {
-                "x": 560.0,
-                "y": 110.0
+                "x": 520.0,
+                "y": 60.0
               },
               "UIMode": 1,
               "UIVersion": 2,
               "anchoredPosition": {
                 "x": 0.0,
-                "y": 75.0
+                "y": 190.0
               },
               "Position": {
                 "x": 0.0,
-                "y": 75.0,
+                "y": 190.0,
                 "z": 0.0
               },
               "QuaternionRotation": {
@@ -438,6 +332,7 @@
             {
               "@type": "MOD.Core.SpriteGUIRendererComponent",
               "OverrideSorting": false,
+              "RaycastTarget": false,
               "Enable": true
             },
             {
@@ -446,23 +341,22 @@
               "Bold": true,
               "Font": 0,
               "FontColor": {
-                "r": 1.0,
-                "g": 1.0,
-                "b": 1.0,
+                "r": 0.1,
+                "g": 0.08,
+                "b": 0.04,
                 "a": 1.0
               },
-              "FontSize": 64,
-              "MaxSize": 72,
+              "FontSize": 38,
+              "MaxSize": 44,
               "MinSize": 20,
               "OutlineDistance": {
-                "x": 2.0,
-                "y": -2.0
+                "x": 1.0,
+                "y": -1.0
               },
-              "OutlineWidth": 2.0,
               "Overflow": 0,
               "OverrideSorting": false,
               "SizeFit": false,
-              "Text": "PAUSED",
+              "Text": "DAY 1 정산서",
               "UseOutLine": false,
               "Enable": true
             }
@@ -471,27 +365,27 @@
         }
       },
       {
-        "id": "f7a28b22-9bd0-4f20-a7d5-c28c0f090105",
-        "path": "/ui/PauseGroup/ResumeButton",
-        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.ButtonComponent,MOD.Core.TextComponent",
+        "id": "d9a71e00-0e11-4a7d-9e55-5e7700000004",
+        "path": "/ui/DaySettlementGroup/ReceiptPanel/PreviousText",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.TextComponent",
         "jsonString": {
-          "name": "ResumeButton",
-          "path": "/ui/PauseGroup/ResumeButton",
+          "name": "PreviousText",
+          "path": "/ui/DaySettlementGroup/ReceiptPanel/PreviousText",
           "nameEditable": true,
-          "enable": false,
-          "visible": false,
+          "enable": true,
+          "visible": true,
           "localize": true,
-          "displayOrder": 3,
-          "pathConstraints": "///",
+          "displayOrder": 1,
+          "pathConstraints": "////",
           "revision": 1,
           "origin": {
             "type": "Model",
-            "entry_id": "UIButton",
+            "entry_id": "UIText",
             "sub_entity_id": null,
             "root_entity_id": null,
             "replaced_model_id": null
           },
-          "modelId": "uibutton",
+          "modelId": "uitext",
           "@components": [
             {
               "@type": "MOD.Core.UITransformComponent",
@@ -506,30 +400,30 @@
               },
               "MobileOnly": false,
               "OffsetMax": {
-                "x": 130.0,
-                "y": -35.0
+                "x": 260.0,
+                "y": 95.0
               },
               "OffsetMin": {
-                "x": -130.0,
-                "y": -105.0
+                "x": -260.0,
+                "y": 45.0
               },
               "Pivot": {
                 "x": 0.5,
                 "y": 0.5
               },
               "RectSize": {
-                "x": 260.0,
-                "y": 70.0
+                "x": 520.0,
+                "y": 50.0
               },
               "UIMode": 1,
               "UIVersion": 2,
               "anchoredPosition": {
                 "x": 0.0,
-                "y": -70.0
+                "y": 70.0
               },
               "Position": {
                 "x": 0.0,
-                "y": -70.0,
+                "y": 70.0,
                 "z": 0.0
               },
               "QuaternionRotation": {
@@ -542,65 +436,218 @@
             },
             {
               "@type": "MOD.Core.SpriteGUIRendererComponent",
-              "ImageRUID": {
-                "DataId": "83b7e4bf01f5ba14abf3adaa68cb3ad3"
-              },
               "OverrideSorting": false,
-              "Color": {
-                "r": 0.22,
-                "g": 0.42,
-                "b": 0.32,
-                "a": 1.0
-              },
-              "RaycastTarget": true,
-              "Type": 1,
+              "RaycastTarget": false,
               "Enable": true
             },
             {
-              "@type": "MOD.Core.ButtonComponent",
-              "Colors": {
-                "NormalColor": {
-                  "r": 1.0,
-                  "g": 1.0,
-                  "b": 1.0,
-                  "a": 1.0
-                },
-                "HighlightedColor": {
-                  "r": 0.9607843,
-                  "g": 0.9607843,
-                  "b": 0.9607843,
-                  "a": 1.0
-                },
-                "PressedColor": {
-                  "r": 0.784313738,
-                  "g": 0.784313738,
-                  "b": 0.784313738,
-                  "a": 1.0
-                },
-                "SelectedColor": {
-                  "r": 0.9607843,
-                  "g": 0.9607843,
-                  "b": 0.9607843,
-                  "a": 1.0
-                },
-                "DisabledColor": {
-                  "r": 0.784313738,
-                  "g": 0.784313738,
-                  "b": 0.784313738,
-                  "a": 0.5019608
-                },
-                "ColorMultiplier": 1.0,
-                "FadeDuration": 0.1
+              "@type": "MOD.Core.TextComponent",
+              "Alignment": 4,
+              "Bold": false,
+              "Font": 0,
+              "FontColor": {
+                "r": 0.12,
+                "g": 0.1,
+                "b": 0.06,
+                "a": 1.0
               },
-              "ImageRUIDs": {
-                "HighlightedSprite": null,
-                "PressedSprite": null,
-                "SelectedSprite": null,
-                "DisabledSprite": null
+              "FontSize": 28,
+              "MaxSize": 34,
+              "MinSize": 18,
+              "OutlineDistance": {
+                "x": 1.0,
+                "y": -1.0
               },
-              "KeyCode": 0,
+              "Overflow": 0,
               "OverrideSorting": false,
-              "Transition": 1,
+              "SizeFit": false,
+              "Text": "이전 누적 골드     0G",
+              "UseOutLine": false,
+              "Enable": true
+            }
+          ],
+          "@version": 1
+        }
+      },
+      {
+        "id": "d9a71e00-0e11-4a7d-9e55-5e7700000005",
+        "path": "/ui/DaySettlementGroup/ReceiptPanel/EarnedText",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.TextComponent",
+        "jsonString": {
+          "name": "EarnedText",
+          "path": "/ui/DaySettlementGroup/ReceiptPanel/EarnedText",
+          "nameEditable": true,
+          "enable": true,
+          "visible": true,
+          "localize": true,
+          "displayOrder": 2,
+          "pathConstraints": "////",
+          "revision": 1,
+          "origin": {
+            "type": "Model",
+            "entry_id": "UIText",
+            "sub_entity_id": null,
+            "root_entity_id": null,
+            "replaced_model_id": null
+          },
+          "modelId": "uitext",
+          "@components": [
+            {
+              "@type": "MOD.Core.UITransformComponent",
+              "AlignmentOption": 0,
+              "AnchorsMax": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "AnchorsMin": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "MobileOnly": false,
+              "OffsetMax": {
+                "x": 260.0,
+                "y": 25.0
+              },
+              "OffsetMin": {
+                "x": -260.0,
+                "y": -25.0
+              },
+              "Pivot": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "RectSize": {
+                "x": 520.0,
+                "y": 50.0
+              },
+              "UIMode": 1,
+              "UIVersion": 2,
+              "anchoredPosition": {
+                "x": 0.0,
+                "y": 0.0
+              },
+              "Position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "QuaternionRotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0
+              },
+              "Enable": true
+            },
+            {
+              "@type": "MOD.Core.SpriteGUIRendererComponent",
+              "OverrideSorting": false,
+              "RaycastTarget": false,
+              "Enable": true
+            },
+            {
+              "@type": "MOD.Core.TextComponent",
+              "Alignment": 4,
+              "Bold": false,
+              "Font": 0,
+              "FontColor": {
+                "r": 0.12,
+                "g": 0.1,
+                "b": 0.06,
+                "a": 1.0
+              },
+              "FontSize": 28,
+              "MaxSize": 34,
+              "MinSize": 18,
+              "OutlineDistance": {
+                "x": 1.0,
+                "y": -1.0
+              },
+              "Overflow": 0,
+              "OverrideSorting": false,
+              "SizeFit": false,
+              "Text": "오늘 번 골드       +0G",
+              "UseOutLine": false,
+              "Enable": true
+            }
+          ],
+          "@version": 1
+        }
+      },
+      {
+        "id": "d9a71e00-0e11-4a7d-9e55-5e7700000006",
+        "path": "/ui/DaySettlementGroup/ReceiptPanel/TotalText",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.TextComponent",
+        "jsonString": {
+          "name": "TotalText",
+          "path": "/ui/DaySettlementGroup/ReceiptPanel/TotalText",
+          "nameEditable": true,
+          "enable": true,
+          "visible": true,
+          "localize": true,
+          "displayOrder": 3,
+          "pathConstraints": "////",
+          "revision": 1,
+          "origin": {
+            "type": "Model",
+            "entry_id": "UIText",
+            "sub_entity_id": null,
+            "root_entity_id": null,
+            "replaced_model_id": null
+          },
+          "modelId": "uitext",
+          "@components": [
+            {
+              "@type": "MOD.Core.UITransformComponent",
+              "AlignmentOption": 0,
+              "AnchorsMax": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "AnchorsMin": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "MobileOnly": false,
+              "OffsetMax": {
+                "x": 260.0,
+                "y": -95.0
+              },
+              "OffsetMin": {
+                "x": -260.0,
+                "y": -155.0
+              },
+              "Pivot": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "RectSize": {
+                "x": 520.0,
+                "y": 60.0
+              },
+              "UIMode": 1,
+              "UIVersion": 2,
+              "anchoredPosition": {
+                "x": 0.0,
+                "y": -125.0
+              },
+              "Position": {
+                "x": 0.0,
+                "y": -125.0,
+                "z": 0.0
+              },
+              "QuaternionRotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0
+              },
+              "Enable": true
+            },
+            {
+              "@type": "MOD.Core.SpriteGUIRendererComponent",
+              "OverrideSorting": false,
+              "RaycastTarget": false,
               "Enable": true
             },
             {
@@ -609,14 +656,14 @@
               "Bold": true,
               "Font": 0,
               "FontColor": {
-                "r": 1.0,
-                "g": 1.0,
-                "b": 1.0,
+                "r": 0.1,
+                "g": 0.08,
+                "b": 0.04,
                 "a": 1.0
               },
-              "FontSize": 28,
-              "MaxSize": 34,
-              "MinSize": 12,
+              "FontSize": 34,
+              "MaxSize": 42,
+              "MinSize": 20,
               "OutlineDistance": {
                 "x": 1.0,
                 "y": -1.0
@@ -624,7 +671,112 @@
               "Overflow": 0,
               "OverrideSorting": false,
               "SizeFit": false,
-              "Text": "RESUME",
+              "Text": "합계               0G",
+              "UseOutLine": false,
+              "Enable": true
+            }
+          ],
+          "@version": 1
+        }
+      },
+      {
+        "id": "d9a71e00-0e11-4a7d-9e55-5e7700000007",
+        "path": "/ui/DaySettlementGroup/ReceiptPanel/FooterText",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.TextComponent",
+        "jsonString": {
+          "name": "FooterText",
+          "path": "/ui/DaySettlementGroup/ReceiptPanel/FooterText",
+          "nameEditable": true,
+          "enable": true,
+          "visible": true,
+          "localize": true,
+          "displayOrder": 4,
+          "pathConstraints": "////",
+          "revision": 1,
+          "origin": {
+            "type": "Model",
+            "entry_id": "UIText",
+            "sub_entity_id": null,
+            "root_entity_id": null,
+            "replaced_model_id": null
+          },
+          "modelId": "uitext",
+          "@components": [
+            {
+              "@type": "MOD.Core.UITransformComponent",
+              "AlignmentOption": 0,
+              "AnchorsMax": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "AnchorsMin": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "MobileOnly": false,
+              "OffsetMax": {
+                "x": 260.0,
+                "y": -190.0
+              },
+              "OffsetMin": {
+                "x": -260.0,
+                "y": -240.0
+              },
+              "Pivot": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "RectSize": {
+                "x": 520.0,
+                "y": 50.0
+              },
+              "UIMode": 1,
+              "UIVersion": 2,
+              "anchoredPosition": {
+                "x": 0.0,
+                "y": -215.0
+              },
+              "Position": {
+                "x": 0.0,
+                "y": -215.0,
+                "z": 0.0
+              },
+              "QuaternionRotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0
+              },
+              "Enable": true
+            },
+            {
+              "@type": "MOD.Core.SpriteGUIRendererComponent",
+              "OverrideSorting": false,
+              "RaycastTarget": false,
+              "Enable": true
+            },
+            {
+              "@type": "MOD.Core.TextComponent",
+              "Alignment": 4,
+              "Bold": false,
+              "Font": 0,
+              "FontColor": {
+                "r": 0.28,
+                "g": 0.22,
+                "b": 0.14,
+                "a": 1.0
+              },
+              "FontSize": 22,
+              "MaxSize": 28,
+              "MinSize": 16,
+              "OutlineDistance": {
+                "x": 1.0,
+                "y": -1.0
+              },
+              "Overflow": 0,
+              "OverrideSorting": false,
+              "SizeFit": false,
+              "Text": "클릭해서 계속",
               "UseOutLine": false,
               "Enable": true
             }

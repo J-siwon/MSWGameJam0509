@@ -21,7 +21,7 @@
           "name": "CustomerUIGroup",
           "path": "/ui/CustomerUIGroup",
           "nameEditable": true,
-          "enable": false,
+          "enable": true,
           "visible": true,
           "localize": true,
           "displayOrder": 2,
@@ -61,8 +61,8 @@
                 "y": 0.5
               },
               "RectSize": {
-                "x": 1920.0,
-                "y": 1080.0
+                "x": 2076.923,
+                "y": 1021.84613
               },
               "UIMode": 1,
               "UIVersion": 2,
@@ -123,40 +123,40 @@
           "@components": [
             {
               "@type": "MOD.Core.UITransformComponent",
-              "AlignmentOption": 12,
+              "AlignmentOption": 0,
               "AnchorsMax": {
-                "x": 0.0,
-                "y": 1.0
+                "x": 0.5,
+                "y": 0.5
               },
               "AnchorsMin": {
-                "x": 0.0,
-                "y": 0.0
+                "x": 0.5,
+                "y": 0.5
               },
               "MobileOnly": false,
               "OffsetMax": {
-                "x": 240.0,
-                "y": 0.0
+                "x": -762.2174,
+                "y": 540.0
               },
               "OffsetMin": {
-                "x": 0.0,
-                "y": 0.0
+                "x": -960.000244,
+                "y": -540.0
               },
               "Pivot": {
-                "x": 0.0,
+                "x": 0.5,
                 "y": 0.5
               },
               "RectSize": {
-                "x": 240.0,
+                "x": 197.782837,
                 "y": 1080.0
               },
               "UIMode": 1,
               "UIVersion": 2,
               "anchoredPosition": {
-                "x": 0.0,
+                "x": -861.1088,
                 "y": 0.0
               },
               "Position": {
-                "x": -960.0,
+                "x": -861.1088,
                 "y": 0.0,
                 "z": 0.0
               },
@@ -203,104 +203,6 @@
         }
       },
       {
-        "id": "cef109b3-1879-4c96-8524-e237c791d1e2",
-        "path": "/ui/CustomerUIGroup/CustomerTable/TableBG",
-        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent",
-        "jsonString": {
-          "name": "TableBG",
-          "path": "/ui/CustomerUIGroup/CustomerTable/TableBG",
-          "nameEditable": true,
-          "enable": true,
-          "visible": true,
-          "localize": true,
-          "displayOrder": 0,
-          "pathConstraints": "////",
-          "revision": 1,
-          "origin": {
-            "type": "Model",
-            "entry_id": "uiempty",
-            "sub_entity_id": null,
-            "root_entity_id": "cef109b3-1879-4c96-8524-e237c791d1e2",
-            "replaced_model_id": null
-          },
-          "modelId": "uiempty",
-          "@components": [
-            {
-              "@type": "MOD.Core.UITransformComponent",
-              "AlignmentOption": 15,
-              "AnchorsMax": {
-                "x": 1.0,
-                "y": 1.0
-              },
-              "AnchorsMin": {
-                "x": 0.0,
-                "y": 0.0
-              },
-              "MobileOnly": false,
-              "OffsetMax": {
-                "x": 0.0,
-                "y": 0.0
-              },
-              "OffsetMin": {
-                "x": 0.0,
-                "y": 0.0
-              },
-              "Pivot": {
-                "x": 0.5,
-                "y": 0.5
-              },
-              "RectSize": {
-                "x": 240.0,
-                "y": 1080.0
-              },
-              "UIMode": 1,
-              "UIScale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-              },
-              "UIVersion": 2,
-              "anchoredPosition": {
-                "x": 0.0,
-                "y": 0.0
-              },
-              "Rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-              },
-              "Position": {
-                "x": 120.0,
-                "y": 0.0,
-                "z": 0.0
-              },
-              "QuaternionRotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0,
-                "w": -1.0
-              },
-              "Scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-              },
-              "ZRotation": 0.0,
-              "Enable": true
-            },
-            {
-              "@type": "MOD.Core.SpriteGUIRendererComponent",
-              "ImageRUID": {
-                "DataId": "24151684e2f84b4a8e7c6b1be2df5412"
-              },
-              "OverrideSorting": false,
-              "Enable": true
-            }
-          ],
-          "@version": 1
-        }
-      },
-      {
         "id": "e0d97e76-1f78-4306-b25d-43fa78c4f003",
         "path": "/ui/CustomerUIGroup/CustomerTable/CustomerRoot",
         "componentNames": "MOD.Core.UITransformComponent",
@@ -311,7 +213,7 @@
           "enable": true,
           "visible": true,
           "localize": true,
-          "displayOrder": 1,
+          "displayOrder": 0,
           "pathConstraints": "////",
           "revision": 1,
           "origin": {
@@ -368,7 +270,7 @@
                 "z": 360.0
               },
               "Position": {
-                "x": 120.0,
+                "x": 0.0,
                 "y": 290.0,
                 "z": 0.0
               },
@@ -401,7 +303,7 @@
           "enable": true,
           "visible": true,
           "localize": true,
-          "displayOrder": 2,
+          "displayOrder": 1,
           "pathConstraints": "////",
           "revision": 1,
           "origin": {
@@ -427,11 +329,11 @@
               "MobileOnly": false,
               "OffsetMax": {
                 "x": 76.9264,
-                "y": -963.3277
+                "y": -962.3277
               },
               "OffsetMin": {
                 "x": -123.0736,
-                "y": -1017.3277
+                "y": -1016.3277
               },
               "Pivot": {
                 "x": 0.5,
@@ -450,11 +352,11 @@
               "UIVersion": 2,
               "anchoredPosition": {
                 "x": -23.0736,
-                "y": -963.3277
+                "y": -962.3277
               },
               "Position": {
-                "x": 96.9264,
-                "y": -423.3277,
+                "x": -23.0736,
+                "y": -422.3277,
                 "z": 0.0
               },
               "QuaternionRotation": {
@@ -569,7 +471,7 @@
           "enable": true,
           "visible": true,
           "localize": true,
-          "displayOrder": 3,
+          "displayOrder": 2,
           "pathConstraints": "////",
           "revision": 1,
           "origin": {
@@ -621,7 +523,7 @@
                 "y": -900.0
               },
               "Position": {
-                "x": 96.9264,
+                "x": -23.0736,
                 "y": -360.0,
                 "z": 0.0
               },
@@ -764,20 +666,20 @@
               },
               "MobileOnly": false,
               "OffsetMax": {
-                "x": 87.5,
-                "y": 75.0
+                "x": -787.4675,
+                "y": 412.18573
               },
               "OffsetMin": {
-                "x": -87.5,
-                "y": -75.0
+                "x": -925.4075,
+                "y": 293.951477
               },
               "Pivot": {
                 "x": 0.5,
                 "y": 0.5
               },
               "RectSize": {
-                "x": 175.0,
-                "y": 150.0
+                "x": 137.939972,
+                "y": 118.234268
               },
               "UIMode": 1,
               "UIScale": {
@@ -787,12 +689,12 @@
               },
               "UIVersion": 2,
               "anchoredPosition": {
-                "x": 0.0,
-                "y": 0.0
+                "x": -856.4375,
+                "y": 353.0686
               },
               "Position": {
-                "x": 0.0,
-                "y": 0.0,
+                "x": -856.4375,
+                "y": 353.0686,
                 "z": 0.0
               },
               "QuaternionRotation": {
@@ -920,8 +822,8 @@
                 "y": 0.5
               },
               "RectSize": {
-                "x": 175.0,
-                "y": 150.0
+                "x": 137.939972,
+                "y": 118.234268
               },
               "UIMode": 1,
               "UIVersion": 2,
@@ -1213,8 +1115,8 @@
                 "y": 0.5
               },
               "RectSize": {
-                "x": 175.0,
-                "y": 150.0
+                "x": 137.939972,
+                "y": 118.234268
               },
               "UIMode": 1,
               "UIVersion": 2,
@@ -1303,7 +1205,7 @@
               },
               "Position": {
                 "x": 0.0,
-                "y": -65.0,
+                "y": -49.1171341,
                 "z": 0.0
               },
               "QuaternionRotation": {

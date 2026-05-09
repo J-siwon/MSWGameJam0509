@@ -61,8 +61,8 @@
                 "y": 0.5
               },
               "RectSize": {
-                "x": 1920.0,
-                "y": 1080.0
+                "x": 2076.923,
+                "y": 1021.84613
               },
               "UIMode": 1,
               "UIScale": {
@@ -112,12 +112,12 @@
         }
       },
       {
-        "id": "7f9f3e00-6df2-4f4a-9b27-5650f0d90002",
-        "path": "/ui/DayInfoGroup/Panel",
-        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent",
+        "id": "7f9f3e00-6df2-4f4a-9b27-5650f0d90003",
+        "path": "/ui/DayInfoGroup/DayText",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.TextComponent",
         "jsonString": {
-          "name": "Panel",
-          "path": "/ui/DayInfoGroup/Panel",
+          "name": "DayText",
+          "path": "/ui/DayInfoGroup/DayText",
           "nameEditable": true,
           "enable": true,
           "visible": true,
@@ -127,40 +127,40 @@
           "revision": 1,
           "origin": {
             "type": "Model",
-            "entry_id": "UISprite",
+            "entry_id": "UIText",
             "sub_entity_id": null,
             "root_entity_id": null,
             "replaced_model_id": null
           },
-          "modelId": "uisprite",
+          "modelId": "uitext",
           "@components": [
             {
               "@type": "MOD.Core.UITransformComponent",
-              "AlignmentOption": 4,
+              "AlignmentOption": 0,
               "AnchorsMax": {
-                "x": 0.0,
-                "y": 1.0
+                "x": 0.5,
+                "y": 0.5
               },
               "AnchorsMin": {
-                "x": 0.0,
-                "y": 1.0
+                "x": 0.5,
+                "y": 0.5
               },
               "MobileOnly": false,
               "OffsetMax": {
-                "x": 840.0,
-                "y": 0.0
+                "x": 303.876465,
+                "y": 484.0133
               },
               "OffsetMin": {
-                "x": 240.0,
-                "y": -100.0
+                "x": -64.05664,
+                "y": 404.0431
               },
               "Pivot": {
                 "x": 0.0,
-                "y": 1.0
+                "y": 0.5
               },
               "RectSize": {
-                "x": 600.0,
-                "y": 100.0
+                "x": 367.9331,
+                "y": 79.9702148
               },
               "UIMode": 1,
               "UIScale": {
@@ -170,12 +170,12 @@
               },
               "UIVersion": 2,
               "anchoredPosition": {
-                "x": 240.0,
-                "y": 0.0
+                "x": -64.05664,
+                "y": 444.0282
               },
               "Position": {
-                "x": -720.0,
-                "y": 540.0,
+                "x": -64.05664,
+                "y": 444.0282,
                 "z": 0.0
               },
               "QuaternionRotation": {
@@ -189,152 +189,6 @@
                 "y": 1.0,
                 "z": 1.0
               },
-              "Enable": true
-            },
-            {
-              "@type": "MOD.Core.SpriteGUIRendererComponent",
-              "AnimClipPlayType": 0,
-              "EndFrameIndex": 2147483647,
-              "ImageRUID": {
-                "DataId": "7d614552ba7843049bb48ebd4509fb8f"
-              },
-              "LocalPosition": {
-                "x": 0.0,
-                "y": 0.0
-              },
-              "LocalScale": {
-                "x": 1.0,
-                "y": 1.0
-              },
-              "OverrideSorting": false,
-              "PlayRate": 1.0,
-              "PreserveSprite": 0,
-              "StartFrameIndex": 0,
-              "Color": {
-                "r": 0.04,
-                "g": 0.05,
-                "b": 0.06,
-                "a": 0.74
-              },
-              "DropShadow": false,
-              "DropShadowAngle": 30.0,
-              "DropShadowColor": {
-                "r": 0.0,
-                "g": 0.0,
-                "b": 0.0,
-                "a": 0.72
-              },
-              "DropShadowDistance": 32.0,
-              "FillAmount": 1.0,
-              "FillCenter": true,
-              "FillClockWise": true,
-              "FillMethod": 0,
-              "FillOrigin": 0,
-              "FlipX": false,
-              "FlipY": false,
-              "FrameColumn": 1,
-              "FrameRate": 0,
-              "FrameRow": 1,
-              "Outline": false,
-              "OutlineColor": {
-                "r": 0.0,
-                "g": 0.0,
-                "b": 0.0,
-                "a": 1.0
-              },
-              "OutlineWidth": 3.0,
-              "RaycastTarget": false,
-              "Type": 1,
-              "Enable": true
-            }
-          ],
-          "@version": 1
-        }
-      },
-      {
-        "id": "7f9f3e00-6df2-4f4a-9b27-5650f0d90003",
-        "path": "/ui/DayInfoGroup/Panel/DayText",
-        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.TextComponent",
-        "jsonString": {
-          "name": "DayText",
-          "path": "/ui/DayInfoGroup/Panel/DayText",
-          "nameEditable": true,
-          "enable": true,
-          "visible": true,
-          "localize": true,
-          "displayOrder": 0,
-          "pathConstraints": "////",
-          "revision": 1,
-          "origin": {
-            "type": "Model",
-            "entry_id": "UIText",
-            "sub_entity_id": null,
-            "root_entity_id": null,
-            "replaced_model_id": null
-          },
-          "modelId": "uitext",
-          "@components": [
-            {
-              "@type": "MOD.Core.UITransformComponent",
-              "AlignmentOption": 12,
-              "AnchorsMax": {
-                "x": 0.0,
-                "y": 1.0
-              },
-              "AnchorsMin": {
-                "x": 0.0,
-                "y": 0.0
-              },
-              "MobileOnly": false,
-              "OffsetMax": {
-                "x": 160.0,
-                "y": 0.0
-              },
-              "OffsetMin": {
-                "x": 0.0,
-                "y": 0.0
-              },
-              "Pivot": {
-                "x": 0.0,
-                "y": 0.5
-              },
-              "RectSize": {
-                "x": 160.0,
-                "y": 100.0
-              },
-              "UIMode": 1,
-              "UIScale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-              },
-              "UIVersion": 2,
-              "anchoredPosition": {
-                "x": 0.0,
-                "y": 0.0
-              },
-              "Rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-              },
-              "Position": {
-                "x": 0.0,
-                "y": -50.0,
-                "z": 0.0
-              },
-              "QuaternionRotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0,
-                "w": -1.0
-              },
-              "Scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-              },
-              "ZRotation": 0.0,
               "Enable": true
             },
             {
@@ -362,8 +216,8 @@
                 "b": 0.78,
                 "a": 1.0
               },
-              "FontSize": 28,
-              "MaxSize": 36,
+              "FontSize": 44,
+              "MaxSize": 44,
               "MinSize": 12,
               "OutlineColor": {
                 "r": 0.0,
@@ -394,17 +248,17 @@
       },
       {
         "id": "7f9f3e00-6df2-4f4a-9b27-5650f0d90004",
-        "path": "/ui/DayInfoGroup/Panel/TimeText",
+        "path": "/ui/DayInfoGroup/TimeText",
         "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.TextComponent",
         "jsonString": {
           "name": "TimeText",
-          "path": "/ui/DayInfoGroup/Panel/TimeText",
+          "path": "/ui/DayInfoGroup/TimeText",
           "nameEditable": true,
           "enable": true,
           "visible": true,
           "localize": true,
           "displayOrder": 1,
-          "pathConstraints": "////",
+          "pathConstraints": "///",
           "revision": 1,
           "origin": {
             "type": "Model",
@@ -417,31 +271,31 @@
           "@components": [
             {
               "@type": "MOD.Core.UITransformComponent",
-              "AlignmentOption": 12,
+              "AlignmentOption": 0,
               "AnchorsMax": {
-                "x": 0.0,
-                "y": 1.0
+                "x": 0.5,
+                "y": 0.5
               },
               "AnchorsMin": {
-                "x": 0.0,
-                "y": 0.0
+                "x": 0.5,
+                "y": 0.5
               },
               "MobileOnly": false,
               "OffsetMax": {
-                "x": 260.0,
-                "y": 0.0
+                "x": -786.137268,
+                "y": 503.2416
               },
               "OffsetMin": {
-                "x": 160.0,
-                "y": 0.0
+                "x": -932.3861,
+                "y": 464.278168
               },
               "Pivot": {
                 "x": 0.0,
                 "y": 0.5
               },
               "RectSize": {
-                "x": 100.0,
-                "y": 100.0
+                "x": 146.24884,
+                "y": 38.96344
               },
               "UIMode": 1,
               "UIScale": {
@@ -451,31 +305,25 @@
               },
               "UIVersion": 2,
               "anchoredPosition": {
-                "x": 160.0,
-                "y": 0.0
-              },
-              "Rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
+                "x": -932.3861,
+                "y": 483.7599
               },
               "Position": {
-                "x": 160.0,
-                "y": -50.0,
+                "x": -932.3861,
+                "y": 483.7599,
                 "z": 0.0
               },
               "QuaternionRotation": {
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0,
-                "w": -1.0
+                "w": 1.0
               },
               "Scale": {
                 "x": 1.0,
                 "y": 1.0,
                 "z": 1.0
               },
-              "ZRotation": 0.0,
               "Enable": true
             },
             {
@@ -535,17 +383,17 @@
       },
       {
         "id": "7f9f3e00-6df2-4f4a-9b27-5650f0d90005",
-        "path": "/ui/DayInfoGroup/Panel/MoneyText",
+        "path": "/ui/DayInfoGroup/MoneyText",
         "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.TextComponent",
         "jsonString": {
           "name": "MoneyText",
-          "path": "/ui/DayInfoGroup/Panel/MoneyText",
+          "path": "/ui/DayInfoGroup/MoneyText",
           "nameEditable": true,
           "enable": true,
           "visible": true,
           "localize": true,
           "displayOrder": 2,
-          "pathConstraints": "////",
+          "pathConstraints": "///",
           "revision": 1,
           "origin": {
             "type": "Model",
@@ -558,31 +406,31 @@
           "@components": [
             {
               "@type": "MOD.Core.UITransformComponent",
-              "AlignmentOption": 12,
+              "AlignmentOption": 0,
               "AnchorsMax": {
-                "x": 0.0,
-                "y": 1.0
+                "x": 0.5,
+                "y": 0.5
               },
               "AnchorsMin": {
-                "x": 0.0,
-                "y": 0.0
+                "x": 0.5,
+                "y": 0.5
               },
               "MobileOnly": false,
               "OffsetMax": {
-                "x": 360.0,
-                "y": 0.0
+                "x": -766.33606,
+                "y": 456.723267
               },
               "OffsetMin": {
-                "x": 260.0,
-                "y": 0.0
+                "x": -957.6792,
+                "y": 408.074951
               },
               "Pivot": {
                 "x": 0.0,
                 "y": 0.5
               },
               "RectSize": {
-                "x": 100.0,
-                "y": 100.0
+                "x": 191.34314,
+                "y": 48.6483154
               },
               "UIMode": 1,
               "UIScale": {
@@ -592,31 +440,25 @@
               },
               "UIVersion": 2,
               "anchoredPosition": {
-                "x": 260.0,
-                "y": 0.0
-              },
-              "Rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
+                "x": -957.6792,
+                "y": 432.3991
               },
               "Position": {
-                "x": 260.0,
-                "y": -50.0,
+                "x": -957.6792,
+                "y": 432.3991,
                 "z": 0.0
               },
               "QuaternionRotation": {
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0,
-                "w": -1.0
+                "w": 1.0
               },
               "Scale": {
                 "x": 1.0,
                 "y": 1.0,
                 "z": 1.0
               },
-              "ZRotation": 0.0,
               "Enable": true
             },
             {
@@ -676,17 +518,17 @@
       },
       {
         "id": "7f9f3e00-6df2-4f4a-9b27-5650f0d90006",
-        "path": "/ui/DayInfoGroup/Panel/GoalText",
+        "path": "/ui/DayInfoGroup/GoalText",
         "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.TextComponent",
         "jsonString": {
           "name": "GoalText",
-          "path": "/ui/DayInfoGroup/Panel/GoalText",
+          "path": "/ui/DayInfoGroup/GoalText",
           "nameEditable": true,
           "enable": true,
           "visible": true,
           "localize": true,
           "displayOrder": 3,
-          "pathConstraints": "////",
+          "pathConstraints": "///",
           "revision": 1,
           "origin": {
             "type": "Model",
@@ -699,31 +541,31 @@
           "@components": [
             {
               "@type": "MOD.Core.UITransformComponent",
-              "AlignmentOption": 12,
+              "AlignmentOption": 0,
               "AnchorsMax": {
-                "x": 0.0,
-                "y": 1.0
+                "x": 0.5,
+                "y": 0.5
               },
               "AnchorsMin": {
-                "x": 0.0,
-                "y": 0.0
+                "x": 0.5,
+                "y": 0.5
               },
               "MobileOnly": false,
               "OffsetMax": {
-                "x": 598.9591,
-                "y": 0.0
+                "x": 306.1311,
+                "y": 407.403656
               },
               "OffsetMin": {
-                "x": 360.0,
-                "y": 0.0
+                "x": -64.0822754,
+                "y": 297.89035
               },
               "Pivot": {
                 "x": 0.0,
                 "y": 0.5
               },
               "RectSize": {
-                "x": 238.959122,
-                "y": 100.0
+                "x": 370.213379,
+                "y": 109.513306
               },
               "UIMode": 1,
               "UIScale": {
@@ -733,31 +575,25 @@
               },
               "UIVersion": 2,
               "anchoredPosition": {
-                "x": 360.0,
-                "y": 0.0
-              },
-              "Rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
+                "x": -64.0822754,
+                "y": 352.647
               },
               "Position": {
-                "x": 360.0,
-                "y": -50.0,
+                "x": -64.0822754,
+                "y": 352.647,
                 "z": 0.0
               },
               "QuaternionRotation": {
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0,
-                "w": -1.0
+                "w": 1.0
               },
               "Scale": {
                 "x": 1.0,
                 "y": 1.0,
                 "z": 1.0
               },
-              "ZRotation": 0.0,
               "Enable": true
             },
             {
@@ -785,8 +621,8 @@
                 "b": 1.0,
                 "a": 1.0
               },
-              "FontSize": 40,
-              "MaxSize": 40,
+              "FontSize": 44,
+              "MaxSize": 44,
               "MinSize": 12,
               "OutlineColor": {
                 "r": 0.0,
@@ -826,7 +662,7 @@
           "enable": true,
           "visible": true,
           "localize": true,
-          "displayOrder": 1,
+          "displayOrder": 4,
           "pathConstraints": "///",
           "revision": 1,
           "origin": {
@@ -888,6 +724,12 @@
             {
               "@type": "script.DayManager",
               "Enable": true,
+              "CustomerTableEntity": {
+                "tempEntityId": null,
+                "IsRelative": false,
+                "EntityId": "3a2ab1b3-f0f3-49dd-af50-b22b97d3b5ab",
+                "Version2": false
+              },
               "DefaultDayDurationSeconds": 180.0,
               "DefaultSpawnIntervalSeconds": 1.0,
               "AutoStartOnBeginPlay": false,
