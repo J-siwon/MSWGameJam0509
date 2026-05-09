@@ -1,0 +1,144 @@
+@Logic
+script WorkProcessService extends Logic
+
+	method void Initialize(any gameManager)
+		gameManager.progressTimerIds = {}
+	end
+
+	method void StartPrepIngredientSlot(any gameManager, any slot)
+		if slot == nil or slot.uiButton == nil then
+			return
+		end
+		
+		if gameManager:CanPrepIngredient(slot.ingredientId) == false then
+			log("Cannot start prep ingredient slot: " .. slot.id .. " / ingredient: " .. tostring(slot.ingredientId))
+			return
+		end
+		
+		log("Start prepping ingredient slot: " .. slot.id)
+		slot.state = "PREPPING"
+		gameManager.prepTargetSlot = nil
+		slot.uiButton.Enable = false
+		self:SetPrepSlotProgress(slot, 0)
+		local service = self
+		self:StartProgressTimer(gameManager, "Prep", slot, gameManager.prepDuration, function(target) service:FinishPrepIngredientSlot(gameManager, target) end)
+	end
+
+	method void FinishPrepIngredientSlot(any gameManager, any slot)
+		slot.state = "PREPPED"
+		slot.ingredientId = self:GetPreppedIngredientId(slot.ingredientId)
+		slot.uiButton.Enable = true
+		self:SetPrepSlotProgress(slot, 0)
+		log("Finished prepping ingredient slot: " .. slot.id .. " / ingredient: " .. slot.ingredientId)
+	end
+
+	method void StartBrewShot(any gameManager, any slot)
+		if slot == nil or slot.uiButton == nil or slot.cupData == nil then
+			return
+		end
+		
+		log("Start brewing shot: " .. slot.id .. " / shot: " .. slot.coffeeShotId)
+		gameManager.brewShotTargetSlot = nil
+		slot.isBrewingShot = true
+		slot.uiButton.Enable = false
+		self:SetPrepSlotProgress(slot, 0)
+		local service = self
+		self:StartProgressTimer(gameManager, "BrewShot", slot, gameManager.brewShotDuration, function(target) service:FinishBrewShot(gameManager, target) end)
+	end
+
+	method void FinishBrewShot(any gameManager, any slot)
+		slot.isBrewingShot = false
+		slot.uiButton.Enable = true
+		self:SetPrepSlotProgress(slot, 0)
+		gameManager:AddIngredientToCup(slot.cupData, slot.coffeeShotId)
+		log("Finished brewing shot: " .. slot.id .. " / shot: " .. slot.coffeeShotId)
+	end
+
+	method void StartMixMixer(any gameManager, any mixer)
+		if mixer == nil or mixer.uiButton == nil then
+			return
+		end
+		
+		log("Start mixing: " .. mixer.id .. " / ingredients: " .. gameManager:GetIngredientListText(mixer))
+		mixer.isMixing = true
+		gameManager.mixTargetMixer = nil
+		mixer.uiButton.Enable = false
+		self:SetPrepSlotProgress(mixer, 0)
+		local service = self
+		self:StartProgressTimer(gameManager, "Mix", mixer, gameManager.mixDuration, function(target) service:FinishMixMixer(gameManager, target) end)
+	end
+
+	method void FinishMixMixer(any gameManager, any mixer)
+		local resultId = gameManager:GetMixerResultId(mixer)
+		
+		mixer.ingredients = {}
+		mixer.spaceIngredientCount = 0
+		mixer.isMixing = false
+		mixer.isMixed = true
+		mixer.resultId = resultId
+		mixer.isTrash = gameManager:IsTrashMixerResult(mixer)
+		mixer.uiButton.Enable = true
+		self:SetPrepSlotProgress(mixer, 0)
+		
+		log("Finished mixing: " .. mixer.id .. " / result: " .. resultId)
+	end
+
+	method string GetPreppedIngredientId(string ingredientId)
+		if string.sub(ingredientId, 1, 8) == "prepped_" then
+			return ingredientId
+		end
+		
+		return "prepped_" .. ingredientId
+	end
+
+	method void StartProgressTimer(any gameManager, string timerKey, any target, number duration, any onFinished)
+		-- TODO: timerKey currently uses process-type keys, so simultaneous same-type processes can cancel each other. Split by target id in a behavior-changing pass.
+		self:ClearProgressTimer(gameManager, timerKey)
+		
+		local time = 0
+		local preTime = _UtilLogic.ElapsedSeconds
+		local service = self
+		
+		local tick = function()
+			local delta = _UtilLogic.ElapsedSeconds - preTime
+			preTime = _UtilLogic.ElapsedSeconds
+			time = time + delta
+			
+			local progress = math.min(time / duration, 1)
+			service:SetPrepSlotProgress(target, progress)
+			
+			if progress >= 1 then
+				service:ClearProgressTimer(gameManager, timerKey)
+				onFinished(target)
+			end
+		end
+		
+		if gameManager.progressTimerIds == nil then
+			gameManager.progressTimerIds = {}
+		end
+		gameManager.progressTimerIds[timerKey] = _TimerService:SetTimerRepeat(tick, 1 / 60)
+	end
+
+	method void ClearProgressTimer(any gameManager, string timerKey)
+		if gameManager.progressTimerIds == nil then
+			gameManager.progressTimerIds = {}
+		end
+		
+		local timerId = gameManager.progressTimerIds[timerKey]
+		if timerId ~= nil and timerId ~= 0 then
+			_TimerService:ClearTimer(timerId)
+		end
+		
+		gameManager.progressTimerIds[timerKey] = 0
+	end
+
+	method void SetPrepSlotProgress(any slot, number progress)
+		if slot == nil or slot.uiButton == nil then
+			return
+		end
+		
+		local sprite = slot.uiButton.Entity.SpriteGUIRendererComponent
+		sprite.FillAmount = progress
+	end
+
+end

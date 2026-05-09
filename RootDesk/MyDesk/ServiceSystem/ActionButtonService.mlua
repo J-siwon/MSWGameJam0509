@@ -1,0 +1,149 @@
+@Logic
+script ActionButtonService extends Logic
+
+	method void Initialize(any gameManager)
+		gameManager.actionButtonConfigs = self:CreateActionButtonConfigs(gameManager)
+		gameManager.actionButtonTweenIds = {}
+	end
+
+	method any CreateActionButtonConfigs(any gameManager)
+		return {
+			Prep = { button = gameManager.btnPrepAction, axis = "X", showX = gameManager.prepButtonShowX, hideX = gameManager.prepButtonHideX, fixedY = gameManager.prepButtonY },
+			BrewShot = { button = gameManager.btnBrewShotAction, axis = "X", showX = gameManager.prepButtonShowX, hideX = gameManager.prepButtonHideX, fixedY = gameManager.brewShotButtonY },
+			Mix = { button = gameManager.btnMixAction, axis = "X", showX = gameManager.prepButtonShowX, hideX = gameManager.prepButtonHideX, fixedY = gameManager.mixButtonY },
+			Discard = { button = gameManager.btnDiscardAction, axis = "Y", showY = gameManager.discardButtonShowY, hideY = gameManager.discardButtonHideY, fixedX = gameManager.discardButtonX },
+		}
+	end
+
+	method void Show(any gameManager, string actionKey)
+		local config = self:GetConfig(gameManager, actionKey)
+		if config == nil then
+			return
+		end
+		
+		config.button.Entity.Enable = true
+		config.button.Enable = true
+		self:StartTween(gameManager, actionKey, true)
+	end
+
+	method void Hide(any gameManager, string actionKey)
+		local config = self:GetConfig(gameManager, actionKey)
+		if config == nil then
+			return
+		end
+		
+		config.button.Enable = false
+		self:StartTween(gameManager, actionKey, false)
+	end
+
+	method void HideImmediately(any gameManager, string actionKey)
+		local config = self:GetConfig(gameManager, actionKey)
+		if config == nil then
+			return
+		end
+		
+		self:ClearTween(gameManager, actionKey)
+		
+		local transform = config.button.Entity.UITransformComponent
+		local x = config.fixedX
+		local y = config.fixedY
+		if config.axis == "X" then
+			x = config.hideX
+		else
+			y = config.hideY
+		end
+		
+		self:SetUIPosition(transform, x, y)
+		config.button.Enable = false
+		config.button.Entity.Enable = false
+	end
+
+	method void HideAllImmediately(any gameManager)
+		self:HideImmediately(gameManager, "Prep")
+		self:HideImmediately(gameManager, "BrewShot")
+		self:HideImmediately(gameManager, "Mix")
+		self:HideImmediately(gameManager, "Discard")
+	end
+
+	method any GetConfig(any gameManager, string actionKey)
+		if gameManager.actionButtonConfigs == nil then
+			return nil
+		end
+		
+		return gameManager.actionButtonConfigs[actionKey]
+	end
+
+	method void ClearTween(any gameManager, string actionKey)
+		if gameManager.actionButtonTweenIds == nil then
+			gameManager.actionButtonTweenIds = {}
+		end
+		
+		local tweenId = gameManager.actionButtonTweenIds[actionKey]
+		if tweenId ~= nil and tweenId ~= 0 then
+			_TimerService:ClearTimer(tweenId)
+		end
+		
+		gameManager.actionButtonTweenIds[actionKey] = 0
+	end
+
+	method void StartTween(any gameManager, string actionKey, boolean show)
+		local config = self:GetConfig(gameManager, actionKey)
+		if config == nil then
+			return
+		end
+		
+		self:ClearTween(gameManager, actionKey)
+		
+		local transform = config.button.Entity.UITransformComponent
+		local fromValue = transform.anchoredPosition.x
+		local toValue = config.hideX
+		if config.axis == "Y" then
+			fromValue = transform.anchoredPosition.y
+			toValue = config.hideY
+		end
+		if show == true then
+			if config.axis == "X" then
+				toValue = config.showX
+			else
+				toValue = config.showY
+			end
+		end
+		
+		local time = 0
+		local preTime = _UtilLogic.ElapsedSeconds
+		local service = self
+		
+		local tween = function()
+			local delta = _UtilLogic.ElapsedSeconds - preTime
+			preTime = _UtilLogic.ElapsedSeconds
+			time = time + delta
+			
+			local t = math.min(time / gameManager.prepButtonTweenDuration, 1)
+			local value = fromValue + (toValue - fromValue) * t
+			if config.axis == "X" then
+				service:SetUIPosition(transform, value, config.fixedY)
+			else
+				service:SetUIPosition(transform, config.fixedX, value)
+			end
+			
+			if t >= 1 then
+				service:ClearTween(gameManager, actionKey)
+				if show == false then
+					config.button.Entity.Enable = false
+				end
+			end
+		end
+		
+		gameManager.actionButtonTweenIds[actionKey] = _TimerService:SetTimerRepeat(tween, 1 / 60)
+	end
+
+	method void SetUIPosition(any transform, number x, number y)
+		local width = transform.RectSize.x
+		local height = transform.RectSize.y
+		transform.anchoredPosition = Vector2(x, y)
+		transform.Position = Vector3(x, y, 0)
+		transform.OffsetMin = Vector2(x - width / 2, y - height / 2)
+		transform.OffsetMax = Vector2(x + width / 2, y + height / 2)
+	end
+
+end

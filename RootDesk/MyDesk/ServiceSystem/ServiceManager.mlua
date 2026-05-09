@@ -11,8 +11,6 @@ script ServiceManager extends Logic
 	property any actionButtonConfigs = nil
 	property any actionButtonTweenIds = nil
 	property any progressTimerIds = nil
-	property string IngredientDataSetName = "IngredientData"
-	property string MixerRecipeDataSetName = "MixerRecipeData"
 	property string cupImageRUID = "95c000a4a32d9e74392498f59cd99651"
 	property number prepDuration = 1
 	property number brewShotDuration = 1
@@ -63,513 +61,66 @@ script ServiceManager extends Logic
 		-- ServiceManager는 데이터 생성, 선택 규칙, UI 버튼 연결을 조율하는 시작점이다.
 		self.GameData = self:CreateInitialGameData()
 		self.SelectionManager = self:CreateInitialSelectionManager()
-		self.actionButtonConfigs = self:CreateActionButtonConfigs()
-		self.actionButtonTweenIds = {}
-		self.progressTimerIds = {}
+		if self.GameData == nil or self.SelectionManager == nil then
+			log("ServiceManager cannot start. Required service script is not loaded.")
+			return
+		end
+		
+		self:InitializeActionButtons()
+		self:InitializeWorkProcesses()
 		self:ConnectGameButtons()
 		self:HideActionButtonsImmediately()
 	end
 
 	method any CreateInitialGameData()
-		-- 분리된 데이터 팩토리가 로드되어 있으면 그쪽을 사용하고, 없으면 내부 구현으로 동작한다.
+		-- 데이터 생성 책임은 DataFactory만 가진다.
 		if _DataFactory ~= nil then
 			return _DataFactory:CreateGameData()
 		end
 		
-		log("DataFactory is not loaded. Use ServiceManager fallback data factory.")
-		return self:CreateGameData()
+		log("DataFactory is not loaded.")
+		return nil
 	end
 
 	method any CreateInitialSelectionManager()
-		-- 선택 매니저도 외부 스크립트를 우선 사용하고, 로드되지 않았을 때만 내부 구현으로 대체한다.
+		-- 선택 규칙 생성 책임은 SelectionManagerFactory만 가진다.
 		if _SelectionManagerFactory ~= nil then
 			return _SelectionManagerFactory:CreateSelectionManager(self)
 		end
 		
-		log("SelectionManagerFactory is not loaded. Use ServiceManager fallback selection manager.")
-		return self:CreateSelectionManager()
+		log("SelectionManagerFactory is not loaded.")
+		return nil
 	end
 
-	method any CreateGameData()
-		-- DataFactory가 없을 때만 사용하는 예비 데이터 생성 로직이다.
-		return {
-			IngredientSlots = self:CreateIngredientSlots(),
-			CupSlots = self:CreateCupSlots(),
-			IngredientDefs = self:CreateIngredientDefs(),
-			MixerRecipes = self:CreateMixerRecipes(),
-			Mixers = self:CreateMixers(),
-		}
+	method void InitializeActionButtons()
+		if _ActionButtonService ~= nil then
+			_ActionButtonService:Initialize(self)
+			return
+		end
+		
+		log("ActionButtonService is not loaded.")
+		self.actionButtonConfigs = {}
+		self.actionButtonTweenIds = {}
 	end
 
-	method any CreateIngredientSlots()
-		return {
-			[1] = { id = "IngredientSlot_1", state = "EMPTY", ingredientId = nil },
-			[2] = { id = "IngredientSlot_2", state = "EMPTY", ingredientId = nil },
-		}
-	end
-
-	method any CreateCupSlots()
-		return {
-			[1] = { id = "CupSlot_1", isCoffeeMachine = true, coffeeShotId = "CoffeeShot_1", hasCup = false, cupData = nil },
-			[2] = { id = "CupSlot_2", isCoffeeMachine = true, coffeeShotId = "CoffeeShot_2", hasCup = false, cupData = nil },
-			[3] = { id = "CupSlot_3", isCoffeeMachine = true, coffeeShotId = "CoffeeShot_3", hasCup = false, cupData = nil },
-			[4] = { id = "CupSlot_4", isCoffeeMachine = false, hasCup = false, cupData = nil },
-			[5] = { id = "CupSlot_5", isCoffeeMachine = false, hasCup = false, cupData = nil },
-		}
-	end
-
-	method any CreateIngredientDefs()
-		local ingredientDefs = self:CreateIngredientDefsFromDataSet()
-		if ingredientDefs ~= nil then
-			return ingredientDefs
+	method void InitializeWorkProcesses()
+		if _WorkProcessService ~= nil then
+			_WorkProcessService:Initialize(self)
+			return
 		end
 		
-		log("IngredientData dataset is not loaded. Use fallback ingredient definitions.")
-		return {
-			Ingredient_1 = { useCupSpace = true, displayName = "Ingredient 1", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
-			Ingredient_2 = { useCupSpace = true, displayName = "Ingredient 2", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
-			Ingredient_3 = { useCupSpace = true, displayName = "Ingredient 3", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
-			Ingredient_4 = { useCupSpace = true, displayName = "Ingredient 4", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
-			Ingredient_5 = { useCupSpace = true, displayName = "Ingredient 5", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
-			Ingredient_6 = { useCupSpace = true, displayName = "Ingredient 6", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
-			Ingredient_7 = { useCupSpace = true, displayName = "Ingredient 7", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
-			Ingredient_8 = { useCupSpace = true, displayName = "Ingredient 8", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
-			prepped_Ingredient_1 = { useCupSpace = true, displayName = "Prepped Ingredient 1", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
-			prepped_Ingredient_2 = { useCupSpace = true, displayName = "Prepped Ingredient 2", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
-			prepped_Ingredient_3 = { useCupSpace = true, displayName = "Prepped Ingredient 3", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
-			prepped_Ingredient_4 = { useCupSpace = true, displayName = "Prepped Ingredient 4", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
-			prepped_Ingredient_5 = { useCupSpace = true, displayName = "Prepped Ingredient 5", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
-			prepped_Ingredient_6 = { useCupSpace = true, displayName = "Prepped Ingredient 6", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
-			prepped_Ingredient_7 = { useCupSpace = true, displayName = "Prepped Ingredient 7", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
-			prepped_Ingredient_8 = { useCupSpace = true, displayName = "Prepped Ingredient 8", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
-			CoffeeShot_1 = { useCupSpace = true, displayName = "Coffee Shot 1", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
-			CoffeeShot_2 = { useCupSpace = true, displayName = "Coffee Shot 2", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
-			CoffeeShot_3 = { useCupSpace = true, displayName = "Coffee Shot 3", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
-			Ice = { useCupSpace = true, displayName = "Ice", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
-			ColdWater = { useCupSpace = true, displayName = "Cold Water", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
-			HotWater = { useCupSpace = true, displayName = "Hot Water", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
-			Mixed_Cold_Ingredient_1 = { useCupSpace = true, displayName = "Mixed Cold Ingredient 1", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
-			Mixed_Hot_Ingredient_2 = { useCupSpace = true, displayName = "Mixed Hot Ingredient 2", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
-			Mixed_Cold_Ingredient_3 = { useCupSpace = true, displayName = "Mixed Cold Ingredient 3", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
-			Trash = { useCupSpace = false, displayName = "Trash", canPrep = false, canMix = false, canAddToCup = false, imageRUID = "" },
-		}
-	end
-
-	method any CreateIngredientDefsFromDataSet()
-		if _EntryService == nil or _DataService == nil then
-			return nil
-		end
-		
-		local dataSetId = _EntryService:GetDataSetIdByName(self.IngredientDataSetName)
-		if dataSetId == nil or dataSetId == "" then
-			return nil
-		end
-		
-		local rowCount = _DataService:GetRowCount(self.IngredientDataSetName)
-		if rowCount <= 0 then
-			return nil
-		end
-		
-		local ingredientDefs = {}
-		for rowIndex = 1, rowCount do
-			local ingredientId = self:Trim(_DataService:GetCell(self.IngredientDataSetName, rowIndex, "Id"))
-			if ingredientId ~= "" then
-				ingredientDefs[ingredientId] = {
-					useCupSpace = self:ParseBoolean(_DataService:GetCell(self.IngredientDataSetName, rowIndex, "UseCupSpace"), true),
-					displayName = self:Trim(_DataService:GetCell(self.IngredientDataSetName, rowIndex, "DisplayName")),
-					canPrep = self:ParseBoolean(_DataService:GetCell(self.IngredientDataSetName, rowIndex, "CanPrep"), false),
-					canMix = self:ParseBoolean(_DataService:GetCell(self.IngredientDataSetName, rowIndex, "CanMix"), true),
-					canAddToCup = self:ParseBoolean(_DataService:GetCell(self.IngredientDataSetName, rowIndex, "CanAddToCup"), true),
-					imageRUID = self:Trim(_DataService:GetCell(self.IngredientDataSetName, rowIndex, "ImageRUID")),
-				}
-			end
-		end
-		
-		return ingredientDefs
-	end
-
-	method any CreateMixerRecipes()
-		local recipes = self:CreateMixerRecipesFromDataSet()
-		if recipes ~= nil then
-			return recipes
-		end
-		
-		log("MixerRecipeData dataset is not loaded. Use fallback mixer recipes.")
-		return {
-			["ColdWater|prepped_Ingredient_1"] = "Mixed_Cold_Ingredient_1",
-			["HotWater|prepped_Ingredient_2"] = "Mixed_Hot_Ingredient_2",
-			["ColdWater|prepped_Ingredient_3"] = "Mixed_Cold_Ingredient_3",
-		}
-	end
-
-	method any CreateMixerRecipesFromDataSet()
-		if _EntryService == nil or _DataService == nil then
-			return nil
-		end
-		
-		local dataSetId = _EntryService:GetDataSetIdByName(self.MixerRecipeDataSetName)
-		if dataSetId == nil or dataSetId == "" then
-			return nil
-		end
-		
-		local rowCount = _DataService:GetRowCount(self.MixerRecipeDataSetName)
-		if rowCount <= 0 then
-			return nil
-		end
-		
-		local recipes = {}
-		for rowIndex = 1, rowCount do
-			local ingredientsText = _DataService:GetCell(self.MixerRecipeDataSetName, rowIndex, "Ingredients")
-			local resultIngredient = _DataService:GetCell(self.MixerRecipeDataSetName, rowIndex, "ResultIngredient")
-			local recipeKey = self:CreateRecipeKeyFromText(ingredientsText)
-			
-			if recipeKey ~= "" and resultIngredient ~= nil and resultIngredient ~= "" then
-				recipes[recipeKey] = self:Trim(resultIngredient)
-			end
-		end
-		
-		return recipes
-	end
-
-	method string CreateRecipeKeyFromText(string ingredientsText)
-		if ingredientsText == nil or ingredientsText == "" then
-			return ""
-		end
-		
-		local ingredients = {}
-		for ingredientId in string.gmatch(ingredientsText, "([^|]+)") do
-			local trimmed = self:Trim(ingredientId)
-			if trimmed ~= "" then
-				table.insert(ingredients, trimmed)
-			end
-		end
-		
-		table.sort(ingredients)
-		
-		local key = ""
-		for index, ingredientId in pairs(ingredients) do
-			if key ~= "" then
-				key = key .. "|"
-			end
-			key = key .. ingredientId
-		end
-		
-		return key
-	end
-
-	method string Trim(string value)
-		if value == nil then
-			return ""
-		end
-		
-		return string.gsub(value, "^%s*(.-)%s*$", "%1")
-	end
-
-	method boolean ParseBoolean(string value, boolean fallback)
-		if value == nil or value == "" then
-			return fallback
-		end
-		
-		local normalized = string.lower(self:Trim(value))
-		if normalized == "true" or normalized == "1" or normalized == "yes" or normalized == "y" then
-			return true
-		end
-		if normalized == "false" or normalized == "0" or normalized == "no" or normalized == "n" then
-			return false
-		end
-		
-		return fallback
-	end
-
-	method any CreateMixers()
-		return {
-			[1] = self:CreateMixer("Mixer_1"),
-			[2] = self:CreateMixer("Mixer_2"),
-			[3] = self:CreateMixer("Mixer_3"),
-		}
-	end
-
-	method any CreateSelectionManager()
-		-- SelectionManagerFactory가 없을 때만 사용하는 예비 선택 매니저 생성 로직이다.
-		local gameManager = self
-		local manager = {
-			state = "NONE",
-			data = nil,
-		}
-		
-		function manager:Clear()
-			self.state = "NONE"
-			self.data = nil
-			gameManager:ClearSelectedButtonVisual()
-			gameManager:HideActionUI()
-		end
-		
-		function manager:Select(newState, newData, uiButton)
-			self.state = newState
-			self.data = newData
-			gameManager:HideActionUI()
-			
-			if uiButton ~= nil then
-				gameManager:ShowSelectedButtonVisual(uiButton)
-			elseif newData ~= nil and newData.uiButton ~= nil then
-				gameManager:ShowSelectedButtonVisual(newData.uiButton)
-			else
-				gameManager:ClearSelectedButtonVisual()
-			end
-			
-			if newState == "INGREDIENT_SLOT" then
-				if newData.state == "RAW" then
-					if gameManager:CanPrepIngredient(newData.ingredientId) == true then
-						gameManager:ShowPrepUI(newData)
-					end
-					gameManager:ShowDiscardUI(newData)
-				elseif newData.state == "PREPPED" then
-					gameManager:ShowDiscardUI(newData)
-				end
-			elseif newState == "PLACED_CUP" then
-				gameManager:ShowDiscardUI(newData)
-				if newData.isCoffeeMachine == true then
-					gameManager:ShowBrewShotUI(newData)
-				end
-			elseif newState == "MIXER" then
-				gameManager:ShowDiscardUI(newData)
-				if newData.isMixed == false then
-					gameManager:ShowMixUI(newData)
-				end
-			end
-		end
-		
-		function manager:HandleClick(targetType, target)
-			if targetType == "EMPTY" then
-				self:Clear()
-				return
-			end
-			
-			if target ~= nil and self:IsSameSelection(targetType, target) == true then
-				self:Clear()
-				return
-			end
-			
-			if targetType == "INGREDIENT_BTN" then
-				self:Select("INGREDIENT", target.ingredientId, target.uiButton)
-				return
-			end
-			
-			if targetType == "CUP_TYPE_BTN" then
-				self:Select("CUP_TYPE", target.cupType, target.uiButton)
-				return
-			end
-			
-			if targetType == "ICE_MAKER_BTN" then
-				self:Select("ICE_MAKER", nil, target.uiButton)
-				return
-			end
-			
-			if targetType == "WATER_BTN" then
-				self:Select("WATER", target.waterType, target.uiButton)
-				return
-			end
-			
-			local state = self.state
-			
-			if state == "NONE" then
-				if targetType == "INGREDIENT_SLOT" and target.state ~= "EMPTY" then
-					self:Select("INGREDIENT_SLOT", target)
-				elseif targetType == "CUP_SLOT" and target.hasCup == true then
-					self:Select("PLACED_CUP", target)
-				elseif targetType == "MIXER" and target.isMixing ~= true and (#target.ingredients > 0 or target.isMixed == true) then
-					self:Select("MIXER", target)
-				end
-				
-			elseif state == "INGREDIENT" then
-				if targetType == "CUP_SLOT" and target.hasCup == true then
-					if gameManager:AddIngredientToCup(target.cupData, self.data) == true then
-						self:Clear()
-					end
-				elseif targetType == "INGREDIENT_SLOT" and target.state == "EMPTY" then
-					target.state = "RAW"
-					target.ingredientId = self.data
-					self:Clear()
-				elseif targetType == "MIXER" and target.isMixed == false then
-					if gameManager:AddIngredientToMixer(target, self.data) == true then
-						self:Clear()
-					end
-				end
-				
-			elseif state == "CUP_TYPE" then
-				if targetType == "CUP_SLOT" and target.hasCup == false then
-					target.hasCup = true
-					target.cupData = gameManager:CreateCup(self.data)
-					gameManager:SetSlotImage(target, gameManager.cupImageRUID)
-					self:Clear()
-				end
-				
-			elseif state == "ICE_MAKER" then
-				if targetType == "CUP_SLOT" and target.hasCup == true then
-					if gameManager:AddIngredientToCup(target.cupData, "Ice") == true then
-						self:Clear()
-					end
-				end
-				
-			elseif state == "WATER" then
-				if targetType == "CUP_SLOT" and target.hasCup == true then
-					if gameManager:AddIngredientToCup(target.cupData, self.data) == true then
-						self:Clear()
-					end
-				elseif targetType == "MIXER" and target.isMixed == false then
-					if gameManager:AddIngredientToMixer(target, self.data) == true then
-						self:Clear()
-					end
-				end
-				
-			elseif state == "INGREDIENT_SLOT" then
-				local slot = self.data
-				local handled = false
-				if slot.state == "PREPPED" then
-					if targetType == "MIXER" and target.isMixed == false then
-						if gameManager:AddIngredientToMixer(target, slot.ingredientId) == true then
-							slot.state = "EMPTY"
-							slot.ingredientId = nil
-							gameManager:SetPrepSlotProgress(slot, 0)
-							handled = true
-							self:Clear()
-						end
-					elseif targetType == "CUP_SLOT" and target.hasCup == true then
-						if gameManager:AddIngredientToCup(target.cupData, slot.ingredientId) == true then
-							slot.state = "EMPTY"
-							slot.ingredientId = nil
-							gameManager:SetPrepSlotProgress(slot, 0)
-							handled = true
-							self:Clear()
-						end
-					end
-				end
-				
-				if handled == false then
-					self:Clear()
-				end
-				
-			elseif state == "MIXER" then
-				local mixer = self.data
-				local handled = false
-				if mixer.isMixed == true and mixer.isTrash == false then
-					if targetType == "CUP_SLOT" and target.hasCup == true then
-						if gameManager:AddIngredientToCup(target.cupData, mixer.resultId) == true then
-							gameManager:ClearMixer(mixer)
-							handled = true
-							self:Clear()
-						end
-					end
-				end
-				
-				if handled == false then
-					self:Clear()
-				end
-				
-			elseif state == "PLACED_CUP" then
-				if targetType == "CUP_SLOT" then
-					gameManager:MoveOrSwapCupSlot(self.data, target)
-				end
-				self:Clear()
-			end
-		end
-		
-		function manager:IsSameSelection(targetType, target)
-			if self.state == "INGREDIENT" and targetType == "INGREDIENT_BTN" then
-				return self.data == target.ingredientId
-			end
-			
-			if self.state == "CUP_TYPE" and targetType == "CUP_TYPE_BTN" then
-				return self.data == target.cupType
-			end
-			
-			if self.state == "ICE_MAKER" and targetType == "ICE_MAKER_BTN" then
-				return true
-			end
-			
-			if self.state == "WATER" and targetType == "WATER_BTN" then
-				return self.data == target.waterType
-			end
-			
-			if self.state == "INGREDIENT_SLOT" and targetType == "INGREDIENT_SLOT" then
-				return self.data == target
-			end
-			
-			if self.state == "PLACED_CUP" and targetType == "CUP_SLOT" then
-				return self.data == target
-			end
-			
-			if self.state == "MIXER" and targetType == "MIXER" then
-				return self.data == target
-			end
-			
-			return false
-		end
-		
-		function manager:HandleUIAction(action)
-			if action == "PREP" and self.state == "INGREDIENT_SLOT" then
-				local slot = self.data
-				if slot.state == "RAW" and gameManager:CanPrepIngredient(slot.ingredientId) == true then
-					gameManager:StartPrepIngredientSlot(slot)
-					self:Clear()
-				else
-					log("Cannot prep ingredient: " .. tostring(slot.ingredientId))
-				end
-				
-			elseif action == "BREW_SHOT" and self.state == "PLACED_CUP" then
-				local slot = self.data
-				if slot.isCoffeeMachine == true and slot.hasCup == true then
-					gameManager:StartBrewShot(slot)
-					self:Clear()
-				end
-				
-			elseif action == "DISCARD" then
-				if self.state == "INGREDIENT_SLOT" then
-					local slot = self.data
-					log("Discard ingredient slot: " .. slot.id .. " / ingredient: " .. tostring(slot.ingredientId))
-					slot.state = "EMPTY"
-					slot.ingredientId = nil
-					gameManager:SetPrepSlotProgress(slot, 0)
-				elseif self.state == "PLACED_CUP" then
-					local slot = self.data
-					log("Discard cup slot: " .. slot.id)
-					slot.hasCup = false
-					slot.cupData = nil
-					gameManager:SetSlotImage(slot, "")
-					gameManager:SetPrepSlotProgress(slot, 0)
-				elseif self.state == "MIXER" then
-					local mixer = self.data
-					log("Discard mixer: " .. mixer.id)
-					gameManager:ClearMixer(mixer)
-				end
-				self:Clear()
-				
-			elseif action == "MIX" and self.state == "MIXER" then
-				local mixer = self.data
-				if mixer.isMixed == false and mixer.isMixing ~= true and #mixer.ingredients > 0 then
-					gameManager:StartMixMixer(mixer)
-					self:Clear()
-				end
-			end
-		end
-		
-		return manager
+		log("WorkProcessService is not loaded.")
+		self.progressTimerIds = {}
 	end
 
 	method string GetMixerResultId(any mixer)
-		-- 믹서 관련 규칙은 MixerService에 위임하고, 서비스가 없으면 내부 fallback을 사용한다.
+		-- 믹서 관련 규칙은 MixerService에 위임한다.
 		if _MixerService ~= nil then
 			return _MixerService:GetMixerResultId(self, mixer)
 		end
 		
-		local recipeKey = self:GetMixerRecipeKey(mixer)
-		local resultId = self.GameData.MixerRecipes[recipeKey]
-		
-		if resultId == nil then
-			return "Trash"
-		end
-		
-		return resultId
+		log("MixerService is not loaded.")
+		return ""
 	end
 
 	method boolean IsTrashMixerResult(any mixer)
@@ -577,7 +128,8 @@ script ServiceManager extends Logic
 			return _MixerService:IsTrashMixerResult(mixer)
 		end
 		
-		return mixer.resultId == "Trash"
+		log("MixerService is not loaded.")
+		return false
 	end
 
 	method any CreateMixer(string mixerId)
@@ -585,16 +137,8 @@ script ServiceManager extends Logic
 			return _MixerService:CreateMixer(mixerId)
 		end
 		
-		return {
-			id = mixerId,
-			maxSpaceIngredientCount = 4,
-			spaceIngredientCount = 0,
-			ingredients = {},
-			isMixing = false,
-			isMixed = false,
-			isTrash = false,
-			resultId = nil,
-		}
+		log("MixerService is not loaded.")
+		return nil
 	end
 
 	method boolean AddIngredientToMixer(any mixer, string ingredientId)
@@ -602,31 +146,8 @@ script ServiceManager extends Logic
 			return _MixerService:AddIngredientToMixer(self, mixer, ingredientId)
 		end
 		
-		if mixer.isMixed == true or mixer.isMixing == true then
-			log("Cannot add ingredient to mixer: " .. mixer.id)
-			return false
-		end
-		
-		if self:CanMixIngredient(ingredientId) == false then
-			log("Ingredient cannot be added to mixer: " .. ingredientId)
-			return false
-		end
-		
-		local useMixerSpace = self:IsCupSpaceIngredient(ingredientId)
-		
-		if useMixerSpace == true and mixer.spaceIngredientCount >= mixer.maxSpaceIngredientCount then
-			log("Mixer is full. Cannot add ingredient: " .. ingredientId)
-			return false
-		end
-		
-		table.insert(mixer.ingredients, ingredientId)
-		
-		if useMixerSpace == true then
-			mixer.spaceIngredientCount = mixer.spaceIngredientCount + 1
-		end
-		
-		log("Added ingredient to mixer: " .. mixer.id .. " / ingredient: " .. ingredientId)
-		return true
+		log("MixerService is not loaded.")
+		return false
 	end
 
 	method string GetMixerRecipeKey(any mixer)
@@ -634,23 +155,8 @@ script ServiceManager extends Logic
 			return _MixerService:GetMixerRecipeKey(mixer)
 		end
 		
-		local ingredients = {}
-		
-		for index, ingredientId in pairs(mixer.ingredients) do
-			table.insert(ingredients, ingredientId)
-		end
-		
-		table.sort(ingredients)
-		
-		local key = ""
-		for index, ingredientId in pairs(ingredients) do
-			if key ~= "" then
-				key = key .. "|"
-			end
-			key = key .. ingredientId
-		end
-		
-		return key
+		log("MixerService is not loaded.")
+		return ""
 	end
 
 	method void ClearMixer(any mixer)
@@ -659,13 +165,7 @@ script ServiceManager extends Logic
 			return
 		end
 		
-		mixer.ingredients = {}
-		mixer.spaceIngredientCount = 0
-		mixer.isMixing = false
-		mixer.isMixed = false
-		mixer.isTrash = false
-		mixer.resultId = nil
-		self:SetPrepSlotProgress(mixer, 0)
+		log("MixerService is not loaded.")
 	end
 
 	method any CreateCup(string cupType)
@@ -674,12 +174,8 @@ script ServiceManager extends Logic
 			return _CupService:CreateCup(cupType)
 		end
 		
-		return {
-			type = cupType,
-			maxSpaceIngredientCount = 4,
-			spaceIngredientCount = 0,
-			ingredients = {},
-		}
+		log("CupService is not loaded.")
+		return nil
 	end
 
 	method boolean AddIngredientToCup(any cupData, string ingredientId)
@@ -687,26 +183,8 @@ script ServiceManager extends Logic
 			return _CupService:AddIngredientToCup(self, cupData, ingredientId)
 		end
 		
-		if self:CanAddIngredientToCup(ingredientId) == false then
-			log("Ingredient cannot be added to cup: " .. ingredientId)
-			return false
-		end
-		
-		local useCupSpace = self:IsCupSpaceIngredient(ingredientId)
-		
-		if useCupSpace == true and cupData.spaceIngredientCount >= cupData.maxSpaceIngredientCount then
-			log("Cup is full. Cannot add ingredient: " .. ingredientId)
-			return false
-		end
-		
-		table.insert(cupData.ingredients, ingredientId)
-		
-		if useCupSpace == true then
-			cupData.spaceIngredientCount = cupData.spaceIngredientCount + 1
-		end
-		
-		log("Added ingredient to cup: " .. ingredientId)
-		return true
+		log("CupService is not loaded.")
+		return false
 	end
 
 	method any GetIngredientDef(string ingredientId)
@@ -755,17 +233,27 @@ script ServiceManager extends Logic
 		return true
 	end
 
+	method string GetIngredientButtonId(number buttonIndex)
+		if self.GameData == nil or self.GameData.IngredientButtonIds == nil then
+			return ""
+		end
+		
+		local ingredientId = self.GameData.IngredientButtonIds[buttonIndex]
+		if ingredientId == nil then
+			return ""
+		end
+		
+		return ingredientId
+	end
+
 	method any GetCupInfoFromSlot(any slot)
 		-- 다른 팀원이 메뉴 큐에서 사용할 수 있도록 컵 정보를 안전한 테이블로 변환한다.
 		if _CupService ~= nil then
 			return _CupService:GetCupInfoFromSlot(slot)
 		end
 		
-		if slot == nil or slot.hasCup ~= true or slot.cupData == nil then
-			return nil
-		end
-		
-		return self:GetCupInfo(slot.cupData)
+		log("CupService is not loaded.")
+		return nil
 	end
 
 	method any GetCupInfo(any cupData)
@@ -773,30 +261,8 @@ script ServiceManager extends Logic
 			return _CupService:GetCupInfo(cupData)
 		end
 		
-		if cupData == nil then
-			return nil
-		end
-		
-		local ingredients = {}
-		local ingredientCounts = {}
-		
-		for index = 1, #cupData.ingredients do
-			local ingredientId = cupData.ingredients[index]
-			table.insert(ingredients, ingredientId)
-			
-			if ingredientCounts[ingredientId] == nil then
-				ingredientCounts[ingredientId] = 0
-			end
-			ingredientCounts[ingredientId] = ingredientCounts[ingredientId] + 1
-		end
-		
-		return {
-			cupType = cupData.type,
-			ingredients = ingredients,
-			ingredientCounts = ingredientCounts,
-			spaceIngredientCount = cupData.spaceIngredientCount,
-			maxSpaceIngredientCount = cupData.maxSpaceIngredientCount,
-		}
+		log("CupService is not loaded.")
+		return nil
 	end
 
 	method string GetCupInfoText(any cupInfo)
@@ -804,14 +270,8 @@ script ServiceManager extends Logic
 			return _CupService:GetCupInfoText(cupInfo)
 		end
 		
-		if cupInfo == nil then
-			return "empty"
-		end
-		
-		return "cupType: " .. tostring(cupInfo.cupType)
-			.. " / ingredients: " .. self:GetIngredientListText(cupInfo)
-			.. " / space: " .. tostring(cupInfo.spaceIngredientCount)
-			.. "/" .. tostring(cupInfo.maxSpaceIngredientCount)
+		log("CupService is not loaded.")
+		return "empty"
 	end
 
 	method void LogCupSlotInfo(any slot)
@@ -856,13 +316,12 @@ script ServiceManager extends Logic
 	end
 
 	method any CreateActionButtonConfigs()
-		-- 액션 버튼별 위치와 이동 방향을 테이블로 관리해 중복 tween 코드를 줄인다.
-		return {
-			Prep = { button = self.btnPrepAction, axis = "X", showX = self.prepButtonShowX, hideX = self.prepButtonHideX, fixedY = self.prepButtonY },
-			BrewShot = { button = self.btnBrewShotAction, axis = "X", showX = self.prepButtonShowX, hideX = self.prepButtonHideX, fixedY = self.brewShotButtonY },
-			Mix = { button = self.btnMixAction, axis = "X", showX = self.prepButtonShowX, hideX = self.prepButtonHideX, fixedY = self.mixButtonY },
-			Discard = { button = self.btnDiscardAction, axis = "Y", showY = self.discardButtonShowY, hideY = self.discardButtonHideY, fixedX = self.discardButtonX },
-		}
+		if _ActionButtonService ~= nil then
+			return _ActionButtonService:CreateActionButtonConfigs(self)
+		end
+		
+		log("ActionButtonService is not loaded.")
+		return {}
 	end
 
 	method void ShowPrepButton()
@@ -914,276 +373,170 @@ script ServiceManager extends Logic
 	end
 
 	method void HideActionButtonsImmediately()
-		self:HideActionButtonImmediately("Prep")
-		self:HideActionButtonImmediately("BrewShot")
-		self:HideActionButtonImmediately("Mix")
-		self:HideActionButtonImmediately("Discard")
+		if _ActionButtonService ~= nil then
+			_ActionButtonService:HideAllImmediately(self)
+			return
+		end
+		
+		log("ActionButtonService is not loaded.")
 	end
 
 	method void ShowActionButton(string actionKey)
-		-- 액션 버튼은 먼저 활성화한 뒤 설정된 방향으로 튀어나오게 한다.
-		local config = self:GetActionButtonConfig(actionKey)
-		if config == nil then
+		if _ActionButtonService ~= nil then
+			_ActionButtonService:Show(self, actionKey)
 			return
 		end
 		
-		config.button.Entity.Enable = true
-		config.button.Enable = true
-		self:StartActionButtonTween(actionKey, true)
+		log("ActionButtonService is not loaded.")
 	end
 
 	method void HideActionButton(string actionKey)
-		local config = self:GetActionButtonConfig(actionKey)
-		if config == nil then
+		if _ActionButtonService ~= nil then
+			_ActionButtonService:Hide(self, actionKey)
 			return
 		end
 		
-		config.button.Enable = false
-		self:StartActionButtonTween(actionKey, false)
+		log("ActionButtonService is not loaded.")
 	end
 
 	method void HideActionButtonImmediately(string actionKey)
-		-- 게임 시작 시에는 tween 없이 숨겨진 위치로 바로 보낸다.
-		local config = self:GetActionButtonConfig(actionKey)
-		if config == nil then
+		if _ActionButtonService ~= nil then
+			_ActionButtonService:HideImmediately(self, actionKey)
 			return
 		end
 		
-		self:ClearActionButtonTween(actionKey)
-		
-		local transform = config.button.Entity.UITransformComponent
-		local x = config.fixedX
-		local y = config.fixedY
-		if config.axis == "X" then
-			x = config.hideX
-		else
-			y = config.hideY
-		end
-		
-		self:SetUIPosition(transform, x, y)
-		config.button.Enable = false
-		config.button.Entity.Enable = false
+		log("ActionButtonService is not loaded.")
 	end
 
 	method any GetActionButtonConfig(string actionKey)
-		if self.actionButtonConfigs == nil then
-			return nil
+		if _ActionButtonService ~= nil then
+			return _ActionButtonService:GetConfig(self, actionKey)
 		end
 		
-		return self.actionButtonConfigs[actionKey]
+		log("ActionButtonService is not loaded.")
+		return nil
 	end
 
 	method void ClearActionButtonTween(string actionKey)
-		if self.actionButtonTweenIds == nil then
-			self.actionButtonTweenIds = {}
-		end
-		
-		local tweenId = self.actionButtonTweenIds[actionKey]
-		if tweenId ~= nil and tweenId ~= 0 then
-			_TimerService:ClearTimer(tweenId)
-		end
-		
-		self.actionButtonTweenIds[actionKey] = 0
-	end
-
-	method void StartActionButtonTween(string actionKey, boolean show)
-		-- 손질/샷/믹싱/버리기 버튼의 등장과 퇴장을 하나의 tween 로직으로 처리한다.
-		local config = self:GetActionButtonConfig(actionKey)
-		if config == nil then
+		if _ActionButtonService ~= nil then
+			_ActionButtonService:ClearTween(self, actionKey)
 			return
 		end
 		
-		self:ClearActionButtonTween(actionKey)
-		
-		local transform = config.button.Entity.UITransformComponent
-		local fromValue = transform.anchoredPosition.x
-		local toValue = config.hideX
-		if config.axis == "Y" then
-			fromValue = transform.anchoredPosition.y
-			toValue = config.hideY
-		end
-		if show == true then
-			if config.axis == "X" then
-				toValue = config.showX
-			else
-				toValue = config.showY
-			end
+		log("ActionButtonService is not loaded.")
+	end
+
+	method void StartActionButtonTween(string actionKey, boolean show)
+		if _ActionButtonService ~= nil then
+			_ActionButtonService:StartTween(self, actionKey, show)
+			return
 		end
 		
-		local time = 0
-		local preTime = _UtilLogic.ElapsedSeconds
-		local gameManager = self
-		
-		local tween = function()
-			local delta = _UtilLogic.ElapsedSeconds - preTime
-			preTime = _UtilLogic.ElapsedSeconds
-			time = time + delta
-			
-			local t = math.min(time / gameManager.prepButtonTweenDuration, 1)
-			local value = fromValue + (toValue - fromValue) * t
-			if config.axis == "X" then
-				gameManager:SetUIPosition(transform, value, config.fixedY)
-			else
-				gameManager:SetUIPosition(transform, config.fixedX, value)
-			end
-			
-			if t >= 1 then
-				gameManager:ClearActionButtonTween(actionKey)
-				if show == false then
-					config.button.Entity.Enable = false
-				end
-			end
-		end
-		
-		self.actionButtonTweenIds[actionKey] = _TimerService:SetTimerRepeat(tween, 1 / 60)
+		log("ActionButtonService is not loaded.")
 	end
 
 	method void SetUIPosition(any transform, number x, number y)
-		local width = transform.RectSize.x
-		local height = transform.RectSize.y
-		transform.anchoredPosition = Vector2(x, y)
-		transform.Position = Vector3(x, y, 0)
-		transform.OffsetMin = Vector2(x - width / 2, y - height / 2)
-		transform.OffsetMax = Vector2(x + width / 2, y + height / 2)
+		if _ActionButtonService ~= nil then
+			_ActionButtonService:SetUIPosition(transform, x, y)
+			return
+		end
+		
+		log("ActionButtonService is not loaded.")
 	end
 
 	method void StartPrepIngredientSlot(any slot)
 		-- 재료 손질은 슬롯 하나를 잠그고 진행바를 채운 뒤 완료 시 손질 재료로 바꾼다.
-		if slot == nil or slot.uiButton == nil then
+		if _WorkProcessService ~= nil then
+			_WorkProcessService:StartPrepIngredientSlot(self, slot)
 			return
 		end
 		
-		if self:CanPrepIngredient(slot.ingredientId) == false then
-			log("Cannot start prep ingredient slot: " .. slot.id .. " / ingredient: " .. tostring(slot.ingredientId))
-			return
-		end
-		
-		log("Start prepping ingredient slot: " .. slot.id)
-		slot.state = "PREPPING"
-		self.prepTargetSlot = nil
-		slot.uiButton.Enable = false
-		self:SetPrepSlotProgress(slot, 0)
-		local gameManager = self
-		self:StartProgressTimer("Prep", slot, self.prepDuration, function(target) gameManager:FinishPrepIngredientSlot(target) end)
+		log("WorkProcessService is not loaded.")
 	end
 
 	method void FinishPrepIngredientSlot(any slot)
-		slot.state = "PREPPED"
-		slot.ingredientId = self:GetPreppedIngredientId(slot.ingredientId)
-		slot.uiButton.Enable = true
-		self:SetPrepSlotProgress(slot, 0)
-		log("Finished prepping ingredient slot: " .. slot.id .. " / ingredient: " .. slot.ingredientId)
+		if _WorkProcessService ~= nil then
+			_WorkProcessService:FinishPrepIngredientSlot(self, slot)
+			return
+		end
+		
+		log("WorkProcessService is not loaded.")
 	end
 
 	method void StartBrewShot(any slot)
 		-- 샷 내리는 중에는 해당 컵 슬롯을 비활성화해서 이동/스왑을 막는다.
-		if slot == nil or slot.uiButton == nil or slot.cupData == nil then
+		if _WorkProcessService ~= nil then
+			_WorkProcessService:StartBrewShot(self, slot)
 			return
 		end
 		
-		log("Start brewing shot: " .. slot.id .. " / shot: " .. slot.coffeeShotId)
-		self.brewShotTargetSlot = nil
-		slot.isBrewingShot = true
-		slot.uiButton.Enable = false
-		self:SetPrepSlotProgress(slot, 0)
-		local gameManager = self
-		self:StartProgressTimer("BrewShot", slot, self.brewShotDuration, function(target) gameManager:FinishBrewShot(target) end)
+		log("WorkProcessService is not loaded.")
 	end
 
 	method void FinishBrewShot(any slot)
-		slot.isBrewingShot = false
-		slot.uiButton.Enable = true
-		self:SetPrepSlotProgress(slot, 0)
-		self:AddIngredientToCup(slot.cupData, slot.coffeeShotId)
-		log("Finished brewing shot: " .. slot.id .. " / shot: " .. slot.coffeeShotId)
+		if _WorkProcessService ~= nil then
+			_WorkProcessService:FinishBrewShot(self, slot)
+			return
+		end
+		
+		log("WorkProcessService is not loaded.")
 	end
 
 	method void StartMixMixer(any mixer)
 		-- 믹싱 중에는 해당 믹서컵만 비활성화하고 완료 시 결과 재료만 남긴다.
-		if mixer == nil or mixer.uiButton == nil then
+		if _WorkProcessService ~= nil then
+			_WorkProcessService:StartMixMixer(self, mixer)
 			return
 		end
 		
-		log("Start mixing: " .. mixer.id .. " / ingredients: " .. self:GetIngredientListText(mixer))
-		mixer.isMixing = true
-		self.mixTargetMixer = nil
-		mixer.uiButton.Enable = false
-		self:SetPrepSlotProgress(mixer, 0)
-		local gameManager = self
-		self:StartProgressTimer("Mix", mixer, self.mixDuration, function(target) gameManager:FinishMixMixer(target) end)
+		log("WorkProcessService is not loaded.")
 	end
 
 	method void FinishMixMixer(any mixer)
-		local resultId = self:GetMixerResultId(mixer)
+		if _WorkProcessService ~= nil then
+			_WorkProcessService:FinishMixMixer(self, mixer)
+			return
+		end
 		
-		mixer.ingredients = {}
-		mixer.spaceIngredientCount = 0
-		mixer.isMixing = false
-		mixer.isMixed = true
-		mixer.resultId = resultId
-		mixer.isTrash = self:IsTrashMixerResult(mixer)
-		mixer.uiButton.Enable = true
-		self:SetPrepSlotProgress(mixer, 0)
-		
-		log("Finished mixing: " .. mixer.id .. " / result: " .. resultId)
+		log("WorkProcessService is not loaded.")
 	end
 
 	method string GetPreppedIngredientId(string ingredientId)
-		if string.sub(ingredientId, 1, 8) == "prepped_" then
-			return ingredientId
+		if _WorkProcessService ~= nil then
+			return _WorkProcessService:GetPreppedIngredientId(ingredientId)
 		end
 		
-		return "prepped_" .. ingredientId
+		log("WorkProcessService is not loaded.")
+		return ingredientId
 	end
 
 	method void StartProgressTimer(string timerKey, any target, number duration, any onFinished)
 		-- 손질/샷/믹싱의 진행바와 1초 타이머를 공통으로 처리한다.
-		self:ClearProgressTimer(timerKey)
-		
-		local time = 0
-		local preTime = _UtilLogic.ElapsedSeconds
-		local gameManager = self
-		
-		local tick = function()
-			local delta = _UtilLogic.ElapsedSeconds - preTime
-			preTime = _UtilLogic.ElapsedSeconds
-			time = time + delta
-			
-			local progress = math.min(time / duration, 1)
-			gameManager:SetPrepSlotProgress(target, progress)
-			
-			if progress >= 1 then
-				gameManager:ClearProgressTimer(timerKey)
-				onFinished(target)
-			end
-		end
-		
-		if self.progressTimerIds == nil then
-			self.progressTimerIds = {}
-		end
-		self.progressTimerIds[timerKey] = _TimerService:SetTimerRepeat(tick, 1 / 60)
-	end
-
-	method void ClearProgressTimer(string timerKey)
-		if self.progressTimerIds == nil then
-			self.progressTimerIds = {}
-		end
-		
-		local timerId = self.progressTimerIds[timerKey]
-		if timerId ~= nil and timerId ~= 0 then
-			_TimerService:ClearTimer(timerId)
-		end
-		
-		self.progressTimerIds[timerKey] = 0
-	end
-
-	method void SetPrepSlotProgress(any slot, number progress)
-		if slot == nil or slot.uiButton == nil then
+		-- TODO: timerKey가 작업 종류 단위라 같은 종류의 동시 작업이 서로 취소될 수 있다. 동작 변경 패스에서 target id 기준으로 분리한다.
+		if _WorkProcessService ~= nil then
+			_WorkProcessService:StartProgressTimer(self, timerKey, target, duration, onFinished)
 			return
 		end
 		
-		local sprite = slot.uiButton.Entity.SpriteGUIRendererComponent
-		sprite.FillAmount = progress
+		log("WorkProcessService is not loaded.")
+	end
+
+	method void ClearProgressTimer(string timerKey)
+		if _WorkProcessService ~= nil then
+			_WorkProcessService:ClearProgressTimer(self, timerKey)
+			return
+		end
+		
+		log("WorkProcessService is not loaded.")
+	end
+
+	method void SetPrepSlotProgress(any slot, number progress)
+		if _WorkProcessService ~= nil then
+			_WorkProcessService:SetPrepSlotProgress(slot, progress)
+			return
+		end
+		
+		log("WorkProcessService is not loaded.")
 	end
 
 	method void SetSlotImage(any slot, string imageRUID)
@@ -1281,14 +634,14 @@ script ServiceManager extends Logic
 		self.btnColdWater.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickWaterButton("ColdWater", self.btnColdWater) end)
 		self.btnHotWater.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickWaterButton("HotWater", self.btnHotWater) end)
 		
-		self.btnIng1.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientButton("Ingredient_1", self.btnIng1) end)
-		self.btnIng2.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientButton("Ingredient_2", self.btnIng2) end)
-		self.btnIng3.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientButton("Ingredient_3", self.btnIng3) end)
-		self.btnIng4.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientButton("Ingredient_4", self.btnIng4) end)
-		self.btnIng5.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientButton("Ingredient_5", self.btnIng5) end)
-		self.btnIng6.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientButton("Ingredient_6", self.btnIng6) end)
-		self.btnIng7.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientButton("Ingredient_7", self.btnIng7) end)
-		self.btnIng8.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientButton("Ingredient_8", self.btnIng8) end)
+		self.btnIng1.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientButton(self:GetIngredientButtonId(1), self.btnIng1) end)
+		self.btnIng2.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientButton(self:GetIngredientButtonId(2), self.btnIng2) end)
+		self.btnIng3.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientButton(self:GetIngredientButtonId(3), self.btnIng3) end)
+		self.btnIng4.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientButton(self:GetIngredientButtonId(4), self.btnIng4) end)
+		self.btnIng5.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientButton(self:GetIngredientButtonId(5), self.btnIng5) end)
+		self.btnIng6.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientButton(self:GetIngredientButtonId(6), self.btnIng6) end)
+		self.btnIng7.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientButton(self:GetIngredientButtonId(7), self.btnIng7) end)
+		self.btnIng8.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientButton(self:GetIngredientButtonId(8), self.btnIng8) end)
 		
 		self.slotCup1.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickCupSlot(self.GameData.CupSlots[1], self.slotCup1) end)
 		self.slotCup2.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickCupSlot(self.GameData.CupSlots[2], self.slotCup2) end)
@@ -1312,6 +665,11 @@ script ServiceManager extends Logic
 
 	method void OnClickIngredientButton(string ingredientId, ButtonComponent sourceButton)
 		-- 아래쪽 고정 버튼들은 선택 상태만 바꾸고, 실제 상호작용은 SelectionManager가 판단한다.
+		if ingredientId == nil or ingredientId == "" then
+			log("Ingredient button is not mapped.")
+			return
+		end
+		
 		log("Clicked ingredient button: " .. ingredientId)
 		self.SelectionManager:HandleClick("INGREDIENT_BTN", { ingredientId = ingredientId, uiButton = sourceButton })
 	end
