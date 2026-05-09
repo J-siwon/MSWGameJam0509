@@ -1,0 +1,95 @@
+@Logic
+script DataFactory extends Logic
+
+	-- 게임 시작 시 필요한 순수 데이터 테이블을 한 번에 구성한다.
+	method any CreateGameData()
+		return {
+			IngredientSlots = self:CreateIngredientSlots(),
+			CupSlots = self:CreateCupSlots(),
+			IngredientDefs = self:CreateIngredientDefs(),
+			MixerRecipes = self:CreateMixerRecipes(),
+			Mixers = self:CreateMixers(),
+		}
+	end
+
+	method any CreateIngredientSlots()
+		return {
+			[1] = { id = "IngredientSlot_1", state = "EMPTY", ingredientId = nil },
+			[2] = { id = "IngredientSlot_2", state = "EMPTY", ingredientId = nil },
+		}
+	end
+
+	method any CreateCupSlots()
+		return {
+			[1] = { id = "CupSlot_1", isCoffeeMachine = true, coffeeShotId = "CoffeeShot_1", hasCup = false, cupData = nil },
+			[2] = { id = "CupSlot_2", isCoffeeMachine = true, coffeeShotId = "CoffeeShot_2", hasCup = false, cupData = nil },
+			[3] = { id = "CupSlot_3", isCoffeeMachine = true, coffeeShotId = "CoffeeShot_3", hasCup = false, cupData = nil },
+			[4] = { id = "CupSlot_4", isCoffeeMachine = false, hasCup = false, cupData = nil },
+			[5] = { id = "CupSlot_5", isCoffeeMachine = false, hasCup = false, cupData = nil },
+		}
+	end
+
+	method any CreateIngredientDefs()
+		return {
+			-- 원재료는 손질 가능하며, 손질 후 컵/믹서에 넣을 수 있다.
+			Ingredient_1 = { useCupSpace = true, displayName = "Ingredient 1", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
+			Ingredient_2 = { useCupSpace = true, displayName = "Ingredient 2", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
+			Ingredient_3 = { useCupSpace = true, displayName = "Ingredient 3", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
+			Ingredient_4 = { useCupSpace = true, displayName = "Ingredient 4", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
+			Ingredient_5 = { useCupSpace = true, displayName = "Ingredient 5", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
+			Ingredient_6 = { useCupSpace = true, displayName = "Ingredient 6", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
+			Ingredient_7 = { useCupSpace = true, displayName = "Ingredient 7", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
+			Ingredient_8 = { useCupSpace = true, displayName = "Ingredient 8", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
+			prepped_Ingredient_1 = { useCupSpace = true, displayName = "Prepped Ingredient 1", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
+			prepped_Ingredient_2 = { useCupSpace = true, displayName = "Prepped Ingredient 2", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
+			prepped_Ingredient_3 = { useCupSpace = true, displayName = "Prepped Ingredient 3", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
+			prepped_Ingredient_4 = { useCupSpace = true, displayName = "Prepped Ingredient 4", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
+			prepped_Ingredient_5 = { useCupSpace = true, displayName = "Prepped Ingredient 5", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
+			prepped_Ingredient_6 = { useCupSpace = true, displayName = "Prepped Ingredient 6", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
+			prepped_Ingredient_7 = { useCupSpace = true, displayName = "Prepped Ingredient 7", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
+			prepped_Ingredient_8 = { useCupSpace = true, displayName = "Prepped Ingredient 8", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
+			-- 샷과 물/얼음은 버튼 액션으로 생성되는 특수 재료다.
+			CoffeeShot_1 = { useCupSpace = true, displayName = "Coffee Shot 1", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
+			CoffeeShot_2 = { useCupSpace = true, displayName = "Coffee Shot 2", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
+			CoffeeShot_3 = { useCupSpace = true, displayName = "Coffee Shot 3", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
+			Ice = { useCupSpace = true, displayName = "Ice", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
+			ColdWater = { useCupSpace = true, displayName = "Cold Water", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
+			HotWater = { useCupSpace = true, displayName = "Hot Water", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
+			-- 믹싱 결과물은 다시 믹서에 넣지 않고 컵에만 넣는 것을 기본 규칙으로 둔다.
+			Mixed_Cold_Ingredient_1 = { useCupSpace = true, displayName = "Mixed Cold Ingredient 1", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
+			Mixed_Hot_Ingredient_2 = { useCupSpace = true, displayName = "Mixed Hot Ingredient 2", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
+			Mixed_Cold_Ingredient_3 = { useCupSpace = true, displayName = "Mixed Cold Ingredient 3", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
+			Trash = { useCupSpace = false, displayName = "Trash", canPrep = false, canMix = false, canAddToCup = false, imageRUID = "" },
+		}
+	end
+
+	method any CreateMixerRecipes()
+		return {
+			["ColdWater|prepped_Ingredient_1"] = "Mixed_Cold_Ingredient_1",
+			["HotWater|prepped_Ingredient_2"] = "Mixed_Hot_Ingredient_2",
+			["ColdWater|prepped_Ingredient_3"] = "Mixed_Cold_Ingredient_3",
+		}
+	end
+
+	method any CreateMixers()
+		return {
+			[1] = self:CreateMixer("Mixer_1"),
+			[2] = self:CreateMixer("Mixer_2"),
+			[3] = self:CreateMixer("Mixer_3"),
+		}
+	end
+
+	method any CreateMixer(string mixerId)
+		return {
+			id = mixerId,
+			maxSpaceIngredientCount = 4,
+			spaceIngredientCount = 0,
+			ingredients = {},
+			isMixing = false,
+			isMixed = false,
+			isTrash = false,
+			resultId = nil,
+		}
+	end
+
+end

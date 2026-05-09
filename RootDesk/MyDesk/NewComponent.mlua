@@ -1,28 +1,25 @@
 @Component
 script NewComponent extends Component
 
-	property any NewValue = nil
 	property number NewValue1 = 0
 
 	@ExecSpace("ClientOnly")
 	method void OnInitialize()
-		self.Function1(self)
-		self.Function2(self)
-		self.Function3(self)
-		
+		Fucktion()
 	end
 
 	method void Function1()
-		log("김도현 멍청이")
+		
 	end
 
 	method void Function2()
-		log("김도현 멍청이")
+		
 	end
 
-	method void Function3()
+	method void Fucktion()
+		temp1 = 1
+		temp1 += 1
 		
-		log("김도현 멍청이")
 	end
 
 end

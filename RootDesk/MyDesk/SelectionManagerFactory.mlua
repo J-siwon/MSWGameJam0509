@@ -1,0 +1,274 @@
+@Logic
+script SelectionManagerFactory extends Logic
+
+	-- 선택 상태는 항상 하나만 유지되며, 모든 클릭 규칙은 이 매니저가 중앙에서 판단한다.
+	method any CreateSelectionManager(any gameManager)
+		local manager = {
+			state = "NONE",
+			data = nil,
+		}
+		
+		function manager:Clear()
+			-- 선택 해제 시 선택 표시와 액션 UI를 함께 닫는다.
+			self.state = "NONE"
+			self.data = nil
+			gameManager:ClearSelectedButtonVisual()
+			gameManager:HideActionUI()
+		end
+		
+		function manager:Select(newState, newData, uiButton)
+			-- 새 선택 상태에 맞춰 선택 표시와 보조 액션 버튼을 갱신한다.
+			self.state = newState
+			self.data = newData
+			gameManager:HideActionUI()
+			
+			if uiButton ~= nil then
+				gameManager:ShowSelectedButtonVisual(uiButton)
+			elseif newData ~= nil and newData.uiButton ~= nil then
+				gameManager:ShowSelectedButtonVisual(newData.uiButton)
+			else
+				gameManager:ClearSelectedButtonVisual()
+			end
+			
+			if newState == "INGREDIENT_SLOT" then
+				if newData.state == "RAW" then
+					if gameManager:CanPrepIngredient(newData.ingredientId) == true then
+						gameManager:ShowPrepUI(newData)
+					end
+					gameManager:ShowDiscardUI(newData)
+				elseif newData.state == "PREPPED" then
+					gameManager:ShowDiscardUI(newData)
+				end
+			elseif newState == "PLACED_CUP" then
+				gameManager:ShowDiscardUI(newData)
+				if newData.isCoffeeMachine == true then
+					gameManager:ShowBrewShotUI(newData)
+				end
+			elseif newState == "MIXER" then
+				gameManager:ShowDiscardUI(newData)
+				if newData.isMixed == false then
+					gameManager:ShowMixUI(newData)
+				end
+			end
+		end
+		
+		function manager:HandleClick(targetType, target)
+			-- 고정 버튼/슬롯/믹서 클릭은 현재 선택 상태와 조합해서 처리한다.
+			if targetType == "EMPTY" then
+				self:Clear()
+				return
+			end
+			
+			if target ~= nil and self:IsSameSelection(targetType, target) == true then
+				self:Clear()
+				return
+			end
+			
+			if targetType == "INGREDIENT_BTN" then
+				self:Select("INGREDIENT", target.ingredientId, target.uiButton)
+				return
+			end
+			
+			if targetType == "CUP_TYPE_BTN" then
+				self:Select("CUP_TYPE", target.cupType, target.uiButton)
+				return
+			end
+			
+			if targetType == "ICE_MAKER_BTN" then
+				self:Select("ICE_MAKER", nil, target.uiButton)
+				return
+			end
+			
+			if targetType == "WATER_BTN" then
+				self:Select("WATER", target.waterType, target.uiButton)
+				return
+			end
+			
+			local state = self.state
+			
+			if state == "NONE" then
+				if targetType == "INGREDIENT_SLOT" and target.state ~= "EMPTY" then
+					self:Select("INGREDIENT_SLOT", target)
+				elseif targetType == "CUP_SLOT" and target.hasCup == true then
+					self:Select("PLACED_CUP", target)
+				elseif targetType == "MIXER" and target.isMixing ~= true and (#target.ingredients > 0 or target.isMixed == true) then
+					self:Select("MIXER", target)
+				end
+				
+			elseif state == "INGREDIENT" then
+				if targetType == "CUP_SLOT" and target.hasCup == true then
+					if gameManager:AddIngredientToCup(target.cupData, self.data) == true then
+						self:Clear()
+					end
+				elseif targetType == "INGREDIENT_SLOT" and target.state == "EMPTY" then
+					target.state = "RAW"
+					target.ingredientId = self.data
+					self:Clear()
+				elseif targetType == "MIXER" and target.isMixed == false then
+					if gameManager:AddIngredientToMixer(target, self.data) == true then
+						self:Clear()
+					end
+				end
+				
+			elseif state == "CUP_TYPE" then
+				if targetType == "CUP_SLOT" and target.hasCup == false then
+					target.hasCup = true
+					target.cupData = gameManager:CreateCup(self.data)
+					gameManager:SetSlotImage(target, gameManager.cupImageRUID)
+					self:Clear()
+				end
+				
+			elseif state == "ICE_MAKER" then
+				if targetType == "CUP_SLOT" and target.hasCup == true then
+					if gameManager:AddIngredientToCup(target.cupData, "Ice") == true then
+						self:Clear()
+					end
+				end
+				
+			elseif state == "WATER" then
+				if targetType == "CUP_SLOT" and target.hasCup == true then
+					if gameManager:AddIngredientToCup(target.cupData, self.data) == true then
+						self:Clear()
+					end
+				elseif targetType == "MIXER" and target.isMixed == false then
+					if gameManager:AddIngredientToMixer(target, self.data) == true then
+						self:Clear()
+					end
+				end
+				
+			elseif state == "INGREDIENT_SLOT" then
+				local slot = self.data
+				local handled = false
+				if slot.state == "PREPPED" then
+					if targetType == "MIXER" and target.isMixed == false then
+						if gameManager:AddIngredientToMixer(target, slot.ingredientId) == true then
+							slot.state = "EMPTY"
+							slot.ingredientId = nil
+							gameManager:SetPrepSlotProgress(slot, 0)
+							handled = true
+							self:Clear()
+						end
+					elseif targetType == "CUP_SLOT" and target.hasCup == true then
+						if gameManager:AddIngredientToCup(target.cupData, slot.ingredientId) == true then
+							slot.state = "EMPTY"
+							slot.ingredientId = nil
+							gameManager:SetPrepSlotProgress(slot, 0)
+							handled = true
+							self:Clear()
+						end
+					end
+				end
+				
+				if handled == false then
+					self:Clear()
+				end
+				
+			elseif state == "MIXER" then
+				local mixer = self.data
+				local handled = false
+				if mixer.isMixed == true and mixer.isTrash == false then
+					if targetType == "CUP_SLOT" and target.hasCup == true then
+						if gameManager:AddIngredientToCup(target.cupData, mixer.resultId) == true then
+							gameManager:ClearMixer(mixer)
+							handled = true
+							self:Clear()
+						end
+					end
+				end
+				
+				if handled == false then
+					self:Clear()
+				end
+				
+			elseif state == "PLACED_CUP" then
+				if targetType == "CUP_SLOT" then
+					gameManager:MoveOrSwapCupSlot(self.data, target)
+				end
+				self:Clear()
+			end
+		end
+		
+		function manager:IsSameSelection(targetType, target)
+			if self.state == "INGREDIENT" and targetType == "INGREDIENT_BTN" then
+				return self.data == target.ingredientId
+			end
+			
+			if self.state == "CUP_TYPE" and targetType == "CUP_TYPE_BTN" then
+				return self.data == target.cupType
+			end
+			
+			if self.state == "ICE_MAKER" and targetType == "ICE_MAKER_BTN" then
+				return true
+			end
+			
+			if self.state == "WATER" and targetType == "WATER_BTN" then
+				return self.data == target.waterType
+			end
+			
+			if self.state == "INGREDIENT_SLOT" and targetType == "INGREDIENT_SLOT" then
+				return self.data == target
+			end
+			
+			if self.state == "PLACED_CUP" and targetType == "CUP_SLOT" then
+				return self.data == target
+			end
+			
+			if self.state == "MIXER" and targetType == "MIXER" then
+				return self.data == target
+			end
+			
+			return false
+		end
+		
+		function manager:HandleUIAction(action)
+			-- 오른쪽/아래쪽에서 튀어나오는 공용 액션 버튼 처리 구간이다.
+			if action == "PREP" and self.state == "INGREDIENT_SLOT" then
+				local slot = self.data
+				if slot.state == "RAW" and gameManager:CanPrepIngredient(slot.ingredientId) == true then
+					gameManager:StartPrepIngredientSlot(slot)
+					self:Clear()
+				else
+					log("Cannot prep ingredient: " .. tostring(slot.ingredientId))
+				end
+				
+			elseif action == "BREW_SHOT" and self.state == "PLACED_CUP" then
+				local slot = self.data
+				if slot.isCoffeeMachine == true and slot.hasCup == true then
+					gameManager:StartBrewShot(slot)
+					self:Clear()
+				end
+				
+			elseif action == "DISCARD" then
+				if self.state == "INGREDIENT_SLOT" then
+					local slot = self.data
+					log("Discard ingredient slot: " .. slot.id .. " / ingredient: " .. tostring(slot.ingredientId))
+					slot.state = "EMPTY"
+					slot.ingredientId = nil
+					gameManager:SetPrepSlotProgress(slot, 0)
+				elseif self.state == "PLACED_CUP" then
+					local slot = self.data
+					log("Discard cup slot: " .. slot.id)
+					slot.hasCup = false
+					slot.cupData = nil
+					gameManager:SetSlotImage(slot, "")
+					gameManager:SetPrepSlotProgress(slot, 0)
+				elseif self.state == "MIXER" then
+					local mixer = self.data
+					log("Discard mixer: " .. mixer.id)
+					gameManager:ClearMixer(mixer)
+				end
+				self:Clear()
+				
+			elseif action == "MIX" and self.state == "MIXER" then
+				local mixer = self.data
+				if mixer.isMixed == false and mixer.isMixing ~= true and #mixer.ingredients > 0 then
+					gameManager:StartMixMixer(mixer)
+					self:Clear()
+				end
+			end
+		end
+		
+		return manager
+	end
+
+end

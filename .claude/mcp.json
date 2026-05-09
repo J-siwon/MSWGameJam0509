@@ -1,0 +1,11 @@
+{
+"servers": {
+  "msw-mcp": {
+    "url": "https://msw-mcp.nexon.com/mcp",
+    "type": "http",
+    "headers": {
+      "Authorization": "c94b045c-7e6a-405b-b03d-30fc328f85c9"
+    }
+  }
+}
+}

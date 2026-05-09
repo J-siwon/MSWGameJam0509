@@ -1,7 +1,7 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "codeblock://7ca48899-f731-4ba2-a838-5ab1721a1636",
+  "EntryKey": "codeblock://8a2d15f8-b62a-482a-a782-7ec96fb1eb6d",
   "ContentType": "x-mod/codeblock",
   "Content": "",
   "Usage": 0,
@@ -22,9 +22,9 @@
         "Minor": 1
       },
       "Description": "",
-      "Id": "7ca48899-f731-4ba2-a838-5ab1721a1636",
+      "Id": "8a2d15f8-b62a-482a-a782-7ec96fb1eb6d",
       "Language": 1,
-      "Name": "GameManager",
+      "Name": "CupService",
       "Type": 5,
       "Source": 0,
       "Target": null,

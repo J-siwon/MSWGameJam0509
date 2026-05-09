@@ -1,0 +1,102 @@
+@Logic
+script CupService extends Logic
+
+	-- 컵 데이터 생성은 컵 종류와 담긴 재료 목록의 기본 구조만 책임진다.
+	method any CreateCup(string cupType)
+		return {
+			type = cupType,
+			maxSpaceIngredientCount = 4,
+			spaceIngredientCount = 0,
+			ingredients = {},
+		}
+	end
+
+	-- 컵에 재료를 넣을 수 있는지 검사한 뒤 실제 재료 목록에 추가한다.
+	method boolean AddIngredientToCup(any gameManager, any cupData, string ingredientId)
+		if gameManager:CanAddIngredientToCup(ingredientId) == false then
+			log("Ingredient cannot be added to cup: " .. ingredientId)
+			return false
+		end
+		
+		local useCupSpace = gameManager:IsCupSpaceIngredient(ingredientId)
+		
+		if useCupSpace == true and cupData.spaceIngredientCount >= cupData.maxSpaceIngredientCount then
+			log("Cup is full. Cannot add ingredient: " .. ingredientId)
+			return false
+		end
+		
+		table.insert(cupData.ingredients, ingredientId)
+		
+		if useCupSpace == true then
+			cupData.spaceIngredientCount = cupData.spaceIngredientCount + 1
+		end
+		
+		log("Added ingredient to cup: " .. ingredientId)
+		return true
+	end
+
+	-- 슬롯에 컵이 있으면 외부 메뉴 큐가 사용할 수 있는 컵 정보로 변환한다.
+	method any GetCupInfoFromSlot(any slot)
+		if slot == nil or slot.hasCup ~= true or slot.cupData == nil then
+			return nil
+		end
+		
+		return self:GetCupInfo(slot.cupData)
+	end
+
+	-- 컵 정보는 원본 데이터를 직접 넘기지 않고 복사본과 카운트 테이블을 만들어 전달한다.
+	method any GetCupInfo(any cupData)
+		if cupData == nil then
+			return nil
+		end
+		
+		local ingredients = {}
+		local ingredientCounts = {}
+		
+		for index = 1, #cupData.ingredients do
+			local ingredientId = cupData.ingredients[index]
+			table.insert(ingredients, ingredientId)
+			
+			if ingredientCounts[ingredientId] == nil then
+				ingredientCounts[ingredientId] = 0
+			end
+			ingredientCounts[ingredientId] = ingredientCounts[ingredientId] + 1
+		end
+		
+		return {
+			cupType = cupData.type,
+			ingredients = ingredients,
+			ingredientCounts = ingredientCounts,
+			spaceIngredientCount = cupData.spaceIngredientCount,
+			maxSpaceIngredientCount = cupData.maxSpaceIngredientCount,
+		}
+	end
+
+	method string GetCupInfoText(any cupInfo)
+		if cupInfo == nil then
+			return "empty"
+		end
+		
+		return "cupType: " .. tostring(cupInfo.cupType)
+			.. " / ingredients: " .. self:GetIngredientListText(cupInfo)
+			.. " / space: " .. tostring(cupInfo.spaceIngredientCount)
+			.. "/" .. tostring(cupInfo.maxSpaceIngredientCount)
+	end
+
+	method string GetIngredientListText(any cupInfo)
+		if cupInfo == nil or cupInfo.ingredients == nil or #cupInfo.ingredients == 0 then
+			return "empty"
+		end
+		
+		local text = ""
+		for index, ingredientId in pairs(cupInfo.ingredients) do
+			if text ~= "" then
+				text = text .. ", "
+			end
+			text = text .. ingredientId
+		end
+		
+		return text
+	end
+
+end
