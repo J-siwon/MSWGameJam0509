@@ -1,0 +1,183 @@
+@Component
+script PauseManager extends Component
+
+	property ButtonComponent PauseButton = "f7a28b22-9bd0-4f20-a7d5-c28c0f090102"
+
+	property Entity PauseOverlay = "f7a28b22-9bd0-4f20-a7d5-c28c0f090103"
+
+	property Entity PauseTitle = "f7a28b22-9bd0-4f20-a7d5-c28c0f090104"
+
+	property ButtonComponent ResumeButton = "f7a28b22-9bd0-4f20-a7d5-c28c0f090105"
+
+	property string DayManagerPath = "/ui/DayInfoGroup/DayManager"
+
+	property string CustomerTablePath = "/ui/CustomerUIGroup/CustomerTable"
+
+	property any Runtime = nil
+
+	method void OnBeginPlay()
+		self:EnsureRuntime()
+		self:ConnectButtons()
+		self:HidePauseOverlay()
+	end
+
+	method void OnEndPlay()
+		self:EnsureRuntime()
+		self:DisconnectButtons()
+		self:ApplyGameplayPaused(false)
+	end
+
+	method void EnsureRuntime()
+		if self.Runtime ~= nil then
+			return
+		end
+		
+		self.Runtime = {
+			paused = false,
+			pausedStartedAt = 0,
+			pauseButtonHandler = nil,
+			resumeButtonHandler = nil
+		}
+	end
+
+	method void ConnectButtons()
+		self:EnsureRuntime()
+		if self.PauseButton ~= nil and self.Runtime.pauseButtonHandler == nil then
+			self.Runtime.pauseButtonHandler = self.PauseButton.Entity:ConnectEvent(ButtonClickEvent, self.OnClickPause)
+		end
+		if self.ResumeButton ~= nil and self.Runtime.resumeButtonHandler == nil then
+			self.Runtime.resumeButtonHandler = self.ResumeButton.Entity:ConnectEvent(ButtonClickEvent, self.OnClickResume)
+		end
+	end
+
+	method void DisconnectButtons()
+		self:EnsureRuntime()
+		if self.PauseButton ~= nil and self.Runtime.pauseButtonHandler ~= nil then
+			self.PauseButton.Entity:DisconnectEvent(ButtonClickEvent, self.Runtime.pauseButtonHandler)
+			self.Runtime.pauseButtonHandler = nil
+		end
+		if self.ResumeButton ~= nil and self.Runtime.resumeButtonHandler ~= nil then
+			self.ResumeButton.Entity:DisconnectEvent(ButtonClickEvent, self.Runtime.resumeButtonHandler)
+			self.Runtime.resumeButtonHandler = nil
+		end
+	end
+
+	method void OnClickPause()
+		self:PauseGame()
+	end
+
+	method void OnClickResume()
+		self:ResumeGame()
+	end
+
+	method void PauseGame()
+		self:EnsureRuntime()
+		if self.Runtime.paused == true then
+			return
+		end
+		
+		local dayManager = self:GetDayManager()
+		if dayManager == nil or dayManager:PauseDayTimer() == false then
+			return
+		end
+		
+		self.Runtime.paused = true
+		self.Runtime.pausedStartedAt = _UtilLogic.ElapsedSeconds
+		self:PauseCustomerTable()
+		self:ApplyGameplayPaused(true)
+		self:ShowPauseOverlay()
+	end
+
+	method void ResumeGame()
+		self:EnsureRuntime()
+		if self.Runtime.paused ~= true then
+			return
+		end
+		
+		local pausedSeconds = math.max(0, _UtilLogic.ElapsedSeconds - self.Runtime.pausedStartedAt)
+		local dayManager = self:GetDayManager()
+		if dayManager ~= nil then
+			dayManager:ResumeDayTimer()
+		end
+		
+		self:ResumeCustomerTable(pausedSeconds)
+		self:ApplyGameplayPaused(false)
+		self:HidePauseOverlay()
+		self.Runtime.paused = false
+		self.Runtime.pausedStartedAt = 0
+	end
+
+	method void ShowPauseOverlay()
+		self:SetEntityEnabled(self.PauseOverlay, true)
+		self:SetEntityEnabled(self.PauseTitle, true)
+		if self.ResumeButton ~= nil then
+			self:SetEntityEnabled(self.ResumeButton.Entity, true)
+		end
+	end
+
+	method void HidePauseOverlay()
+		self:SetEntityEnabled(self.PauseOverlay, false)
+		self:SetEntityEnabled(self.PauseTitle, false)
+		if self.ResumeButton ~= nil then
+			self:SetEntityEnabled(self.ResumeButton.Entity, false)
+		end
+	end
+
+	method void SetEntityEnabled(Entity entity, boolean enabled)
+		if entity == nil then
+			return
+		end
+		
+		entity.Enable = enabled
+		entity.Visible = enabled
+	end
+
+	method void PauseCustomerTable()
+		local customerTable = self:GetCustomerTable()
+		if customerTable == nil then
+			return
+		end
+		
+		customerTable:PauseTable()
+	end
+
+	method void ResumeCustomerTable(number pausedSeconds)
+		local customerTable = self:GetCustomerTable()
+		if customerTable == nil then
+			return
+		end
+		
+		customerTable:ResumeTable(pausedSeconds)
+	end
+
+	method any GetCustomerTable()
+		if self.CustomerTablePath == nil or self.CustomerTablePath == "" then
+			return nil
+		end
+		
+		local entity = _EntityService:GetEntityByPath(self.CustomerTablePath)
+		if entity == nil then
+			return nil
+		end
+		return entity.CustomerTableComponent
+	end
+
+	method any GetDayManager()
+		if self.DayManagerPath == nil or self.DayManagerPath == "" then
+			return nil
+		end
+		
+		local entity = _EntityService:GetEntityByPath(self.DayManagerPath)
+		if entity == nil then
+			return nil
+		end
+		return entity.DayManager
+	end
+
+	method void ApplyGameplayPaused(boolean paused)
+		if _ServiceManager ~= nil then
+			_ServiceManager:SetPaused(paused)
+		end
+	end
+
+end

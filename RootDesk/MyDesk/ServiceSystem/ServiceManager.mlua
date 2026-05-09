@@ -11,6 +11,7 @@ script ServiceManager extends Logic
 	property any actionButtonConfigs = nil
 	property any actionButtonTweenIds = nil
 	property any progressTimerIds = nil
+	property boolean IsPaused = false
 	property string cupImageRUID = "95c000a4a32d9e74392498f59cd99651"
 	property number prepDuration = 1
 	property number brewShotDuration = 1
@@ -381,6 +382,10 @@ script ServiceManager extends Logic
 		log("UIActionButtonService is not loaded.")
 	end
 
+	method void SetPaused(boolean paused)
+		self.IsPaused = paused
+	end
+
 	method void ShowActionButton(string actionKey)
 		if _UIActionButtonService ~= nil then
 			_UIActionButtonService:Show(self, actionKey)
@@ -657,6 +662,10 @@ script ServiceManager extends Logic
 	end
 
 	method void OnClickIngredientButton(string ingredientId, ButtonComponent sourceButton)
+		if self.IsPaused == true then
+			return
+		end
+
 		-- 아래쪽 고정 버튼들은 선택 상태만 바꾸고, 실제 상호작용은 SelectionManager가 판단한다.
 		if ingredientId == nil or ingredientId == "" then
 			log("Ingredient button is not mapped.")
@@ -668,27 +677,47 @@ script ServiceManager extends Logic
 	end
 
 	method void OnClickCupTypeButton(string cupType, ButtonComponent sourceButton)
+		if self.IsPaused == true then
+			return
+		end
+
 		log("Clicked cup type button: " .. cupType)
 		self.SelectionManager:HandleClick("CUP_TYPE_BTN", { cupType = cupType, uiButton = sourceButton })
 	end
 
 	method void OnClickIceMakerButton(ButtonComponent sourceButton)
+		if self.IsPaused == true then
+			return
+		end
+
 		log("Clicked ice maker button")
 		self.SelectionManager:HandleClick("ICE_MAKER_BTN", { uiButton = sourceButton })
 	end
 
 	method void OnClickWaterButton(string waterType, ButtonComponent sourceButton)
+		if self.IsPaused == true then
+			return
+		end
+
 		log("Clicked water button: " .. waterType)
 		self.SelectionManager:HandleClick("WATER_BTN", { waterType = waterType, uiButton = sourceButton })
 	end
 
 	method void OnClickIngredientSlot(any slot, ButtonComponent sourceButton)
+		if self.IsPaused == true then
+			return
+		end
+
 		log("Clicked ingredient slot: " .. slot.id)
 		slot.uiButton = sourceButton
 		self.SelectionManager:HandleClick("INGREDIENT_SLOT", slot)
 	end
 
 	method void OnClickCupSlot(any slot, ButtonComponent sourceButton)
+		if self.IsPaused == true then
+			return
+		end
+
 		self:LogCupSlotInfo(slot)
 		slot.uiButton = sourceButton
 		self.SelectionManager:HandleClick("CUP_SLOT", slot)
@@ -711,37 +740,65 @@ script ServiceManager extends Logic
 	end
 
 	method void OnClickMixer(any mixer, ButtonComponent sourceButton)
+		if self.IsPaused == true then
+			return
+		end
+
 		log("Clicked mixer: " .. mixer.id)
 		mixer.uiButton = sourceButton
 		self.SelectionManager:HandleClick("MIXER", mixer)
 	end
 
 	method void OnClickEmptySpace()
+		if self.IsPaused == true then
+			return
+		end
+
 		log("Clicked empty space")
 		self.SelectionManager:HandleClick("EMPTY", {})
 	end
 
 	method void OnClickUIAction(string action)
+		if self.IsPaused == true then
+			return
+		end
+
 		log("Clicked UI action: " .. action)
 		self.SelectionManager:HandleUIAction(action)
 	end
 
 	method void OnClickPrepAction()
+		if self.IsPaused == true then
+			return
+		end
+
 		log("Clicked prep action")
 		self.SelectionManager:HandleUIAction("PREP")
 	end
 
 	method void OnClickBrewShotAction()
+		if self.IsPaused == true then
+			return
+		end
+
 		log("Clicked brew shot action")
 		self.SelectionManager:HandleUIAction("BREW_SHOT")
 	end
 
 	method void OnClickMixAction()
+		if self.IsPaused == true then
+			return
+		end
+
 		log("Clicked mix action")
 		self.SelectionManager:HandleUIAction("MIX")
 	end
 
 	method void OnClickDiscardAction()
+		if self.IsPaused == true then
+			return
+		end
+
 		log("Clicked discard action")
 		self.SelectionManager:HandleUIAction("DISCARD")
 	end

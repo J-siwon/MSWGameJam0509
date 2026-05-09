@@ -17,6 +17,8 @@ script StartMenuController extends Component
 
 	property Entity DayIntroGroup = "a31f4e4e-7a9a-4ac5-8b8a-1e2b74d90101"
 
+	property Entity PauseGroup = "f7a28b22-9bd0-4f20-a7d5-c28c0f090101"
+
 	property string DayManagerPath = "/ui/DayInfoGroup/DayManager"
 
 	property string PlayMapName = "map01"
@@ -145,6 +147,7 @@ script StartMenuController extends Component
 		self:SetEntityEnabled(self.GameGroup, true)
 		self:SetEntityEnabled(self.CustomerUIGroup, true)
 		self:SetEntityEnabled(self.DayInfoGroup, true)
+		self:SetEntityEnabled(self.PauseGroup, true)
 		self:SetCanvasAlpha(self.GameGroup, 1)
 		self:SetCanvasAlpha(self.CustomerUIGroup, 1)
 		self:SetCanvasAlpha(self.DayInfoGroup, 1)
@@ -155,6 +158,7 @@ script StartMenuController extends Component
 		self:SetEntityEnabled(self.CustomerUIGroup, false)
 		self:SetEntityEnabled(self.DayInfoGroup, false)
 		self:SetEntityEnabled(self.DayIntroGroup, false)
+		self:SetEntityEnabled(self.PauseGroup, false)
 	end
 
 	method void RefreshContinueButton()
