@@ -1,18 +1,14 @@
 {
   "Id": "",
   "GameId": "",
-<<<<<<< HEAD
-  "EntryKey": "codeblock://c87a7ab5-1b0f-4564-a989-fdf92cd274bb",
-=======
-  "EntryKey": "codeblock://4e2a5328-5902-4063-a56e-7666af4a82de",
->>>>>>> 7c91cbb16e0e84e0d621a161b05fe5acd913fb9b
+  "EntryKey": "codeblock://b8c5e810-1d42-4c62-a624-7a4413d90100",
   "ContentType": "x-mod/codeblock",
   "Content": "",
   "Usage": 0,
   "UsePublish": 1,
   "UseService": 0,
   "CoreVersion": "26.3.0.0",
-  "StudioVersion": "",
+  "StudioVersion": "0.1.0.0",
   "DynamicLoading": 0,
   "ContentProto": {
     "Use": "Json",
@@ -26,14 +22,10 @@
         "Minor": 1
       },
       "Description": "",
-<<<<<<< HEAD
-      "Id": "c87a7ab5-1b0f-4564-a989-fdf92cd274bb",
-=======
-      "Id": "4e2a5328-5902-4063-a56e-7666af4a82de",
->>>>>>> 7c91cbb16e0e84e0d621a161b05fe5acd913fb9b
+      "Id": "b8c5e810-1d42-4c62-a624-7a4413d90100",
       "Language": 1,
-      "Name": "UISlotViewService",
-      "Type": 5,
+      "Name": "StartMenuController",
+      "Type": 1,
       "Source": 0,
       "Target": null
     }

@@ -1,0 +1,684 @@
+@Component
+script DayManager extends Component
+
+	property Entity CustomerTableEntity = nil
+	property string CustomerTablePath = "/ui/CustomerUIGroup/CustomerTable"
+	property string DayGoalDataSetName = "DayGoalData"
+	property number MaxDay = 7
+	property number DefaultDayDurationSeconds = 180
+	property number DefaultGoalMoney = 600
+	property number DefaultSpawnIntervalSeconds = 4
+	property number DefaultMaxCustomerCount = 5
+	property boolean AutoStartOnBeginPlay = false
+	property boolean AutoAdvanceDay = true
+	property boolean ClearImmediatelyOnGoal = false
+	property number NextDayDelaySeconds = 3
+	property number HudRefreshIntervalSeconds = 0.1
+	property boolean UseDataStorage = true
+	property string SaveStorageName = "MSWGameJam0509Save"
+	property string SaveKey = "CafeDayProgress"
+	property Entity DayIntroGroup = "a31f4e4e-7a9a-4ac5-8b8a-1e2b74d90101"
+	property CanvasGroupComponent DayIntroCanvasGroup = "a31f4e4e-7a9a-4ac5-8b8a-1e2b74d90101"
+	property TextComponent DayIntroText = "a31f4e4e-7a9a-4ac5-8b8a-1e2b74d90103"
+	property number DayIntroHoldSeconds = 1
+	property number DayIntroFadeInSeconds = 0.6
+	property number DayIntroFadeSeconds = 1.2
+	property TextComponent DayText = "7f9f3e00-6df2-4f4a-9b27-5650f0d90003"
+	property TextComponent MoneyText = "7f9f3e00-6df2-4f4a-9b27-5650f0d90005"
+	property TextComponent GoalText = "7f9f3e00-6df2-4f4a-9b27-5650f0d90006"
+	property TextComponent TimeText = "7f9f3e00-6df2-4f4a-9b27-5650f0d90004"
+	property any Runtime = nil
+
+	method void OnBeginPlay()
+		self:EnsureRuntime()
+		self:RefreshHud()
+
+		if self.AutoStartOnBeginPlay == true then
+			self:StartFirstDay()
+		end
+	end
+
+	method void OnEndPlay()
+		self:EnsureRuntime()
+		self:ClearTimers()
+		self:StopCustomerTable()
+	end
+
+	method void EnsureRuntime()
+		if self.Runtime ~= nil then
+			return
+		end
+
+		self.Runtime = {
+			day = 0,
+			status = "Ready",
+			goalMoney = 0,
+			money = 0,
+			totalMoney = 0,
+			durationSeconds = self.DefaultDayDurationSeconds,
+			startedAt = 0,
+			endsAt = 0,
+			tickTimerId = 0,
+			nextDayTimerId = 0,
+			introTimerId = 0,
+			introFadeTimerId = 0,
+			savedDay = 1,
+			storageWarningLogged = false
+		}
+	end
+
+	method void StartFirstDay()
+		self:EnsureRuntime()
+		self.Runtime.totalMoney = 0
+		self:SaveProgressDay(1)
+		self:StartDayWithIntro(1)
+	end
+
+	method void StartFromSavedDay()
+		self:EnsureRuntime()
+		self.Runtime.totalMoney = 0
+		self:StartDayWithIntro(self:LoadSavedDay())
+	end
+
+	method void StartFromDay(number day)
+		self:EnsureRuntime()
+		local playableDay = self:GetPlayableDay(day)
+		if playableDay <= 1 then
+			self.Runtime.totalMoney = 0
+		end
+		self:SaveProgressDay(playableDay)
+		self:StartDayWithIntro(playableDay)
+	end
+
+	method void StartDayWithIntro(number day)
+		self:EnsureRuntime()
+		self:ClearTimers()
+		self:StopCustomerTable()
+
+		local playableDay = self:GetPlayableDay(day)
+		self.Runtime.day = playableDay
+		self.Runtime.status = "Intro"
+		self.Runtime.money = 0
+		self:RefreshHud()
+
+		self:ShowDayIntro(playableDay, function()
+			self:StartDay(playableDay)
+		end, false)
+	end
+
+	method void StartNextDayWithIntro(number day)
+		self:EnsureRuntime()
+		self:ClearTimers()
+		self:StopCustomerTable()
+
+		local playableDay = self:GetPlayableDay(day)
+		self.Runtime.day = playableDay
+		self.Runtime.status = "Intro"
+		self.Runtime.money = 0
+		self:RefreshHud()
+
+		self:ShowDayIntro(playableDay, function()
+			self:StartDay(playableDay)
+		end, true)
+	end
+
+	method void StartDay(number day)
+		self:EnsureRuntime()
+		self:ClearTimers()
+
+		if day > self.MaxDay then
+			self:FinishGame()
+			return
+		end
+
+		local config = self:GetDayConfig(day)
+		self.Runtime.day = day
+		self.Runtime.status = "Playing"
+		self.Runtime.goalMoney = config.goalMoney
+		self.Runtime.money = 0
+		self.Runtime.durationSeconds = config.durationSeconds
+		self.Runtime.startedAt = _UtilLogic.ElapsedSeconds
+		self.Runtime.endsAt = self.Runtime.startedAt + config.durationSeconds
+
+		self:StartCustomerTable(config)
+		self:StartTickTimer()
+		self:RefreshHud()
+
+		log("Day " .. tostring(day) .. " started. Goal: " .. tostring(config.goalMoney))
+	end
+
+	method void ShowDayIntro(number day, any onFinished, boolean fadeIn)
+		if self.DayIntroGroup == nil or self.DayIntroCanvasGroup == nil then
+			if onFinished ~= nil then
+				onFinished()
+			end
+			return
+		end
+
+		if self.DayIntroText ~= nil then
+			self.DayIntroText.Text = "DAY " .. tostring(day)
+		end
+
+		self.DayIntroGroup.Enable = true
+		self.DayIntroGroup.Visible = true
+
+		if fadeIn == true then
+			self.DayIntroCanvasGroup.GroupAlpha = 0
+			self:FadeInDayIntro(function()
+				self:HoldDayIntro(onFinished)
+			end)
+			return
+		end
+
+		self.DayIntroCanvasGroup.GroupAlpha = 1
+		self:HoldDayIntro(onFinished)
+	end
+
+	method void HoldDayIntro(any onFinished)
+		local finishHold = function()
+			self.Runtime.introTimerId = 0
+			self:FadeOutDayIntro(onFinished)
+		end
+
+		self.Runtime.introTimerId = _TimerService:SetTimerOnce(finishHold, math.max(0, self.DayIntroHoldSeconds))
+	end
+
+	method void FadeInDayIntro(any onFinished)
+		if self.DayIntroGroup == nil or self.DayIntroCanvasGroup == nil then
+			if onFinished ~= nil then
+				onFinished()
+			end
+			return
+		end
+
+		if self.Runtime.introFadeTimerId > 0 then
+			_TimerService:ClearTimer(self.Runtime.introFadeTimerId)
+			self.Runtime.introFadeTimerId = 0
+		end
+
+		local duration = math.max(0.01, self.DayIntroFadeInSeconds)
+		local elapsed = 0
+		local previousTime = _UtilLogic.ElapsedSeconds
+
+		local fade = function()
+			local now = _UtilLogic.ElapsedSeconds
+			elapsed = elapsed + now - previousTime
+			previousTime = now
+
+			local alpha = math.min(1, elapsed / duration)
+			self.DayIntroCanvasGroup.GroupAlpha = alpha
+
+			if elapsed >= duration then
+				self.DayIntroCanvasGroup.GroupAlpha = 1
+				_TimerService:ClearTimer(self.Runtime.introFadeTimerId)
+				self.Runtime.introFadeTimerId = 0
+				if onFinished ~= nil then
+					onFinished()
+				end
+			end
+		end
+
+		self.Runtime.introFadeTimerId = _TimerService:SetTimerRepeat(fade, 1 / 60)
+	end
+
+	method void FadeOutDayIntro(any onFinished)
+		if self.DayIntroGroup == nil or self.DayIntroCanvasGroup == nil then
+			if onFinished ~= nil then
+				onFinished()
+			end
+			return
+		end
+
+		if self.Runtime.introFadeTimerId > 0 then
+			_TimerService:ClearTimer(self.Runtime.introFadeTimerId)
+			self.Runtime.introFadeTimerId = 0
+		end
+
+		local duration = math.max(0.01, self.DayIntroFadeSeconds)
+		local elapsed = 0
+		local previousTime = _UtilLogic.ElapsedSeconds
+
+		local fade = function()
+			local now = _UtilLogic.ElapsedSeconds
+			elapsed = elapsed + now - previousTime
+			previousTime = now
+
+			local alpha = 1 - math.min(1, elapsed / duration)
+			self.DayIntroCanvasGroup.GroupAlpha = alpha
+
+			if elapsed >= duration then
+				self.DayIntroCanvasGroup.GroupAlpha = 0
+				self.DayIntroGroup.Enable = false
+				_TimerService:ClearTimer(self.Runtime.introFadeTimerId)
+				self.Runtime.introFadeTimerId = 0
+				if onFinished ~= nil then
+					onFinished()
+				end
+			end
+		end
+
+		self.Runtime.introFadeTimerId = _TimerService:SetTimerRepeat(fade, 1 / 60)
+	end
+
+	method void StartTickTimer()
+		self:EnsureRuntime()
+		if self.Runtime.tickTimerId > 0 then
+			_TimerService:ClearTimer(self.Runtime.tickTimerId)
+			self.Runtime.tickTimerId = 0
+		end
+
+		local tick = function()
+			self:TickDay()
+		end
+		self.Runtime.tickTimerId = _TimerService:SetTimerRepeat(tick, math.max(0.05, self.HudRefreshIntervalSeconds))
+	end
+
+	method void TickDay()
+		if self.Runtime.status ~= "Playing" then
+			return
+		end
+
+		if self:GetRemainingSeconds() <= 0 then
+			self:EndCurrentDay()
+			return
+		end
+
+		self:RefreshHud()
+	end
+
+	method void EndCurrentDay()
+		if self.Runtime.status ~= "Playing" then
+			return
+		end
+
+		if self.Runtime.money >= self.Runtime.goalMoney then
+			self:ClearCurrentDay()
+		else
+			self:FailCurrentDay()
+		end
+	end
+
+	method void ClearCurrentDay()
+		self.Runtime.status = "DayCleared"
+		self.Runtime.totalMoney = self.Runtime.totalMoney + self.Runtime.money
+		self:SaveProgressDay(self.Runtime.day + 1)
+		self:ClearTimers()
+		self:StopCustomerTable()
+		self:RefreshHud()
+
+		log("Day " .. tostring(self.Runtime.day) .. " cleared. Earned: " .. tostring(self.Runtime.money))
+
+		if self.Runtime.day >= self.MaxDay then
+			self:FinishGame()
+			return
+		end
+
+		if self.AutoAdvanceDay == true then
+			local nextDay = function()
+				self.Runtime.nextDayTimerId = 0
+				self:StartNextDayWithIntro(self.Runtime.day + 1)
+			end
+			self.Runtime.nextDayTimerId = _TimerService:SetTimerOnce(nextDay, math.max(0, self.NextDayDelaySeconds))
+		end
+	end
+
+	method void FailCurrentDay()
+		self.Runtime.status = "Failed"
+		self:SaveProgressDay(self.Runtime.day)
+		self:ClearTimers()
+		self:StopCustomerTable()
+		self:RefreshHud()
+
+		log("Day " .. tostring(self.Runtime.day) .. " failed. Earned: " .. tostring(self.Runtime.money) .. " / Goal: " .. tostring(self.Runtime.goalMoney))
+	end
+
+	method void FinishGame()
+		self.Runtime.status = "Finished"
+		self:ClearTimers()
+		self:StopCustomerTable()
+		self:RefreshHud()
+
+		log("Game finished. Total money: " .. tostring(self.Runtime.totalMoney))
+	end
+
+	method boolean SubmitDrink(string drinkId)
+		self:EnsureRuntime()
+		if self.Runtime.status ~= "Playing" then
+			log("Cannot submit drink. Day is not playing.")
+			return false
+		end
+
+		local customerTable = self:GetCustomerTable()
+		if customerTable == nil then
+			log("DayManager: CustomerTableEntity is not set.")
+			return false
+		end
+
+		local success = customerTable:ResolveFirstMatchingDrink(drinkId)
+		if success == false then
+			log("Submit failed. No customer wants drink: " .. tostring(drinkId))
+			return false
+		end
+
+		local earnedMoney = customerTable:GetLastResolvePrice()
+		self:AddMoney(earnedMoney)
+		log("Submit success. Drink: " .. tostring(drinkId) .. " / Earned: " .. tostring(earnedMoney))
+		return true
+	end
+
+	method boolean SubmitTopCustomerForTest()
+		self:EnsureRuntime()
+		if self.Runtime.status ~= "Playing" then
+			log("Cannot submit top customer. Day is not playing.")
+			return false
+		end
+
+		local customerTable = self:GetCustomerTable()
+		if customerTable == nil then
+			log("DayManager: CustomerTableEntity is not set.")
+			return false
+		end
+
+		local success = customerTable:CompleteTopCustomerForTest()
+		if success == false then
+			log("Submit failed. No waiting customer.")
+			return false
+		end
+
+		local earnedMoney = customerTable:GetLastResolvePrice()
+		self:AddMoney(earnedMoney)
+		log("Submit top customer success. Earned: " .. tostring(earnedMoney))
+		return true
+	end
+
+	method boolean IsPlaying()
+		self:EnsureRuntime()
+		return self.Runtime.status == "Playing"
+	end
+
+	method void AddMoney(number amount)
+		self:EnsureRuntime()
+		if self.Runtime.status ~= "Playing" then
+			return
+		end
+
+		self.Runtime.money = self.Runtime.money + math.max(0, math.floor(amount + 0.5))
+		self:RefreshHud()
+
+		if self.ClearImmediatelyOnGoal == true and self.Runtime.status == "Playing" and self.Runtime.money >= self.Runtime.goalMoney then
+			self:ClearCurrentDay()
+		end
+	end
+
+	method number GetRemainingSeconds()
+		self:EnsureRuntime()
+		if self.Runtime.status ~= "Playing" then
+			return 0
+		end
+
+		return math.max(0, self.Runtime.endsAt - _UtilLogic.ElapsedSeconds)
+	end
+
+	method void RefreshHud()
+		self:EnsureRuntime()
+
+		if self.DayText ~= nil then
+			self.DayText.Text = "Day " .. tostring(math.max(1, self.Runtime.day)) .. " / " .. tostring(self.MaxDay)
+		end
+		if self.MoneyText ~= nil then
+			self.MoneyText.Text = "$" .. tostring(self.Runtime.money)
+		end
+		if self.GoalText ~= nil then
+			self.GoalText.Text = "Goal $" .. tostring(self.Runtime.goalMoney)
+		end
+		if self.TimeText ~= nil then
+			self.TimeText.Text = self:FormatTime(self:GetRemainingSeconds())
+		end
+	end
+
+	method string FormatTime(number seconds)
+		local totalSeconds = math.max(0, math.floor(seconds + 0.5))
+		local minutes = math.floor(totalSeconds / 60)
+		local remainSeconds = totalSeconds - minutes * 60
+
+		if remainSeconds < 10 then
+			return tostring(minutes) .. ":0" .. tostring(remainSeconds)
+		end
+		return tostring(minutes) .. ":" .. tostring(remainSeconds)
+	end
+
+	method void StartCustomerTable(table config)
+		local customerTable = self:GetCustomerTable()
+		if customerTable == nil then
+			log("DayManager: CustomerTableEntity is not set.")
+			return
+		end
+
+		customerTable:StopSpawning()
+		customerTable:ClearCustomers()
+		customerTable.AutoSpawn = true
+		customerTable.MaxCustomerCount = config.maxCustomerCount
+		customerTable.SpawnIntervalSeconds = config.spawnIntervalSeconds
+		customerTable:StartSpawning(config.spawnIntervalSeconds, true)
+	end
+
+	method void StopCustomerTable()
+		local customerTable = self:GetCustomerTable()
+		if customerTable == nil then
+			return
+		end
+
+		customerTable:CloseTable()
+		customerTable:ClearCustomers()
+	end
+
+	method any GetCustomerTable()
+		if self.CustomerTableEntity ~= nil then
+			return self.CustomerTableEntity.CustomerTableComponent
+		end
+		if self.Entity ~= nil and self.Entity.CustomerTableComponent ~= nil then
+			return self.Entity.CustomerTableComponent
+		end
+		if self.CustomerTablePath ~= nil and self.CustomerTablePath ~= "" then
+			local customerTableEntity = _EntityService:GetEntityByPath(self.CustomerTablePath)
+			if customerTableEntity ~= nil then
+				return customerTableEntity.CustomerTableComponent
+			end
+		end
+		return nil
+	end
+
+	method void ClearTimers()
+		self:EnsureRuntime()
+		if self.Runtime.tickTimerId > 0 then
+			_TimerService:ClearTimer(self.Runtime.tickTimerId)
+			self.Runtime.tickTimerId = 0
+		end
+		if self.Runtime.nextDayTimerId > 0 then
+			_TimerService:ClearTimer(self.Runtime.nextDayTimerId)
+			self.Runtime.nextDayTimerId = 0
+		end
+		if self.Runtime.introTimerId > 0 then
+			_TimerService:ClearTimer(self.Runtime.introTimerId)
+			self.Runtime.introTimerId = 0
+		end
+		if self.Runtime.introFadeTimerId > 0 then
+			_TimerService:ClearTimer(self.Runtime.introFadeTimerId)
+			self.Runtime.introFadeTimerId = 0
+		end
+	end
+
+	method number LoadSavedDay()
+		self:EnsureRuntime()
+
+		local storedDay = self:LoadProgressDayFromStorage()
+		if storedDay > 0 then
+			self.Runtime.savedDay = storedDay
+		end
+
+		return self:GetPlayableDay(self.Runtime.savedDay)
+	end
+
+	method void SaveProgressDay(number day)
+		self:EnsureRuntime()
+
+		local savedDay = math.max(1, math.floor(day + 0.5))
+		self.Runtime.savedDay = savedDay
+		self:SaveProgressDayToStorage(savedDay)
+	end
+
+	method number GetPlayableDay(number day)
+		local value = math.floor(day + 0.5)
+		if value < 1 then
+			return 1
+		end
+		if value > self.MaxDay then
+			return self.MaxDay
+		end
+		return value
+	end
+
+	method string GetStorageKey()
+		local userId = self:GetLocalUserId()
+		if userId == nil or userId == "" then
+			return self.SaveKey
+		end
+		return self.SaveKey .. ":" .. userId
+	end
+
+	method string GetLocalUserId()
+		if _UserService == nil or _UserService.LocalPlayer == nil then
+			return ""
+		end
+
+		local player = _UserService.LocalPlayer
+		if player.PlayerComponent == nil then
+			return ""
+		end
+
+		if player.PlayerComponent.UserId == nil then
+			return ""
+		end
+		return player.PlayerComponent.UserId
+	end
+
+	method number LoadProgressDayFromStorage()
+		if self.UseDataStorage ~= true or _DataStorageService == nil then
+			return 0
+		end
+
+		local ok, value = pcall(function()
+			local userId = self:GetLocalUserId()
+			if userId ~= nil and userId ~= "" then
+				local userStorage = _DataStorageService:GetUserDataStorage(userId)
+				if userStorage ~= nil then
+					local errorCode, data = userStorage:GetAndWait(self.SaveKey)
+					if errorCode == 0 and data ~= nil and data ~= "" then
+						return tonumber(data) or 0
+					end
+				end
+			end
+
+			local globalData = _DataStorageService:GetAndWait(self.SaveStorageName, self:GetStorageKey())
+			if globalData == nil or globalData == "" then
+				return 0
+			end
+			return tonumber(globalData) or 0
+		end)
+
+		if ok == true and value ~= nil then
+			return tonumber(value) or 0
+		end
+
+		self:LogStorageWarning("load", tostring(value))
+		return 0
+	end
+
+	method void SaveProgressDayToStorage(number day)
+		if self.UseDataStorage ~= true or _DataStorageService == nil then
+			return
+		end
+
+		local ok, errorMessage = pcall(function()
+			local text = tostring(math.max(1, math.floor(day + 0.5)))
+			local userId = self:GetLocalUserId()
+			if userId ~= nil and userId ~= "" then
+				local userStorage = _DataStorageService:GetUserDataStorage(userId)
+				if userStorage ~= nil then
+					userStorage:SetAndWait(self.SaveKey, text)
+					return
+				end
+			end
+
+			_DataStorageService:SetAndWait(self.SaveStorageName, self:GetStorageKey(), text)
+		end)
+
+		if ok ~= true then
+			self:LogStorageWarning("save", tostring(errorMessage))
+		end
+	end
+
+	method void LogStorageWarning(string action, string reason)
+		self:EnsureRuntime()
+		if self.Runtime.storageWarningLogged == true then
+			return
+		end
+
+		self.Runtime.storageWarningLogged = true
+		log("DayManager: progress storage " .. tostring(action) .. " skipped. " .. tostring(reason))
+	end
+
+	method table GetDayConfig(number day)
+		local config = self:GetDayConfigFromDataSet(day)
+		if config ~= nil then
+			return config
+		end
+
+		return {
+			goalMoney = self.DefaultGoalMoney + (day - 1) * 400,
+			durationSeconds = self.DefaultDayDurationSeconds,
+			spawnIntervalSeconds = math.max(1.5, self.DefaultSpawnIntervalSeconds - (day - 1) * 0.25),
+			maxCustomerCount = self.DefaultMaxCustomerCount
+		}
+	end
+
+	method table GetDayConfigFromDataSet(number day)
+		if _EntryService == nil or _DataService == nil then
+			return nil
+		end
+
+		local dataSetId = _EntryService:GetDataSetIdByName(self.DayGoalDataSetName)
+		if dataSetId == nil or dataSetId == "" then
+			return nil
+		end
+
+		local rowCount = _DataService:GetRowCount(self.DayGoalDataSetName)
+		for rowIndex = 1, rowCount do
+			local rowDay = self:GetNumberCell(rowIndex, "Day", 0)
+			if rowDay == day then
+				return {
+					goalMoney = self:GetNumberCell(rowIndex, "GoalMoney", self.DefaultGoalMoney),
+					durationSeconds = self:GetNumberCell(rowIndex, "DurationSeconds", self.DefaultDayDurationSeconds),
+					spawnIntervalSeconds = self:GetNumberCell(rowIndex, "SpawnIntervalSeconds", self.DefaultSpawnIntervalSeconds),
+					maxCustomerCount = self:GetNumberCell(rowIndex, "MaxCustomerCount", self.DefaultMaxCustomerCount)
+				}
+			end
+		end
+
+		return nil
+	end
+
+	method number GetNumberCell(number rowIndex, string columnName, number fallback)
+		local value = _DataService:GetCell(self.DayGoalDataSetName, rowIndex, columnName)
+		if value == nil or value == "" then
+			return fallback
+		end
+
+		local numberValue = tonumber(value)
+		if numberValue == nil then
+			return fallback
+		end
+		return numberValue
+	end
+
+end

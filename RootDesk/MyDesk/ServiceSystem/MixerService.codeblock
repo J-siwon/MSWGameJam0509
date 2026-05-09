@@ -1,7 +1,7 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "codeblock://efa2b4a5-560b-4292-b148-af655d2016c0",
+  "EntryKey": "codeblock://24ef1fd4-5cf2-48fa-9c9d-13c28a82a5d8",
   "ContentType": "x-mod/codeblock",
   "Content": "",
   "Usage": 0,
@@ -22,7 +22,7 @@
         "Minor": 1
       },
       "Description": "",
-      "Id": "efa2b4a5-560b-4292-b148-af655d2016c0",
+      "Id": "24ef1fd4-5cf2-48fa-9c9d-13c28a82a5d8",
       "Language": 1,
       "Name": "MixerService",
       "Type": 5,

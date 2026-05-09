@@ -1,7 +1,11 @@
 {
   "Id": "",
   "GameId": "",
+<<<<<<< HEAD
   "EntryKey": "codeblock://bf568e82-51f3-4d01-9867-247fc79bcdce",
+=======
+  "EntryKey": "codeblock://6a52ea7a-4d4a-4146-914b-894c7a39070e",
+>>>>>>> 7c91cbb16e0e84e0d621a161b05fe5acd913fb9b
   "ContentType": "x-mod/codeblock",
   "Content": "",
   "Usage": 0,
@@ -22,7 +26,11 @@
         "Minor": 1
       },
       "Description": "",
+<<<<<<< HEAD
       "Id": "bf568e82-51f3-4d01-9867-247fc79bcdce",
+=======
+      "Id": "6a52ea7a-4d4a-4146-914b-894c7a39070e",
+>>>>>>> 7c91cbb16e0e84e0d621a161b05fe5acd913fb9b
       "Language": 1,
       "Name": "SelectionManagerFactory",
       "Type": 5,

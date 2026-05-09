@@ -23,7 +23,7 @@
           "nameEditable": true,
           "enable": true,
           "visible": true,
-          "localize": false,
+          "localize": true,
           "displayOrder": 3,
           "pathConstraints": "//",
           "revision": 1,
@@ -108,7 +108,7 @@
           "nameEditable": true,
           "enable": true,
           "visible": true,
-          "localize": false,
+          "localize": true,
           "displayOrder": 0,
           "pathConstraints": "///",
           "revision": 1,
@@ -184,7 +184,7 @@
                 "EntityId": "86fdece9-0ca1-4983-b47a-9db1b4b7d4ec",
                 "Version2": false
               },
-              "AutoSpawn": true,
+              "AutoSpawn": false,
               "FillOnBeginPlay": false,
               "TestCompleteTopButton": {
                 "tempEntityId": null,
@@ -192,6 +192,7 @@
                 "EntityId": "238914fd-1c62-42bb-9ca7-b5e82e0c1f97",
                 "Version2": false
               },
+              "DayManagerPath": "/ui/DayInfoGroup/DayManager",
               "CustomerSpacingY": 170.0,
               "EnterOffsetY": -500.0,
               "MoveDurationSeconds": 0.5,
@@ -211,7 +212,7 @@
           "nameEditable": true,
           "enable": true,
           "visible": true,
-          "localize": false,
+          "localize": true,
           "displayOrder": 0,
           "pathConstraints": "////",
           "revision": 1,
@@ -309,7 +310,7 @@
           "nameEditable": true,
           "enable": true,
           "visible": true,
-          "localize": false,
+          "localize": true,
           "displayOrder": 1,
           "pathConstraints": "////",
           "revision": 1,
@@ -399,7 +400,7 @@
           "nameEditable": true,
           "enable": true,
           "visible": true,
-          "localize": false,
+          "localize": true,
           "displayOrder": 2,
           "pathConstraints": "////",
           "revision": 1,
@@ -425,12 +426,12 @@
               },
               "MobileOnly": false,
               "OffsetMax": {
-                "x": 379.2106,
-                "y": -43.22171
+                "x": 76.9264,
+                "y": -963.3277
               },
               "OffsetMin": {
-                "x": 179.2106,
-                "y": -97.22171
+                "x": -123.0736,
+                "y": -1017.3277
               },
               "Pivot": {
                 "x": 0.5,
@@ -448,12 +449,12 @@
               },
               "UIVersion": 2,
               "anchoredPosition": {
-                "x": 279.2106,
-                "y": -43.22171
+                "x": -23.0736,
+                "y": -963.3277
               },
               "Position": {
-                "x": 399.2106,
-                "y": 496.7783,
+                "x": 96.9264,
+                "y": -423.3277,
                 "z": 0.0
               },
               "QuaternionRotation": {
@@ -560,14 +561,14 @@
       {
         "id": "86fdece9-0ca1-4983-b47a-9db1b4b7d4ec",
         "path": "/ui/CustomerUIGroup/CustomerTemplate",
-        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.TextComponent,MOD.Core.CanvasGroupComponent,script.CustomerComponent",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.TextComponent,script.CustomerComponent,MOD.Core.CanvasGroupComponent",
         "jsonString": {
           "name": "CustomerTemplate",
           "path": "/ui/CustomerUIGroup/CustomerTemplate",
           "nameEditable": true,
           "enable": false,
           "visible": true,
-          "localize": false,
+          "localize": true,
           "displayOrder": 1,
           "pathConstraints": "///",
           "revision": 1,
@@ -647,11 +648,6 @@
               "Enable": true
             },
             {
-              "@type": "MOD.Core.CanvasGroupComponent",
-              "GroupAlpha": 1.0,
-              "Enable": true
-            },
-            {
               "@type": "script.CustomerComponent",
               "Enable": true,
               "CharacterIconEntity": {
@@ -678,6 +674,11 @@
                 "EntityId": "3edcef3f-5e07-4f3f-98c7-f8b99a8fdf0d",
                 "Version2": false
               }
+            },
+            {
+              "@type": "MOD.Core.CanvasGroupComponent",
+              "GroupAlpha": 1.0,
+              "Enable": true
             }
           ],
           "@version": 1
@@ -693,7 +694,7 @@
           "nameEditable": true,
           "enable": true,
           "visible": true,
-          "localize": false,
+          "localize": true,
           "displayOrder": 0,
           "pathConstraints": "////",
           "revision": 1,
@@ -781,7 +782,7 @@
           "nameEditable": true,
           "enable": true,
           "visible": true,
-          "localize": false,
+          "localize": true,
           "displayOrder": 1,
           "pathConstraints": "////",
           "revision": 1,
@@ -860,7 +861,7 @@
           "nameEditable": true,
           "enable": true,
           "visible": true,
-          "localize": false,
+          "localize": true,
           "displayOrder": 2,
           "pathConstraints": "////",
           "revision": 1,
@@ -939,7 +940,7 @@
           "nameEditable": true,
           "enable": true,
           "visible": true,
-          "localize": false,
+          "localize": true,
           "displayOrder": 3,
           "pathConstraints": "////",
           "revision": 1,
@@ -1018,7 +1019,7 @@
           "nameEditable": true,
           "enable": true,
           "visible": true,
-          "localize": false,
+          "localize": true,
           "displayOrder": 4,
           "pathConstraints": "////",
           "revision": 1,
@@ -1092,7 +1093,7 @@
           "nameEditable": true,
           "enable": true,
           "visible": true,
-          "localize": false,
+          "localize": true,
           "displayOrder": 0,
           "pathConstraints": "/////",
           "revision": 1,
@@ -1187,7 +1188,7 @@
           "nameEditable": true,
           "enable": true,
           "visible": true,
-          "localize": false,
+          "localize": true,
           "displayOrder": 1,
           "pathConstraints": "/////",
           "revision": 1,

@@ -1,0 +1,233 @@
+@Component
+script StartMenuController extends Component
+
+	property Entity StartMenuGroup = "b8c5e810-1d42-4c62-a624-7a4413d90101"
+
+	property ButtonComponent ContinueButton = "b8c5e810-1d42-4c62-a624-7a4413d90105"
+
+	property ButtonComponent NewGameButton = "b8c5e810-1d42-4c62-a624-7a4413d90106"
+
+	property TextComponent ContinueButtonText = "b8c5e810-1d42-4c62-a624-7a4413d90105"
+
+	property Entity GameGroup = "c3ca0001-cafe-cafe-cafe-c3cafe000001"
+
+	property Entity CustomerUIGroup = "fb17ed20-ee36-4aea-a5f8-c786b33e9086"
+
+	property Entity DayInfoGroup = "7f9f3e00-6df2-4f4a-9b27-5650f0d90001"
+
+	property Entity DayIntroGroup = "a31f4e4e-7a9a-4ac5-8b8a-1e2b74d90101"
+
+	property string DayManagerPath = "/ui/DayInfoGroup/DayManager"
+
+	property string PlayMapName = "map01"
+
+	property number PlaySpawnX = 0
+
+	property number PlaySpawnY = 0
+
+	property boolean ShowOnBeginPlay = true
+
+	property any Runtime = nil
+
+	method void OnBeginPlay()
+		self:EnsureRuntime()
+		self:ConnectButtons()
+		self:RefreshContinueButton()
+		
+		if self.ShowOnBeginPlay == true then
+			self:ShowStartMenu()
+		end
+	end
+
+	method void OnEndPlay()
+		self:EnsureRuntime()
+		self:DisconnectButtons()
+		if self.Runtime.startTimerId > 0 then
+			_TimerService:ClearTimer(self.Runtime.startTimerId)
+			self.Runtime.startTimerId = 0
+		end
+	end
+
+	method void EnsureRuntime()
+		if self.Runtime ~= nil then
+			return
+		end
+		
+		self.Runtime = {
+			continueHandler = nil,
+			newGameHandler = nil,
+			startTimerId = 0,
+			locked = false
+		}
+	end
+
+	method void ConnectButtons()
+		if self.ContinueButton ~= nil and self.Runtime.continueHandler == nil then
+			self.Runtime.continueHandler = self.ContinueButton.Entity:ConnectEvent(ButtonClickEvent, self.OnClickContinue)
+		end
+		
+		if self.NewGameButton ~= nil and self.Runtime.newGameHandler == nil then
+			self.Runtime.newGameHandler = self.NewGameButton.Entity:ConnectEvent(ButtonClickEvent, self.OnClickNewGame)
+		end
+	end
+
+	method void DisconnectButtons()
+		if self.ContinueButton ~= nil and self.Runtime.continueHandler ~= nil then
+			self.ContinueButton.Entity:DisconnectEvent(ButtonClickEvent, self.Runtime.continueHandler)
+			self.Runtime.continueHandler = nil
+		end
+		
+		if self.NewGameButton ~= nil and self.Runtime.newGameHandler ~= nil then
+			self.NewGameButton.Entity:DisconnectEvent(ButtonClickEvent, self.Runtime.newGameHandler)
+			self.Runtime.newGameHandler = nil
+		end
+	end
+
+	method void OnClickContinue()
+		self:BeginGame(false)
+	end
+
+	method void OnClickNewGame()
+		self:BeginGame(true)
+	end
+
+	method void BeginGame(boolean resetProgress)
+		self:EnsureRuntime()
+		if self.Runtime.locked == true then
+			return
+		end
+		
+		self.Runtime.locked = true
+		self:ShowGameplayUI()
+		self:MoveLocalPlayerToPlayMap()
+		
+		local start = function()
+			self.Runtime.startTimerId = 0
+			local dayManager = self:GetDayManager()
+			if dayManager == nil then
+				log("StartMenuController: DayManager is not found.")
+				self.Runtime.locked = false
+				return
+			end
+		
+			if resetProgress == true then
+				dayManager:StartFirstDay()
+			else
+				dayManager:StartFromSavedDay()
+			end
+		end
+		
+		self.Runtime.startTimerId = _TimerService:SetTimerOnce(start, 0.1)
+	end
+
+	method void ShowStartMenu()
+		self.Runtime.locked = false
+		if self.StartMenuGroup ~= nil then
+			self.StartMenuGroup.Enable = true
+			self.StartMenuGroup.Visible = true
+		end
+		self:SetCanvasAlpha(self.StartMenuGroup, 1)
+		self:SetCanvasInput(self.StartMenuGroup, true)
+		self:RefreshContinueButton()
+		self:HideGameplayUI()
+	end
+
+	method void HideStartMenu()
+		self:SetCanvasAlpha(self.StartMenuGroup, 0)
+		self:SetCanvasInput(self.StartMenuGroup, false)
+		if self.StartMenuGroup ~= nil then
+			self.StartMenuGroup.Visible = false
+		end
+	end
+
+	method void ShowGameplayUI()
+		self:HideStartMenu()
+		self:SetEntityEnabled(self.GameGroup, true)
+		self:SetEntityEnabled(self.CustomerUIGroup, true)
+		self:SetEntityEnabled(self.DayInfoGroup, true)
+		self:SetCanvasAlpha(self.GameGroup, 1)
+		self:SetCanvasAlpha(self.CustomerUIGroup, 1)
+		self:SetCanvasAlpha(self.DayInfoGroup, 1)
+	end
+
+	method void HideGameplayUI()
+		self:SetEntityEnabled(self.GameGroup, false)
+		self:SetEntityEnabled(self.CustomerUIGroup, false)
+		self:SetEntityEnabled(self.DayInfoGroup, false)
+		self:SetEntityEnabled(self.DayIntroGroup, false)
+	end
+
+	method void RefreshContinueButton()
+		if self.ContinueButtonText == nil then
+			return
+		end
+		
+		local savedDay = self:GetSavedDay()
+		if savedDay <= 1 then
+			self.ContinueButtonText.Text = "Continue"
+			return
+		end
+		
+		self.ContinueButtonText.Text = "Continue  Day " .. tostring(savedDay)
+	end
+
+	method number GetSavedDay()
+		local dayManager = self:GetDayManager()
+		if dayManager == nil then
+			return 1
+		end
+		return dayManager:LoadSavedDay()
+	end
+
+	method any GetDayManager()
+		if self.DayManagerPath == nil or self.DayManagerPath == "" then
+			return nil
+		end
+		
+		local entity = _EntityService:GetEntityByPath(self.DayManagerPath)
+		if entity == nil then
+			return nil
+		end
+		return entity.DayManager
+	end
+
+	method void MoveLocalPlayerToPlayMap()
+		if _UserService == nil or _UserService.LocalPlayer == nil then
+			return
+		end
+		
+		local player = _UserService.LocalPlayer
+		if player.PlayerComponent == nil then
+			return
+		end
+		
+		player.PlayerComponent:MoveToMapPosition(self.PlayMapName, Vector2(self.PlaySpawnX, self.PlaySpawnY))
+	end
+
+	method void SetEntityEnabled(Entity entity, boolean enabled)
+		if entity == nil then
+			return
+		end
+		
+		entity.Enable = enabled
+		entity.Visible = enabled
+	end
+
+	method void SetCanvasAlpha(Entity entity, number alpha)
+		if entity == nil or entity.CanvasGroupComponent == nil then
+			return
+		end
+		
+		entity.CanvasGroupComponent.GroupAlpha = alpha
+	end
+
+	method void SetCanvasInput(Entity entity, boolean enabled)
+		if entity == nil or entity.CanvasGroupComponent == nil then
+			return
+		end
+		
+		entity.CanvasGroupComponent.BlocksRaycasts = enabled
+		entity.CanvasGroupComponent.Interactable = enabled
+	end
+
+end

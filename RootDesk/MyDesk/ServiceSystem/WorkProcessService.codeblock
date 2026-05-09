@@ -1,7 +1,11 @@
 {
   "Id": "",
   "GameId": "",
+<<<<<<< HEAD
   "EntryKey": "codeblock://a7c51bf3-f842-49ce-bf3b-ec966d32a33a",
+=======
+  "EntryKey": "codeblock://da9c471c-e466-4f8c-a026-7dab9f13ef6f",
+>>>>>>> 7c91cbb16e0e84e0d621a161b05fe5acd913fb9b
   "ContentType": "x-mod/codeblock",
   "Content": "",
   "Usage": 0,
@@ -22,7 +26,11 @@
         "Minor": 1
       },
       "Description": "",
+<<<<<<< HEAD
       "Id": "a7c51bf3-f842-49ce-bf3b-ec966d32a33a",
+=======
+      "Id": "da9c471c-e466-4f8c-a026-7dab9f13ef6f",
+>>>>>>> 7c91cbb16e0e84e0d621a161b05fe5acd913fb9b
       "Language": 1,
       "Name": "WorkProcessService",
       "Type": 5,

@@ -1,7 +1,7 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "codeblock://4ad30e4c-4df2-4428-b858-9b853d458296",
+  "EntryKey": "codeblock://f9b8319e-e701-49ee-abeb-8c991ccd86aa",
   "ContentType": "x-mod/codeblock",
   "Content": "",
   "Usage": 0,
@@ -22,7 +22,7 @@
         "Minor": 1
       },
       "Description": "",
-      "Id": "4ad30e4c-4df2-4428-b858-9b853d458296",
+      "Id": "f9b8319e-e701-49ee-abeb-8c991ccd86aa",
       "Language": 1,
       "Name": "ServiceManager",
       "Type": 5,

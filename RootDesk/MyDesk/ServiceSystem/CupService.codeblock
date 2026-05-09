@@ -1,7 +1,7 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "codeblock://dbb66037-789b-4518-aa13-983916aed3b2",
+  "EntryKey": "codeblock://8078fa93-cfda-44a3-ac59-6d31dc955af5",
   "ContentType": "x-mod/codeblock",
   "Content": "",
   "Usage": 0,
@@ -22,7 +22,7 @@
         "Minor": 1
       },
       "Description": "",
-      "Id": "dbb66037-789b-4518-aa13-983916aed3b2",
+      "Id": "8078fa93-cfda-44a3-ac59-6d31dc955af5",
       "Language": 1,
       "Name": "CupService",
       "Type": 5,
