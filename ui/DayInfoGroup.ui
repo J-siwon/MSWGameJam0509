@@ -254,7 +254,7 @@
       {
         "id": "7f9f3e00-6df2-4f4a-9b27-5650f0d90003",
         "path": "/ui/DayInfoGroup/Panel/DayText",
-        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.TextComponent",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.TextComponent",
         "jsonString": {
           "name": "DayText",
           "path": "/ui/DayInfoGroup/Panel/DayText",
@@ -338,6 +338,11 @@
               "Enable": true
             },
             {
+              "@type": "MOD.Core.SpriteGUIRendererComponent",
+              "OverrideSorting": false,
+              "Enable": true
+            },
+            {
               "@type": "MOD.Core.TextComponent",
               "Alignment": 4,
               "Bold": true,
@@ -390,7 +395,7 @@
       {
         "id": "7f9f3e00-6df2-4f4a-9b27-5650f0d90004",
         "path": "/ui/DayInfoGroup/Panel/TimeText",
-        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.TextComponent",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.TextComponent",
         "jsonString": {
           "name": "TimeText",
           "path": "/ui/DayInfoGroup/Panel/TimeText",
@@ -474,6 +479,11 @@
               "Enable": true
             },
             {
+              "@type": "MOD.Core.SpriteGUIRendererComponent",
+              "OverrideSorting": false,
+              "Enable": true
+            },
+            {
               "@type": "MOD.Core.TextComponent",
               "Alignment": 4,
               "Bold": true,
@@ -526,7 +536,7 @@
       {
         "id": "7f9f3e00-6df2-4f4a-9b27-5650f0d90005",
         "path": "/ui/DayInfoGroup/Panel/MoneyText",
-        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.TextComponent",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.TextComponent",
         "jsonString": {
           "name": "MoneyText",
           "path": "/ui/DayInfoGroup/Panel/MoneyText",
@@ -610,6 +620,11 @@
               "Enable": true
             },
             {
+              "@type": "MOD.Core.SpriteGUIRendererComponent",
+              "OverrideSorting": false,
+              "Enable": true
+            },
+            {
               "@type": "MOD.Core.TextComponent",
               "Alignment": 4,
               "Bold": true,
@@ -662,7 +677,7 @@
       {
         "id": "7f9f3e00-6df2-4f4a-9b27-5650f0d90006",
         "path": "/ui/DayInfoGroup/Panel/GoalText",
-        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.TextComponent",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.TextComponent",
         "jsonString": {
           "name": "GoalText",
           "path": "/ui/DayInfoGroup/Panel/GoalText",
@@ -743,6 +758,11 @@
                 "z": 1.0
               },
               "ZRotation": 0.0,
+              "Enable": true
+            },
+            {
+              "@type": "MOD.Core.SpriteGUIRendererComponent",
+              "OverrideSorting": false,
               "Enable": true
             },
             {

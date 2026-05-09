@@ -122,6 +122,7 @@ script DayManager extends Component
 		self:EnsureRuntime()
 		self:ClearTimers()
 		self:StopCustomerTable()
+		self:ResetServiceStateForDay()
 		
 		local playableDay = self:GetPlayableDay(day)
 		self.Runtime.day = playableDay
@@ -153,6 +154,9 @@ script DayManager extends Component
 	method void StartDay(number day)
 		self:EnsureRuntime()
 		self:ClearTimers()
+		if self.Runtime.status ~= "Intro" then
+			self:ResetServiceStateForDay()
+		end
 		
 		if day > self.MaxDay then
 			self:FinishGame()
@@ -233,6 +237,7 @@ script DayManager extends Component
 
 	method void ResetDayBehindIntro(number day)
 		self:StopCustomerTable()
+		self:ResetServiceStateForDay()
 
 		local config = self:GetDayConfig(day)
 		self.Runtime.day = day
@@ -245,6 +250,12 @@ script DayManager extends Component
 		self.Runtime.pausedRemainingSeconds = 0
 		self.Runtime.pausedStartedAt = 0
 		self:RefreshHud()
+	end
+
+	method void ResetServiceStateForDay()
+		if _ServiceManager ~= nil then
+			_ServiceManager:ResetServiceStateForDay()
+		end
 	end
 
 	method void HoldDayIntro(any onFinished)
@@ -436,6 +447,31 @@ script DayManager extends Component
 		local earnedMoney = customerTable:GetLastResolvePrice()
 		self:AddMoney(earnedMoney)
 		log("Submit success. Drink: " .. tostring(drinkId) .. " / Earned: " .. tostring(earnedMoney))
+		return true
+	end
+
+	method boolean SubmitCupData(any cupData)
+		self:EnsureRuntime()
+		if self.Runtime.status ~= "Playing" then
+			log("Cannot submit cup. Day is not playing.")
+			return false
+		end
+
+		local customerTable = self:GetCustomerTable()
+		if customerTable == nil then
+			log("DayManager: CustomerTableEntity is not set.")
+			return false
+		end
+
+		local success = customerTable:ResolveFirstMatchingCup(cupData)
+		if success == false then
+			log("Submit failed. No customer wants this cup.")
+			return false
+		end
+
+		local earnedMoney = customerTable:GetLastResolvePrice()
+		self:AddMoney(earnedMoney)
+		log("Submit cup success. Earned: " .. tostring(earnedMoney))
 		return true
 	end
 

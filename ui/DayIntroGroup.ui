@@ -24,7 +24,7 @@
           "enable": true,
           "visible": true,
           "localize": true,
-          "displayOrder": 6,
+          "displayOrder": 7,
           "pathConstraints": "//",
           "revision": 1,
           "origin": {
@@ -205,7 +205,7 @@
       {
         "id": "a31f4e4e-7a9a-4ac5-8b8a-1e2b74d90103",
         "path": "/ui/DayIntroGroup/DayText",
-        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.TextComponent",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.TextComponent",
         "jsonString": {
           "name": "DayText",
           "path": "/ui/DayIntroGroup/DayText",
@@ -270,6 +270,11 @@
                 "z": 0.0,
                 "w": 1.0
               },
+              "Enable": true
+            },
+            {
+              "@type": "MOD.Core.SpriteGUIRendererComponent",
+              "OverrideSorting": false,
               "Enable": true
             },
             {

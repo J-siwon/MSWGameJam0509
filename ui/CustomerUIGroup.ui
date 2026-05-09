@@ -21,7 +21,7 @@
           "name": "CustomerUIGroup",
           "path": "/ui/CustomerUIGroup",
           "nameEditable": true,
-          "enable": true,
+          "enable": false,
           "visible": true,
           "localize": true,
           "displayOrder": 3,
@@ -559,6 +559,176 @@
         }
       },
       {
+        "id": "58a48f10-8757-4d45-a6b0-cafb05090101",
+        "path": "/ui/CustomerUIGroup/CustomerTable/SubmitDrinkTestButton",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.ButtonComponent,MOD.Core.TextComponent",
+        "jsonString": {
+          "name": "SubmitDrinkTestButton",
+          "path": "/ui/CustomerUIGroup/CustomerTable/SubmitDrinkTestButton",
+          "nameEditable": true,
+          "enable": true,
+          "visible": true,
+          "localize": true,
+          "displayOrder": 3,
+          "pathConstraints": "////",
+          "revision": 1,
+          "origin": {
+            "type": "Model",
+            "entry_id": "uiempty",
+            "sub_entity_id": null,
+            "root_entity_id": "58a48f10-8757-4d45-a6b0-cafb05090101",
+            "replaced_model_id": null
+          },
+          "modelId": "uiempty",
+          "@components": [
+            {
+              "@type": "MOD.Core.UITransformComponent",
+              "AlignmentOption": 3,
+              "AnchorsMax": {
+                "x": 0.5,
+                "y": 1.0
+              },
+              "AnchorsMin": {
+                "x": 0.5,
+                "y": 1.0
+              },
+              "MobileOnly": false,
+              "OffsetMax": {
+                "x": 76.9264,
+                "y": -900.0
+              },
+              "OffsetMin": {
+                "x": -123.0736,
+                "y": -954.0
+              },
+              "Pivot": {
+                "x": 0.5,
+                "y": 1.0
+              },
+              "RectSize": {
+                "x": 200.0,
+                "y": 54.0
+              },
+              "UIMode": 1,
+              "UIScale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              },
+              "UIVersion": 2,
+              "anchoredPosition": {
+                "x": -23.0736,
+                "y": -900.0
+              },
+              "Position": {
+                "x": 96.9264,
+                "y": -360.0,
+                "z": 0.0
+              },
+              "QuaternionRotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0
+              },
+              "Scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              },
+              "Enable": true
+            },
+            {
+              "@type": "MOD.Core.SpriteGUIRendererComponent",
+              "ImageRUID": {
+                "DataId": "83b7e4bf01f5ba14abf3adaa68cb3ad3"
+              },
+              "OverrideSorting": false,
+              "Color": {
+                "r": 0.18,
+                "g": 0.42,
+                "b": 0.28,
+                "a": 1.0
+              },
+              "RaycastTarget": true,
+              "Type": 1,
+              "Enable": true
+            },
+            {
+              "@type": "MOD.Core.ButtonComponent",
+              "Colors": {
+                "NormalColor": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0,
+                  "a": 1.0
+                },
+                "HighlightedColor": {
+                  "r": 0.9607843,
+                  "g": 0.9607843,
+                  "b": 0.9607843,
+                  "a": 1.0
+                },
+                "PressedColor": {
+                  "r": 0.784313738,
+                  "g": 0.784313738,
+                  "b": 0.784313738,
+                  "a": 1.0
+                },
+                "SelectedColor": {
+                  "r": 0.9607843,
+                  "g": 0.9607843,
+                  "b": 0.9607843,
+                  "a": 1.0
+                },
+                "DisabledColor": {
+                  "r": 0.784313738,
+                  "g": 0.784313738,
+                  "b": 0.784313738,
+                  "a": 0.5019608
+                },
+                "ColorMultiplier": 1.0,
+                "FadeDuration": 0.1
+              },
+              "ImageRUIDs": {
+                "HighlightedSprite": null,
+                "PressedSprite": null,
+                "SelectedSprite": null,
+                "DisabledSprite": null
+              },
+              "OverrideSorting": false,
+              "Transition": 1,
+              "Enable": true
+            },
+            {
+              "@type": "MOD.Core.TextComponent",
+              "Alignment": 4,
+              "Bold": true,
+              "FontColor": {
+                "r": 1.0,
+                "g": 1.0,
+                "b": 1.0,
+                "a": 1.0
+              },
+              "FontSize": 24,
+              "MaxSize": 24,
+              "MinSize": 8,
+              "OutlineDistance": {
+                "x": 1.0,
+                "y": -1.0
+              },
+              "Overflow": 0,
+              "OverrideSorting": false,
+              "SizeFit": false,
+              "Text": "SUBMIT",
+              "UseOutLine": false,
+              "Enable": true
+            }
+          ],
+          "@version": 1
+        }
+      },
+      {
         "id": "86fdece9-0ca1-4983-b47a-9db1b4b7d4ec",
         "path": "/ui/CustomerUIGroup/CustomerTemplate",
         "componentNames": "MOD.Core.UITransformComponent,MOD.Core.TextComponent,MOD.Core.CanvasGroupComponent,script.CustomerComponent",
@@ -566,7 +736,7 @@
           "name": "CustomerTemplate",
           "path": "/ui/CustomerUIGroup/CustomerTemplate",
           "nameEditable": true,
-          "enable": false,
+          "enable": true,
           "visible": true,
           "localize": true,
           "displayOrder": 1,
@@ -655,6 +825,12 @@
             {
               "@type": "script.CustomerComponent",
               "Enable": true,
+              "CardBackgroundEntity": {
+                "tempEntityId": null,
+                "IsRelative": false,
+                "EntityId": "266e5c35-ba80-4355-a29b-636375ee5770",
+                "Version2": false
+              },
               "CharacterIconEntity": {
                 "tempEntityId": null,
                 "IsRelative": false,
@@ -678,6 +854,18 @@
                 "IsRelative": false,
                 "EntityId": "3edcef3f-5e07-4f3f-98c7-f8b99a8fdf0d",
                 "Version2": false
+              },
+              "OrderMemoBackgroundEntity": {
+                "tempEntityId": null,
+                "IsRelative": false,
+                "EntityId": "58a48f10-8757-4d45-a6b0-cafb05090102",
+                "Version2": false
+              },
+              "OrderMemoTextEntity": {
+                "tempEntityId": null,
+                "IsRelative": false,
+                "EntityId": "58a48f10-8757-4d45-a6b0-cafb05090103",
+                "Version2": false
               }
             }
           ],
@@ -687,7 +875,7 @@
       {
         "id": "266e5c35-ba80-4355-a29b-636375ee5770",
         "path": "/ui/CustomerUIGroup/CustomerTemplate/CardBG",
-        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.ButtonComponent",
         "jsonString": {
           "name": "CardBG",
           "path": "/ui/CustomerUIGroup/CustomerTemplate/CardBG",
@@ -766,6 +954,53 @@
                 "b": 1.0,
                 "a": 1.0
               },
+              "RaycastTarget": true,
+              "Enable": true
+            },
+            {
+              "@type": "MOD.Core.ButtonComponent",
+              "Colors": {
+                "NormalColor": {
+                  "r": 1.0,
+                  "g": 1.0,
+                  "b": 1.0,
+                  "a": 1.0
+                },
+                "HighlightedColor": {
+                  "r": 0.9607843,
+                  "g": 0.9607843,
+                  "b": 0.9607843,
+                  "a": 1.0
+                },
+                "PressedColor": {
+                  "r": 0.784313738,
+                  "g": 0.784313738,
+                  "b": 0.784313738,
+                  "a": 1.0
+                },
+                "SelectedColor": {
+                  "r": 0.9607843,
+                  "g": 0.9607843,
+                  "b": 0.9607843,
+                  "a": 1.0
+                },
+                "DisabledColor": {
+                  "r": 0.784313738,
+                  "g": 0.784313738,
+                  "b": 0.784313738,
+                  "a": 0.5019608
+                },
+                "ColorMultiplier": 1.0,
+                "FadeDuration": 0.1
+              },
+              "ImageRUIDs": {
+                "HighlightedSprite": null,
+                "PressedSprite": null,
+                "SelectedSprite": null,
+                "DisabledSprite": null
+              },
+              "OverrideSorting": false,
+              "Transition": 1,
               "Enable": true
             }
           ],
@@ -808,12 +1043,12 @@
               },
               "MobileOnly": false,
               "OffsetMax": {
-                "x": 213.1473,
-                "y": 75.0001
+                "x": 202.0838,
+                "y": 137.0096
               },
               "OffsetMin": {
-                "x": 113.147293,
-                "y": -24.9999
+                "x": 102.0838,
+                "y": 37.0095978
               },
               "Pivot": {
                 "x": 0.5,
@@ -826,12 +1061,12 @@
               "UIMode": 1,
               "UIVersion": 2,
               "anchoredPosition": {
-                "x": 163.1473,
-                "y": 25.0001
+                "x": 152.0838,
+                "y": 87.0096
               },
               "Position": {
-                "x": 163.1473,
-                "y": 25.0001,
+                "x": 152.0838,
+                "y": 87.0096,
                 "z": 0.0
               },
               "QuaternionRotation": {
@@ -1267,6 +1502,210 @@
             {
               "@type": "MOD.Core.SpriteGUIRendererComponent",
               "OverrideSorting": false,
+              "Enable": true
+            }
+          ],
+          "@version": 1
+        }
+      },
+      {
+        "id": "58a48f10-8757-4d45-a6b0-cafb05090102",
+        "path": "/ui/CustomerUIGroup/CustomerTemplate/OrderMemoBackground",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent",
+        "jsonString": {
+          "name": "OrderMemoBackground",
+          "path": "/ui/CustomerUIGroup/CustomerTemplate/OrderMemoBackground",
+          "nameEditable": true,
+          "enable": true,
+          "visible": true,
+          "localize": true,
+          "displayOrder": 5,
+          "pathConstraints": "////",
+          "revision": 1,
+          "origin": {
+            "type": "Model",
+            "entry_id": "uiempty",
+            "sub_entity_id": null,
+            "root_entity_id": "58a48f10-8757-4d45-a6b0-cafb05090102",
+            "replaced_model_id": null
+          },
+          "modelId": "uiempty",
+          "@components": [
+            {
+              "@type": "MOD.Core.UITransformComponent",
+              "AlignmentOption": 0,
+              "AnchorsMax": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "AnchorsMin": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "MobileOnly": false,
+              "OffsetMax": {
+                "x": 299.4418,
+                "y": 27.72911
+              },
+              "OffsetMin": {
+                "x": 95.50018,
+                "y": -77.99971
+              },
+              "Pivot": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "RectSize": {
+                "x": 203.94162,
+                "y": 105.728821
+              },
+              "UIMode": 1,
+              "UIVersion": 2,
+              "anchoredPosition": {
+                "x": 197.471,
+                "y": -25.1353
+              },
+              "Position": {
+                "x": 197.471,
+                "y": -25.1353,
+                "z": 0.0
+              },
+              "QuaternionRotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0
+              },
+              "Enable": true
+            },
+            {
+              "@type": "MOD.Core.SpriteGUIRendererComponent",
+              "ImageRUID": {
+                "DataId": "83b7e4bf01f5ba14abf3adaa68cb3ad3"
+              },
+              "OverrideSorting": false,
+              "Color": {
+                "r": 1.0,
+                "g": 0.94,
+                "b": 0.72,
+                "a": 0.95
+              },
+              "RaycastTarget": false,
+              "Type": 1,
+              "Enable": true
+            }
+          ],
+          "@version": 1
+        }
+      },
+      {
+        "id": "58a48f10-8757-4d45-a6b0-cafb05090103",
+        "path": "/ui/CustomerUIGroup/CustomerTemplate/OrderMemoBackground/OrderMemoText",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.TextComponent",
+        "jsonString": {
+          "name": "OrderMemoText",
+          "path": "/ui/CustomerUIGroup/CustomerTemplate/OrderMemoBackground/OrderMemoText",
+          "nameEditable": true,
+          "enable": true,
+          "visible": true,
+          "localize": true,
+          "displayOrder": 0,
+          "pathConstraints": "/////",
+          "revision": 1,
+          "origin": {
+            "type": "Model",
+            "entry_id": "uiempty",
+            "sub_entity_id": null,
+            "root_entity_id": "58a48f10-8757-4d45-a6b0-cafb05090103",
+            "replaced_model_id": null
+          },
+          "modelId": "uiempty",
+          "@components": [
+            {
+              "@type": "MOD.Core.UITransformComponent",
+              "AlignmentOption": 15,
+              "AnchorsMax": {
+                "x": 1.0,
+                "y": 1.0
+              },
+              "AnchorsMin": {
+                "x": 0.0,
+                "y": 0.0
+              },
+              "MobileOnly": false,
+              "OffsetMax": {
+                "x": 0.0,
+                "y": 0.0
+              },
+              "OffsetMin": {
+                "x": 0.0,
+                "y": 0.0
+              },
+              "Pivot": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "RectSize": {
+                "x": 203.94162,
+                "y": 105.728821
+              },
+              "UIMode": 1,
+              "UIScale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              },
+              "UIVersion": 2,
+              "anchoredPosition": {
+                "x": 0.0,
+                "y": 0.0
+              },
+              "Rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "Position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "QuaternionRotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": -1.0
+              },
+              "Scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              },
+              "ZRotation": 0.0,
+              "Enable": true
+            },
+            {
+              "@type": "MOD.Core.TextComponent",
+              "Alignment": 3,
+              "Bold": true,
+              "FontColor": {
+                "r": 0.05,
+                "g": 0.05,
+                "b": 0.05,
+                "a": 1.0
+              },
+              "FontSize": 12,
+              "MaxSize": 12,
+              "MinSize": 8,
+              "OutlineDistance": {
+                "x": 1.0,
+                "y": -1.0
+              },
+              "Overflow": 0,
+              "OverrideSorting": false,
+              "SizeFit": false,
+              "Text": "",
+              "UseOutLine": false,
               "Enable": true
             }
           ],

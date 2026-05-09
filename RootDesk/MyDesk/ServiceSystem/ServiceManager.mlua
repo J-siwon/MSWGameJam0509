@@ -101,6 +101,12 @@ script ServiceManager extends Logic
 
 	property ButtonComponent btnDiscardAction = "c3ca0001-cafe-cafe-cafe-c3cafe000028"
 
+	property ButtonComponent btnSubmitDrinkTest = "58a48f10-8757-4d45-a6b0-cafb05090101"
+
+	property string DayManagerPath = "/ui/DayInfoGroup/DayManager"
+
+	property string CustomerTablePath = "/ui/CustomerUIGroup/CustomerTable"
+
 	@ExecSpace("ClientOnly")
 	method void OnBeginPlay()
 		-- ServiceManager는 데이터 생성, 선택 규칙, UI 버튼 연결을 조율하는 시작점이다.
@@ -113,6 +119,7 @@ script ServiceManager extends Logic
 		
 		self:InitializeActionButtons()
 		self:InitializeWorkProcesses()
+		self:BindSlotButtons()
 		self:ConnectGameButtons()
 		self:HideActionButtonsImmediately()
 	end
@@ -156,6 +163,104 @@ script ServiceManager extends Logic
 		
 		log("WorkProcessService is not loaded.")
 		self.progressTimerIds = {}
+	end
+
+	method void ResetServiceStateForDay()
+		-- Day가 바뀔 때 제작대에 남은 선택/작업/컵 상태를 전부 새로 시작한다.
+		self.IsPaused = false
+		self:ClearAllProgressTimers()
+		self.prepTargetSlot = nil
+		self.brewShotTargetSlot = nil
+		self.mixTargetMixer = nil
+
+		if self.SelectionManager ~= nil then
+			self.SelectionManager:Clear()
+		else
+			self:ClearSelectedButtonVisual()
+			self:HideActionButtonsImmediately()
+			self:ClearOrderPreview()
+		end
+		self:HideActionButtonsImmediately()
+
+		self.GameData = self:CreateInitialGameData()
+		if self.SelectionManager == nil then
+			self.SelectionManager = self:CreateInitialSelectionManager()
+		end
+
+		self:BindSlotButtons()
+		self:ResetSlotViewsForDay()
+		self:ClearOrderPreview()
+	end
+
+	method void ClearAllProgressTimers()
+		if self.progressTimerIds ~= nil and _TimerService ~= nil then
+			for timerKey, timerId in pairs(self.progressTimerIds) do
+				if timerId ~= nil and timerId ~= 0 then
+					_TimerService:ClearTimer(timerId)
+				end
+			end
+		end
+
+		self.progressTimerIds = {}
+	end
+
+	method void BindSlotButtons()
+		if self.GameData == nil then
+			return
+		end
+
+		self:BindSlotButton(self.GameData.CupSlots, 1, self.slotCup1)
+		self:BindSlotButton(self.GameData.CupSlots, 2, self.slotCup2)
+		self:BindSlotButton(self.GameData.CupSlots, 3, self.slotCup3)
+		self:BindSlotButton(self.GameData.CupSlots, 4, self.slotCup4)
+		self:BindSlotButton(self.GameData.CupSlots, 5, self.slotCup5)
+
+		self:BindSlotButton(self.GameData.IngredientSlots, 1, self.slotIng1)
+		self:BindSlotButton(self.GameData.IngredientSlots, 2, self.slotIng2)
+
+		self:BindSlotButton(self.GameData.Mixers, 1, self.slotMixer1)
+		self:BindSlotButton(self.GameData.Mixers, 2, self.slotMixer2)
+		self:BindSlotButton(self.GameData.Mixers, 3, self.slotMixer3)
+	end
+
+	method void BindSlotButton(any slots, number index, ButtonComponent button)
+		if slots == nil or slots[index] == nil then
+			return
+		end
+
+		slots[index].uiButton = button
+	end
+
+	method void ResetSlotViewsForDay()
+		if self.GameData == nil then
+			return
+		end
+
+		self:ResetSlotCollectionViews(self.GameData.CupSlots)
+		self:ResetSlotCollectionViews(self.GameData.IngredientSlots)
+		self:ResetSlotCollectionViews(self.GameData.Mixers)
+	end
+
+	method void ResetSlotCollectionViews(any slots)
+		if slots == nil then
+			return
+		end
+
+		for i = 1, #slots do
+			self:ResetSlotView(slots[i])
+		end
+	end
+
+	method void ResetSlotView(any slot)
+		if slot == nil then
+			return
+		end
+
+		if slot.uiButton ~= nil then
+			slot.uiButton.Enable = true
+		end
+		self:SetSlotImage(slot, "")
+		self:SetPrepSlotProgress(slot, 0)
 	end
 
 	method string GetMixerResultId(any mixer)
@@ -703,8 +808,115 @@ script ServiceManager extends Logic
 		self.btnBrewShotAction.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickBrewShotAction() end)
 		self.btnMixAction.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickMixAction() end)
 		self.btnDiscardAction.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickDiscardAction() end)
+		-- DH 테스트용 버튼
+		if self.btnSubmitDrinkTest ~= nil then
+			self.btnSubmitDrinkTest.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickSubmitDrinkTest() end)
+		end
 		
 		log("Game buttons connected")
+	end
+
+	method void OnClickSubmitDrinkTest()
+		if self.IsPaused == true then
+			return
+		end
+
+		local slot = self:GetSelectedCupSlot()
+		if slot == nil then
+			slot = self:GetFirstFilledCupSlot()
+		end
+		if slot == nil then
+			log("Submit failed. No cup selected.")
+			return
+		end
+
+		self:SubmitCupSlot(slot)
+	end
+
+	method boolean SubmitCupSlot(any slot)
+		if slot == nil or slot.hasCup ~= true or slot.cupData == nil then
+			return false
+		end
+
+		local dayManager = self:GetDayManager()
+		if dayManager == nil then
+			log("Submit failed. DayManager is not found.")
+			return false
+		end
+
+		local success = dayManager:SubmitCupData(slot.cupData)
+		if success == false then
+			return false
+		end
+
+		slot.hasCup = false
+		slot.cupData = nil
+		self:SetSlotImage(slot, "")
+		self:SetPrepSlotProgress(slot, 0)
+		self:ClearOrderPreview()
+		if self.SelectionManager ~= nil then
+			self.SelectionManager:Clear()
+		end
+		return true
+	end
+
+	method any GetSelectedCupSlot()
+		if self.SelectionManager == nil then
+			return nil
+		end
+		if self.SelectionManager.state == "PLACED_CUP" and self.SelectionManager.data ~= nil then
+			return self.SelectionManager.data
+		end
+		return nil
+	end
+
+	method any GetFirstFilledCupSlot()
+		if self.GameData == nil or self.GameData.CupSlots == nil then
+			return nil
+		end
+		for i = 1, #self.GameData.CupSlots do
+			local slot = self.GameData.CupSlots[i]
+			if slot.hasCup == true and slot.cupData ~= nil then
+				return slot
+			end
+		end
+		return nil
+	end
+
+	method any GetDayManager()
+		if self.DayManagerPath == nil or self.DayManagerPath == "" then
+			return nil
+		end
+		local entity = _EntityService:GetEntityByPath(self.DayManagerPath)
+		if entity == nil then
+			return nil
+		end
+		return entity.DayManager
+	end
+
+	method any GetCustomerTable()
+		if self.CustomerTablePath == nil or self.CustomerTablePath == "" then
+			return nil
+		end
+		local entity = _EntityService:GetEntityByPath(self.CustomerTablePath)
+		if entity == nil then
+			return nil
+		end
+		return entity.CustomerTableComponent
+	end
+
+	method void PreviewCupOrderMatches(any cupData)
+		local customerTable = self:GetCustomerTable()
+		if customerTable ~= nil then
+			customerTable:PreviewCupOrderMatches(cupData)
+		end
+	end
+
+	method void ClearOrderPreview()
+		local customerTable = self:GetCustomerTable()
+		if customerTable ~= nil then
+			customerTable:ClearOrderPreview()
+		end
 	end
 
 	method void OnClickIngredientButton(string ingredientId, ButtonComponent sourceButton)
@@ -767,6 +979,12 @@ script ServiceManager extends Logic
 		self:LogCupSlotInfo(slot)
 		slot.uiButton = sourceButton
 		self.SelectionManager:HandleClick("CUP_SLOT", slot)
+
+		if self:GetSelectedCupSlot() == slot and slot.hasCup == true then
+			self:PreviewCupOrderMatches(slot.cupData)
+		else
+			self:ClearOrderPreview()
+		end
 	end
 
 	method string GetIngredientListText(any cupData)
@@ -802,6 +1020,7 @@ script ServiceManager extends Logic
 
 		log("Clicked empty space")
 		self.SelectionManager:HandleClick("EMPTY", {})
+		self:ClearOrderPreview()
 	end
 
 	method void OnClickUIAction(string action)

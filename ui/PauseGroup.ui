@@ -16,7 +16,7 @@
       {
         "id": "f7a28b22-9bd0-4f20-a7d5-c28c0f090101",
         "path": "/ui/PauseGroup",
-        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.UIGroupComponent,script.PauseManager",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.UIGroupComponent,MOD.Core.CanvasGroupComponent,script.PauseManager",
         "jsonString": {
           "name": "PauseGroup",
           "path": "/ui/PauseGroup",
@@ -98,6 +98,10 @@
               "DefaultShow": true,
               "GroupOrder": 8,
               "GroupType": 1,
+              "Enable": true
+            },
+            {
+              "@type": "MOD.Core.CanvasGroupComponent",
               "Enable": true
             },
             {
@@ -364,7 +368,7 @@
       {
         "id": "f7a28b22-9bd0-4f20-a7d5-c28c0f090104",
         "path": "/ui/PauseGroup/PausedText",
-        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.TextComponent",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.TextComponent",
         "jsonString": {
           "name": "PausedText",
           "path": "/ui/PauseGroup/PausedText",
@@ -429,6 +433,11 @@
                 "z": 0.0,
                 "w": 1.0
               },
+              "Enable": true
+            },
+            {
+              "@type": "MOD.Core.SpriteGUIRendererComponent",
+              "OverrideSorting": false,
               "Enable": true
             },
             {

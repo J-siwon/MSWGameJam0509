@@ -82,7 +82,9 @@ script CustomerTableComponent extends Component
 			lastResolvePrice = 0,
 			pausedState = "Waiting",
 			wasSpawningBeforePause = false,
-			wasFillingBeforePause = false
+			wasFillingBeforePause = false,
+			selectedCustomerComponent = nil,
+			previewCupData = nil
 		}
 	end
 
@@ -185,6 +187,8 @@ script CustomerTableComponent extends Component
 		end
 
 		self.Runtime.customers = {}
+		self.Runtime.selectedCustomerComponent = nil
+		self.Runtime.previewCupData = nil
 		if self.Runtime.state ~= "Closed" then
 			self.Runtime.state = "Waiting"
 		end
@@ -340,6 +344,16 @@ script CustomerTableComponent extends Component
 		return self:ResolveCustomerAt(index, drinkId)
 	end
 
+	method boolean ResolveFirstMatchingCup(any cupData)
+		local index = self:GetFirstMatchingCupIndex(cupData)
+		if index <= 0 then
+			return false
+		end
+
+		local record = self.Runtime.customers[index]
+		return self:ResolveCustomerAt(index, record.data.desiredDrinkId)
+	end
+
 	method void OnClickTestCompleteTop()
 		local dayManager = self:GetDayManager()
 		if dayManager ~= nil then
@@ -385,8 +399,12 @@ script CustomerTableComponent extends Component
 		
 		self.Runtime.state = "Resolving"
 		table.remove(self.Runtime.customers, index)
+		if self.Runtime.selectedCustomerComponent == record.component then
+			self.Runtime.selectedCustomerComponent = nil
+		end
 		self:CloseCustomer(record)
 		self:ScheduleRearrange(self:GetCloseDelay(record))
+		self:RefreshCustomerOrderHints(self.Runtime.previewCupData)
 		return true
 	end
 
@@ -399,6 +417,69 @@ script CustomerTableComponent extends Component
 			end
 		end
 		return 0
+	end
+
+	method number GetFirstMatchingCupIndex(any cupData)
+		self:EnsureRuntime()
+		for i = 1, #self.Runtime.customers do
+			local record = self.Runtime.customers[i]
+			if self:DoesCupMatchDrink(cupData, record.data.desiredDrinkId) == true then
+				return i
+			end
+		end
+		return 0
+	end
+
+	method boolean HasMatchingOrderForCup(any cupData)
+		return self:GetFirstMatchingCupIndex(cupData) > 0
+	end
+
+	method void SelectCustomerComponent(CustomerComponent component)
+		self:EnsureRuntime()
+		self.Runtime.selectedCustomerComponent = component
+		self:RefreshCustomerOrderHints(self.Runtime.previewCupData)
+	end
+
+	method void PreviewCupOrderMatches(any cupData)
+		self:EnsureRuntime()
+		self.Runtime.previewCupData = cupData
+		self.Runtime.selectedCustomerComponent = self:GetBestPreviewCustomerComponent(cupData)
+		self:RefreshCustomerOrderHints(cupData)
+	end
+
+	method void ClearOrderPreview()
+		self:EnsureRuntime()
+		self.Runtime.selectedCustomerComponent = nil
+		self.Runtime.previewCupData = nil
+		self:RefreshCustomerOrderHints(nil)
+	end
+
+	method any GetBestPreviewCustomerComponent(any cupData)
+		local fallback = nil
+		for i = 1, #self.Runtime.customers do
+			local record = self.Runtime.customers[i]
+			if self:DoesCupMatchDrink(cupData, record.data.desiredDrinkId) == true then
+				return record.component
+			end
+			if fallback == nil and self:CanCupBecomeDrink(cupData, record.data.desiredDrinkId) == true then
+				fallback = record.component
+			end
+		end
+		return fallback
+	end
+
+	method void RefreshCustomerOrderHints(any cupData)
+		for i = 1, #self.Runtime.customers do
+			local record = self.Runtime.customers[i]
+			local selected = record.component == self.Runtime.selectedCustomerComponent
+			local candidate = cupData ~= nil and self:CanCupBecomeDrink(cupData, record.data.desiredDrinkId) == true
+			local showMemo = selected == true
+			local memoText = ""
+			if showMemo == true then
+				memoText = self:CreateOrderMemoText(record.data.desiredDrinkId, cupData)
+			end
+			record.component:SetOrderHint(selected, candidate, memoText, showMemo)
+		end
 	end
 
 	method table GetWaitingCustomerData(number index)
@@ -430,6 +511,218 @@ script CustomerTableComponent extends Component
 			})
 		end
 		return snapshot
+	end
+
+	method boolean DoesCupMatchDrink(any cupData, string drinkId)
+		local cupCounts = self:CreateIngredientCounts(self:GetCupIngredients(cupData))
+		local recipeCounts = self:CreateIngredientCounts(self:GetDrinkRecipeIngredients(drinkId))
+		return self:AreIngredientCountsEqual(cupCounts, recipeCounts)
+	end
+
+	method boolean CanCupBecomeDrink(any cupData, string drinkId)
+		local cupCounts = self:CreateIngredientCounts(self:GetCupIngredients(cupData))
+		local recipeCounts = self:CreateIngredientCounts(self:GetDrinkRecipeIngredients(drinkId))
+		return self:IsIngredientCountsSubset(cupCounts, recipeCounts)
+	end
+
+	method table GetCupIngredients(any cupData)
+		local ingredients = {}
+		local source = self:GetCupIngredientSource(cupData)
+		if source == nil then
+			return ingredients
+		end
+
+		if type(source) == "string" then
+			return self:ParseIngredientsText(source)
+		end
+		if type(source) ~= "table" then
+			return ingredients
+		end
+
+		if #source > 0 then
+			for i = 1, #source do
+				self:AddCupIngredientValue(ingredients, source[i], nil)
+			end
+			return ingredients
+		end
+
+		for ingredientId, value in pairs(source) do
+			self:AddCupIngredientValue(ingredients, value, ingredientId)
+		end
+		return ingredients
+	end
+
+	method any GetCupIngredientSource(any cupData)
+		if cupData == nil then
+			return nil
+		end
+		if cupData.ingredients ~= nil then
+			return cupData.ingredients
+		end
+		if cupData.Ingredients ~= nil then
+			return cupData.Ingredients
+		end
+		if cupData.ingredientIds ~= nil then
+			return cupData.ingredientIds
+		end
+		if cupData.IngredientIds ~= nil then
+			return cupData.IngredientIds
+		end
+		return nil
+	end
+
+	method string GetCupIngredientId(any value)
+		if value == nil then
+			return ""
+		end
+		if type(value) == "table" then
+			if value.ingredientId ~= nil then
+				return self:NormalizeIngredientId(value.ingredientId)
+			end
+			if value.IngredientId ~= nil then
+				return self:NormalizeIngredientId(value.IngredientId)
+			end
+			if value.id ~= nil then
+				return self:NormalizeIngredientId(value.id)
+			end
+			if value.Id ~= nil then
+				return self:NormalizeIngredientId(value.Id)
+			end
+			return ""
+		end
+		return self:NormalizeIngredientId(tostring(value))
+	end
+
+	method void AddCupIngredientValue(table ingredients, any value, any key)
+		local ingredientId = self:GetCupIngredientId(value)
+		local count = 1
+		if ingredientId == "" and key ~= nil and (value == true or type(value) == "number") then
+			ingredientId = self:NormalizeIngredientId(tostring(key))
+			if type(value) == "number" then
+				count = math.max(1, value)
+			end
+		end
+		if ingredientId ~= "" then
+			for i = 1, count do
+				table.insert(ingredients, ingredientId)
+			end
+		end
+	end
+
+	method table GetDrinkRecipeIngredients(string drinkId)
+		local ingredientsText = self:FindCellValue(self.DrinkDataSetName, drinkId, "Ingredients")
+		local ingredients = self:ParseIngredientsText(ingredientsText)
+		if #ingredients > 0 then
+			return ingredients
+		end
+
+		if drinkId == "Coffee" then
+			return { "CoffeeShot" }
+		end
+		if drinkId == "Latte" then
+			return { "CoffeeShot", "HotWater", "prepped_Ingredient_2" }
+		end
+		if drinkId == "Ade" then
+			return { "Ice", "ColdWater", "Mixed_Cold_Ingredient_1" }
+		end
+		if drinkId == "Tea" then
+			return { "HotWater", "prepped_Ingredient_3" }
+		end
+		return {}
+	end
+
+	method table ParseIngredientsText(string ingredientsText)
+		local ingredients = {}
+		if ingredientsText == nil or ingredientsText == "" then
+			return ingredients
+		end
+
+		for ingredientId in string.gmatch(ingredientsText, "([^|]+)") do
+			local normalized = self:NormalizeIngredientId(self:Trim(ingredientId))
+			if normalized ~= "" then
+				table.insert(ingredients, normalized)
+			end
+		end
+		return ingredients
+	end
+
+	method string NormalizeIngredientId(string ingredientId)
+		local value = self:Trim(ingredientId)
+		if value == "CoffeeShot_1" or value == "CoffeeShot_2" or value == "CoffeeShot_3" then
+			return "CoffeeShot"
+		end
+		return value
+	end
+
+	method table CreateIngredientCounts(table ingredients)
+		local counts = {}
+		for i = 1, #ingredients do
+			local ingredientId = ingredients[i]
+			if ingredientId ~= "" then
+				counts[ingredientId] = (counts[ingredientId] or 0) + 1
+			end
+		end
+		return counts
+	end
+
+	method boolean AreIngredientCountsEqual(table left, table right)
+		for ingredientId, count in pairs(left) do
+			if right[ingredientId] ~= count then
+				return false
+			end
+		end
+		for ingredientId, count in pairs(right) do
+			if left[ingredientId] ~= count then
+				return false
+			end
+		end
+		return true
+	end
+
+	method boolean IsIngredientCountsSubset(table subset, table fullSet)
+		for ingredientId, count in pairs(subset) do
+			if (fullSet[ingredientId] or 0) < count then
+				return false
+			end
+		end
+		return true
+	end
+
+	method string CreateOrderMemoText(string drinkId, any cupData)
+		local ingredients = self:GetDrinkRecipeIngredients(drinkId)
+		local cupCounts = self:CreateIngredientCounts(self:GetCupIngredients(cupData))
+		local usedCounts = {}
+		local text = drinkId
+
+		for i = 1, #ingredients do
+			local ingredientId = ingredients[i]
+			local satisfied = false
+			local used = usedCounts[ingredientId] or 0
+			if (cupCounts[ingredientId] or 0) > used then
+				satisfied = true
+				usedCounts[ingredientId] = used + 1
+			end
+
+			text = text .. "\n"
+			if satisfied == true then
+				text = text .. "[OK] "
+			else
+				text = text .. "[  ] "
+			end
+			text = text .. self:GetIngredientDisplayName(ingredientId)
+		end
+		return text
+	end
+
+	method string GetIngredientDisplayName(string ingredientId)
+		if ingredientId == "CoffeeShot" then
+			return "Coffee Shot"
+		end
+		local value = self:FindCellValue("IngredientData", ingredientId, "DisplayName")
+		if value ~= nil and value ~= "" then
+			return value
+		end
+		return ingredientId
 	end
 
 	method boolean ResolveRecord(table record, string drinkId)
@@ -612,11 +905,14 @@ script CustomerTableComponent extends Component
 			return
 		end
 		
+		component.CardBackgroundEntity = self:GetMatchingCloneChild(component.CardBackgroundEntity, spawnedRoot)
 		component.StateIconEntity = self:GetMatchingCloneChild(component.StateIconEntity, spawnedRoot)
 		component.CharacterIconEntity = self:GetMatchingCloneChild(component.CharacterIconEntity, spawnedRoot)
 		component.DrinkIconEntity = self:GetMatchingCloneChild(component.DrinkIconEntity, spawnedRoot)
 		component.TimeGaugeEntity = self:GetMatchingCloneChild(component.TimeGaugeEntity, spawnedRoot)
 		component.FlashEntity = self:GetMatchingCloneChild(component.FlashEntity, spawnedRoot)
+		component.OrderMemoBackgroundEntity = self:GetMatchingCloneChild(component.OrderMemoBackgroundEntity, spawnedRoot)
+		component.OrderMemoTextEntity = self:GetMatchingCloneChild(component.OrderMemoTextEntity, spawnedRoot)
 	end
 
 	method Entity GetMatchingCloneChild(Entity templateChild, Entity spawnedRoot)
@@ -749,6 +1045,13 @@ script CustomerTableComponent extends Component
 		end
 		
 		return ""
+	end
+
+	method string Trim(string value)
+		if value == nil then
+			return ""
+		end
+		return (string.gsub(value, "^%s*(.-)%s*$", "%1"))
 	end
 
 	method string PickDataSetId(string dataSetName, string fallback)

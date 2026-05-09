@@ -2,13 +2,20 @@
 script CustomerComponent extends Component
 
 	property Entity StateIconEntity = nil
+	property Entity CardBackgroundEntity = nil
 	property Entity CharacterIconEntity = nil
 	property Entity DrinkIconEntity = nil
 	property Entity TimeGaugeEntity = nil
 	property Entity FlashEntity = nil
+	property Entity OrderMemoBackgroundEntity = nil
+	property Entity OrderMemoTextEntity = nil
+	property string CustomerTablePath = "/ui/CustomerUIGroup/CustomerTable"
 
 	property number IconMaxSize = 100
 	property number StateIconMaxSize = 36
+	property Color CardNormalColor = Color(1.000, 1.000, 1.000, 1.000)
+	property Color CardSelectedColor = Color(1.000, 0.900, 0.420, 1.000)
+	property Color CardCandidateColor = Color(0.620, 0.900, 1.000, 1.000)
 
 	property number TimeGaugeLowRatio = 0.25
 	property number TimeGaugeHighRatio = 0.65
@@ -28,6 +35,7 @@ script CustomerComponent extends Component
 
 	method void OnEndPlay()
 		self:EnsureRuntime()
+		self:DisconnectClick()
 		self:StopGaugeTimer()
 		self:ClearFlashTimer()
 	end
@@ -57,7 +65,8 @@ script CustomerComponent extends Component
 			timeEndsAt = 0,
 			lastResolvePrice = 0,
 			flashTimerId = 0,
-			gaugeTimerId = 0
+			gaugeTimerId = 0,
+			clickHandler = nil
 		}
 	end
 
@@ -83,14 +92,90 @@ script CustomerComponent extends Component
 		self.Runtime.lastResolvePrice = 0
 		self.Runtime.state = "Waiting"
 
+		self:PrepareClickArea()
+		self:ConnectClick()
 		self:RefreshVisual()
 		self:HideFlash()
+		self:SetOrderHint(false, false, "", false)
 		self:StartGaugeTimer()
 	end
 
 	method boolean IsWaiting()
 		self:EnsureRuntime()
 		return self.Runtime.state == "Waiting"
+	end
+
+	method void PrepareClickArea()
+		self:SetRaycastTarget(self.CardBackgroundEntity, true)
+		self:SetRaycastTargetRecursive(self.CharacterIconEntity, false)
+		self:SetRaycastTargetRecursive(self.DrinkIconEntity, false)
+		self:SetRaycastTargetRecursive(self.TimeGaugeEntity, false)
+		self:SetRaycastTargetRecursive(self.FlashEntity, false)
+		self:SetRaycastTargetRecursive(self.OrderMemoBackgroundEntity, false)
+		self:SetRaycastTargetRecursive(self.OrderMemoTextEntity, false)
+	end
+
+	method void SetRaycastTargetRecursive(Entity entity, boolean raycastTarget)
+		if entity == nil then
+			return
+		end
+
+		self:SetRaycastTarget(entity, raycastTarget)
+		if entity.Children == nil then
+			return
+		end
+
+		for i = 1, #entity.Children do
+			self:SetRaycastTargetRecursive(entity.Children[i], raycastTarget)
+		end
+	end
+
+	method void SetRaycastTarget(Entity entity, boolean raycastTarget)
+		if entity == nil or entity.SpriteGUIRendererComponent == nil then
+			return
+		end
+
+		entity.SpriteGUIRendererComponent.RaycastTarget = raycastTarget
+	end
+
+	method void ConnectClick()
+		self:EnsureRuntime()
+		if self.CardBackgroundEntity == nil or self.Runtime.clickHandler ~= nil then
+			return
+		end
+
+		self.Runtime.clickHandler = self.CardBackgroundEntity:ConnectEvent(ButtonClickEvent, function()
+			self:OnClickCustomer()
+		end)
+	end
+
+	method void DisconnectClick()
+		self:EnsureRuntime()
+		if self.CardBackgroundEntity == nil or self.Runtime.clickHandler == nil then
+			return
+		end
+
+		self.CardBackgroundEntity:DisconnectEvent(ButtonClickEvent, self.Runtime.clickHandler)
+		self.Runtime.clickHandler = nil
+	end
+
+	method void OnClickCustomer()
+		local customerTable = self:GetCustomerTable()
+		if customerTable ~= nil then
+			customerTable:SelectCustomerComponent(self)
+		end
+	end
+
+	method any GetCustomerTable()
+		if self.CustomerTablePath == nil or self.CustomerTablePath == "" then
+			return nil
+		end
+
+		local tableEntity = _EntityService:GetEntityByPath(self.CustomerTablePath)
+		if tableEntity == nil then
+			return nil
+		end
+		return tableEntity.CustomerTableComponent
 	end
 
 	method number GetRemainingSeconds()
@@ -176,6 +261,41 @@ script CustomerComponent extends Component
 		self:SetIcon(self.StateIconEntity, self:GetStateIconRUID(), self.StateIconMaxSize, false)
 		self:SetIcon(self.DrinkIconEntity, self.Runtime.drinkIconRUID, self.IconMaxSize, true)
 		self:RefreshTimeGauge()
+	end
+
+	method void SetOrderHint(boolean selected, boolean candidate, string memoText, boolean showMemo)
+		self:SetCardColor(selected, candidate)
+		self:SetOrderMemo(memoText, showMemo)
+	end
+
+	method void SetCardColor(boolean selected, boolean candidate)
+		if self.CardBackgroundEntity == nil or self.CardBackgroundEntity.SpriteGUIRendererComponent == nil then
+			return
+		end
+
+		local color = self.CardNormalColor
+		if selected == true then
+			color = self.CardSelectedColor
+		elseif candidate == true then
+			color = self.CardCandidateColor
+		end
+		self.CardBackgroundEntity.SpriteGUIRendererComponent.Color = color
+	end
+
+	method void SetOrderMemo(string memoText, boolean showMemo)
+		self:SetEntityEnabled(self.OrderMemoBackgroundEntity, showMemo)
+		self:SetEntityEnabled(self.OrderMemoTextEntity, showMemo)
+		if self.OrderMemoTextEntity ~= nil and self.OrderMemoTextEntity.TextComponent ~= nil then
+			self.OrderMemoTextEntity.TextComponent.Text = memoText
+		end
+	end
+
+	method void SetEntityEnabled(Entity entity, boolean enabled)
+		if entity == nil then
+			return
+		end
+		entity.Enable = enabled
+		entity.Visible = enabled
 	end
 
 	method void RefreshTimeGauge()

@@ -24,7 +24,7 @@
           "enable": true,
           "visible": true,
           "localize": true,
-          "displayOrder": 7,
+          "displayOrder": 6,
           "pathConstraints": "//",
           "revision": 1,
           "origin": {
@@ -114,7 +114,7 @@
       {
         "id": "b8c5e810-1d42-4c62-a624-7a4413d90103",
         "path": "/ui/StartMenuGroup/TitleText",
-        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.TextComponent",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.TextComponent",
         "jsonString": {
           "name": "TitleText",
           "path": "/ui/StartMenuGroup/TitleText",
@@ -182,6 +182,11 @@
               "Enable": true
             },
             {
+              "@type": "MOD.Core.SpriteGUIRendererComponent",
+              "OverrideSorting": false,
+              "Enable": true
+            },
+            {
               "@type": "MOD.Core.TextComponent",
               "Alignment": 4,
               "Bold": true,
@@ -213,7 +218,7 @@
       {
         "id": "b8c5e810-1d42-4c62-a624-7a4413d90104",
         "path": "/ui/StartMenuGroup/SubText",
-        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.TextComponent",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.TextComponent",
         "jsonString": {
           "name": "SubText",
           "path": "/ui/StartMenuGroup/SubText",
@@ -278,6 +283,11 @@
                 "z": 0.0,
                 "w": 1.0
               },
+              "Enable": true
+            },
+            {
+              "@type": "MOD.Core.SpriteGUIRendererComponent",
+              "OverrideSorting": false,
               "Enable": true
             },
             {

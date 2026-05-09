@@ -13,6 +13,7 @@ script SelectionManagerFactory extends Logic
 			self.data = nil
 			gameManager:ClearSelectedButtonVisual()
 			gameManager:HideActionUI()
+			gameManager:ClearOrderPreview()
 		end
 		
 		function manager:Select(newState, newData, uiButton)
@@ -20,6 +21,9 @@ script SelectionManagerFactory extends Logic
 			self.state = newState
 			self.data = newData
 			gameManager:HideActionUI()
+			if newState ~= "PLACED_CUP" then
+				gameManager:ClearOrderPreview()
+			end
 			
 			if uiButton ~= nil then
 				gameManager:ShowSelectedButtonVisual(uiButton)
