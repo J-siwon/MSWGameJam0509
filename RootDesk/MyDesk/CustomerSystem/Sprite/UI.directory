@@ -1,20 +1,20 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "directory://cc1a7ecd4f764020ae7c8eeea4645daa",
+  "EntryKey": "directory://12fa90158a3f44c19e8fe4d3d455e4f5",
   "ContentType": "x-mod/directory",
   "Content": "",
   "Usage": 0,
   "UsePublish": 1,
   "UseService": 0,
   "CoreVersion": "26.3.0.0",
-  "StudioVersion": "0.1.0.0",
+  "StudioVersion": "",
   "DynamicLoading": 0,
   "ContentProto": {
     "Use": "Json",
     "Json": {
-      "entry_id": "directory://cc1a7ecd4f764020ae7c8eeea4645daa",
-      "name": "ImageResources",
+      "entry_id": "directory://12fa90158a3f44c19e8fe4d3d455e4f5",
+      "name": "UI",
       "lock": false,
       "folding": false,
       "nameEditable": true

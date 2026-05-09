@@ -62,8 +62,16 @@
           "@components": [
             {
               "@type": "MOD.Core.BackgroundComponent",
-              "TemplateRUID": "794ad8421e2543d8a6d2c70307637450",
-              "Type": 1,
+              "FitWithAspect": true,
+              "SolidColor": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 1.0
+              },
+              "SpriteRUID": "4f8d4419dc834b99940dc50ea2c1f56b",
+              "TemplateRUID": "4f8d4419dc834b99940dc50ea2c1f56b",
+              "Type": 2,
               "Enable": true
             }
           ],

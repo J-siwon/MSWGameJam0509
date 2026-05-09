@@ -51,13 +51,35 @@ script DayManager extends Component
 
 	property number DayIntroFadeSeconds = 1.2
 
+	property string DaySettlementGroupPath = "/ui/DaySettlementGroup"
+
+	property string SettlementTitleTextPath = "/ui/DaySettlementGroup/ReceiptPanel/TitleText"
+
+	property string SettlementPreviousTextPath = "/ui/DaySettlementGroup/ReceiptPanel/PreviousText"
+
+	property string SettlementEarnedTextPath = "/ui/DaySettlementGroup/ReceiptPanel/EarnedText"
+
+	property string SettlementTotalTextPath = "/ui/DaySettlementGroup/ReceiptPanel/TotalText"
+
+	property string SettlementFooterTextPath = "/ui/DaySettlementGroup/ReceiptPanel/FooterText"
+
+	property string SettlementButtonPath = "/ui/DaySettlementGroup/ReceiptPanel"
+
 	property TextComponent DayText = "7f9f3e00-6df2-4f4a-9b27-5650f0d90003"
+
+	property string DayTextPath = "/ui/DayInfoGroup/DayText"
 
 	property TextComponent MoneyText = "7f9f3e00-6df2-4f4a-9b27-5650f0d90005"
 
+	property string MoneyTextPath = "/ui/DayInfoGroup/MoneyText"
+
 	property TextComponent GoalText = "7f9f3e00-6df2-4f4a-9b27-5650f0d90006"
 
+	property string GoalTextPath = "/ui/DayInfoGroup/GoalText"
+
 	property TextComponent TimeText = "7f9f3e00-6df2-4f4a-9b27-5650f0d90004"
+
+	property string TimeTextPath = "/ui/DayInfoGroup/TimeText"
 
 	property ButtonComponent EndDayTestButton = "7f9f3e00-6df2-4f4a-9b27-5650f0d90007"
 
@@ -78,12 +100,50 @@ script DayManager extends Component
 	method void OnEndPlay()
 		self:EnsureRuntime()
 		self:DisconnectEndDayTestButton()
+		self:DisconnectSettlementClick()
 		self:ClearTimers()
 		self:StopCustomerTable()
+		self:HideDaySettlement()
 	end
 
 	method void EnsureRuntime()
 		if self.Runtime ~= nil then
+			if self.Runtime.settlementTimerId == nil then
+				self.Runtime.settlementTimerId = 0
+			end
+			if self.Runtime.settlementClickHandler == nil then
+				self.Runtime.settlementClickHandler = nil
+			end
+			if self.Runtime.rankingRecords == nil then
+				self.Runtime.rankingRecords = {}
+			end
+			if self.Runtime.storageWarningLogged == nil then
+				self.Runtime.storageWarningLogged = false
+			end
+			if self.Runtime.flowPaused == nil then
+				self.Runtime.flowPaused = false
+			end
+			if self.Runtime.pausedStatus == nil then
+				self.Runtime.pausedStatus = ""
+			end
+			if self.Runtime.nextDayTimerCallback == nil then
+				self.Runtime.nextDayTimerCallback = nil
+			end
+			if self.Runtime.nextDayTimerEndsAt == nil then
+				self.Runtime.nextDayTimerEndsAt = 0
+			end
+			if self.Runtime.nextDayTimerRemainingSeconds == nil then
+				self.Runtime.nextDayTimerRemainingSeconds = 0
+			end
+			if self.Runtime.introTimerCallback == nil then
+				self.Runtime.introTimerCallback = nil
+			end
+			if self.Runtime.introTimerEndsAt == nil then
+				self.Runtime.introTimerEndsAt = 0
+			end
+			if self.Runtime.introTimerRemainingSeconds == nil then
+				self.Runtime.introTimerRemainingSeconds = 0
+			end
 			return
 		end
 		
@@ -102,6 +162,17 @@ script DayManager extends Component
 			nextDayTimerId = 0,
 			introTimerId = 0,
 			introFadeTimerId = 0,
+			settlementTimerId = 0,
+			flowPaused = false,
+			pausedStatus = "",
+			nextDayTimerCallback = nil,
+			nextDayTimerEndsAt = 0,
+			nextDayTimerRemainingSeconds = 0,
+			introTimerCallback = nil,
+			introTimerEndsAt = 0,
+			introTimerRemainingSeconds = 0,
+			settlementClickHandler = nil,
+			settlementContinue = nil,
 			rankingRecords = {},
 			endDayTestHandler = nil,
 			savedDay = 1,
@@ -167,6 +238,7 @@ script DayManager extends Component
 		self:EnsureRuntime()
 		self:ClearTimers()
 		self:StopCustomerTable()
+		self:HideDaySettlement()
 		self:ResetServiceStateForDay()
 		
 		local playableDay = self:GetPlayableDay(day)
@@ -182,17 +254,21 @@ script DayManager extends Component
 		end, false)
 	end
 
-	method void StartNextDayWithIntro(number day)
+	method void StartNextDayWithIntro(number day, number settlementDay, number previousTotal, number earnedMoney, number totalAfter)
 		self:EnsureRuntime()
 		self:ClearTimers()
 
 		local playableDay = self:GetPlayableDay(day)
 		self.Runtime.status = "Transitioning"
 
-		self:ShowDayTransitionIntro(playableDay, function()
+		self:ShowDaySettlementIntro(settlementDay, previousTotal, earnedMoney, totalAfter, function()
 			self:ResetDayBehindIntro(playableDay)
-		end, function()
-			self:StartDay(playableDay)
+			if self.DayIntroText ~= nil then
+				self.DayIntroText.Text = "DAY " .. tostring(playableDay)
+			end
+			self:HoldDayIntro(function()
+				self:StartDay(playableDay)
+			end)
 		end)
 	end
 
@@ -253,6 +329,185 @@ script DayManager extends Component
 		self:HoldDayIntro(onFinished)
 	end
 
+	method void ShowDaySettlementIntro(number settlementDay, number previousTotal, number earnedMoney, number totalAfter, any onFinished)
+		if self.DayIntroGroup == nil or self.DayIntroCanvasGroup == nil then
+			self:ShowDaySettlement(settlementDay, previousTotal, earnedMoney, totalAfter, onFinished)
+			return
+		end
+
+		if self.DayIntroText ~= nil then
+			self.DayIntroText.Text = ""
+		end
+
+		self.DayIntroGroup.Enable = true
+		self.DayIntroGroup.Visible = true
+		self.DayIntroCanvasGroup.GroupAlpha = 0
+
+		self:FadeInDayIntro(function()
+			self:ShowDaySettlement(settlementDay, previousTotal, earnedMoney, totalAfter, onFinished)
+		end)
+	end
+
+	method void ShowDaySettlement(number settlementDay, number previousTotal, number earnedMoney, number totalAfter, any onFinished)
+		self:UpdateDaySettlementText(settlementDay, previousTotal, earnedMoney, totalAfter)
+
+		local settlementGroup = self:GetDaySettlementGroup()
+		if settlementGroup == nil then
+			if onFinished ~= nil then
+				onFinished()
+			end
+			return
+		end
+
+		if self.Runtime.settlementTimerId > 0 then
+			_TimerService:ClearTimer(self.Runtime.settlementTimerId)
+			self.Runtime.settlementTimerId = 0
+		end
+
+		settlementGroup.Enable = true
+		settlementGroup.Visible = true
+		if settlementGroup.CanvasGroupComponent ~= nil then
+			settlementGroup.CanvasGroupComponent.GroupAlpha = 1
+			settlementGroup.CanvasGroupComponent.BlocksRaycasts = true
+			settlementGroup.CanvasGroupComponent.Interactable = true
+		end
+
+		self.Runtime.status = "Settlement"
+		self:ConnectSettlementClick(onFinished)
+	end
+
+	method void ConnectSettlementClick(any onFinished)
+		self:DisconnectSettlementClick()
+		self.Runtime.settlementContinue = onFinished
+
+		local button = self:GetSettlementButton()
+		if button == nil then
+			log("DayManager: settlement button is not found.")
+			return
+		end
+
+		self.Runtime.settlementClickHandler = button.Entity:ConnectEvent(ButtonClickEvent, function()
+			self:OnClickSettlementContinue()
+		end)
+	end
+
+	method void DisconnectSettlementClick()
+		if self.Runtime == nil or self.Runtime.settlementClickHandler == nil then
+			return
+		end
+
+		local button = self:GetSettlementButton()
+		if button ~= nil then
+			button.Entity:DisconnectEvent(ButtonClickEvent, self.Runtime.settlementClickHandler)
+		end
+
+		self.Runtime.settlementClickHandler = nil
+	end
+
+	method void OnClickSettlementContinue()
+		self:EnsureRuntime()
+		if self.Runtime.status ~= "Settlement" then
+			return
+		end
+
+		local onFinished = self.Runtime.settlementContinue
+		self.Runtime.settlementContinue = nil
+		self:DisconnectSettlementClick()
+		self:HideDaySettlement()
+
+		if onFinished ~= nil then
+			onFinished()
+		end
+	end
+
+	method ButtonComponent GetSettlementButton()
+		local path = self.SettlementButtonPath
+		if path == nil or path == "" then
+			path = "/ui/DaySettlementGroup/ReceiptPanel"
+		end
+
+		local entity = _EntityService:GetEntityByPath(path)
+		if entity == nil then
+			return nil
+		end
+
+		return entity.ButtonComponent
+	end
+
+	method void UpdateDaySettlementText(number settlementDay, number previousTotal, number earnedMoney, number totalAfter)
+		local titlePath = self.SettlementTitleTextPath
+		if titlePath == nil or titlePath == "" then
+			titlePath = "/ui/DaySettlementGroup/ReceiptPanel/TitleText"
+		end
+		local previousPath = self.SettlementPreviousTextPath
+		if previousPath == nil or previousPath == "" then
+			previousPath = "/ui/DaySettlementGroup/ReceiptPanel/PreviousText"
+		end
+		local earnedPath = self.SettlementEarnedTextPath
+		if earnedPath == nil or earnedPath == "" then
+			earnedPath = "/ui/DaySettlementGroup/ReceiptPanel/EarnedText"
+		end
+		local totalPath = self.SettlementTotalTextPath
+		if totalPath == nil or totalPath == "" then
+			totalPath = "/ui/DaySettlementGroup/ReceiptPanel/TotalText"
+		end
+		local footerPath = self.SettlementFooterTextPath
+		if footerPath == nil or footerPath == "" then
+			footerPath = "/ui/DaySettlementGroup/ReceiptPanel/FooterText"
+		end
+
+		self:SetSettlementText(titlePath, "DAY " .. tostring(settlementDay) .. " 정산서")
+		self:SetSettlementText(previousPath, "이전 누적 골드     " .. self:FormatGold(previousTotal))
+		self:SetSettlementText(earnedPath, "오늘 번 골드       +" .. self:FormatGold(earnedMoney))
+		self:SetSettlementText(totalPath, "합계               " .. self:FormatGold(totalAfter))
+
+		local footer = "클릭해서 계속"
+		if settlementDay >= self.MaxDay then
+			footer = "클릭해서 결과 보기"
+		end
+		self:SetSettlementText(footerPath, footer)
+	end
+
+	method void HideDaySettlement()
+		local settlementGroup = self:GetDaySettlementGroup()
+		if settlementGroup == nil then
+			return
+		end
+
+		settlementGroup.Enable = false
+		settlementGroup.Visible = false
+		if settlementGroup.CanvasGroupComponent ~= nil then
+			settlementGroup.CanvasGroupComponent.BlocksRaycasts = false
+			settlementGroup.CanvasGroupComponent.Interactable = false
+		end
+	end
+
+	method Entity GetDaySettlementGroup()
+		local path = self.DaySettlementGroupPath
+		if path == nil or path == "" then
+			path = "/ui/DaySettlementGroup"
+		end
+
+		return _EntityService:GetEntityByPath(path)
+	end
+
+	method void SetSettlementText(string path, string text)
+		if path == nil or path == "" then
+			return
+		end
+
+		local entity = _EntityService:GetEntityByPath(path)
+		if entity == nil or entity.TextComponent == nil then
+			return
+		end
+
+		entity.TextComponent.Text = text
+	end
+
+	method string FormatGold(number amount)
+		return tostring(math.max(0, math.floor((amount or 0) + 0.5))) .. "G"
+	end
+
 	method void ShowDayTransitionIntro(number day, any onCovered, any onFinished)
 		if self.DayIntroGroup == nil or self.DayIntroCanvasGroup == nil then
 			if onCovered ~= nil then
@@ -305,11 +560,10 @@ script DayManager extends Component
 
 	method void HoldDayIntro(any onFinished)
 		local finishHold = function()
-			self.Runtime.introTimerId = 0
 			self:FadeOutDayIntro(onFinished)
 		end
 		
-		self.Runtime.introTimerId = _TimerService:SetTimerOnce(finishHold, math.max(0, self.DayIntroHoldSeconds))
+		self:SetIntroHoldTimer(finishHold, math.max(0, self.DayIntroHoldSeconds))
 	end
 
 	method void FadeInDayIntro(any onFinished)
@@ -331,6 +585,11 @@ script DayManager extends Component
 		
 		local fade = function()
 			local now = _UtilLogic.ElapsedSeconds
+			if self:IsFlowPaused() == true then
+				previousTime = now
+				return
+			end
+
 			elapsed = elapsed + now - previousTime
 			previousTime = now
 		
@@ -369,6 +628,11 @@ script DayManager extends Component
 		
 		local fade = function()
 			local now = _UtilLogic.ElapsedSeconds
+			if self:IsFlowPaused() == true then
+				previousTime = now
+				return
+			end
+
 			elapsed = elapsed + now - previousTime
 			previousTime = now
 		
@@ -429,25 +693,32 @@ script DayManager extends Component
 
 	method void ClearCurrentDay()
 		self.Runtime.status = "DayCleared"
-		self.Runtime.totalMoney = self.Runtime.totalMoney + self.Runtime.money
+		local earnedMoney = self.Runtime.money
+		local previousTotal = self.Runtime.totalMoney
+		self.Runtime.totalMoney = previousTotal + earnedMoney
+		local totalAfter = self.Runtime.totalMoney
 		self:SaveProgressDay(self.Runtime.day + 1)
 		self:ClearTimers()
 		self:PauseCustomerTableForTransition()
 		self:RefreshHud()
 		
-		log("Day " .. tostring(self.Runtime.day) .. " cleared. Earned: " .. tostring(self.Runtime.money))
+		log("Day " .. tostring(self.Runtime.day) .. " cleared. Earned: " .. tostring(earnedMoney))
 		
 		if self.Runtime.day >= self.MaxDay then
-			self:FinishGame()
+			local finishGame = function()
+				self:FinishGame()
+			end
+			self:SetNextDayTimer(function()
+				self:ShowDaySettlementIntro(self.Runtime.day, previousTotal, earnedMoney, totalAfter, finishGame)
+			end, math.max(0, self.NextDayDelaySeconds))
 			return
 		end
 		
 		if self.AutoAdvanceDay == true then
 			local nextDay = function()
-				self.Runtime.nextDayTimerId = 0
-				self:StartNextDayWithIntro(self.Runtime.day + 1)
+				self:StartNextDayWithIntro(self.Runtime.day + 1, self.Runtime.day, previousTotal, earnedMoney, totalAfter)
 			end
-			self.Runtime.nextDayTimerId = _TimerService:SetTimerOnce(nextDay, math.max(0, self.NextDayDelaySeconds))
+			self:SetNextDayTimer(nextDay, math.max(0, self.NextDayDelaySeconds))
 		end
 	end
 
@@ -503,6 +774,7 @@ script DayManager extends Component
 	method void ReturnToMainMenu()
 		self:ClearTimers()
 		self:StopCustomerTable()
+		self:HideDaySettlement()
 		self:ResetServiceStateForDay()
 		self.Runtime.status = "Ready"
 		self:RefreshHud()
@@ -878,34 +1150,90 @@ script DayManager extends Component
 		return self.Runtime.status == "Playing"
 	end
 
-	method boolean PauseDayTimer()
+	method boolean IsFlowPaused()
 		self:EnsureRuntime()
-		if self.Runtime.status ~= "Playing" then
+		return self.Runtime.flowPaused == true
+	end
+
+	method boolean CanPauseFlowStatus(string status)
+		if status == "Playing" then
+			return true
+		end
+		if status == "Intro" then
+			return true
+		end
+		if status == "Transitioning" then
+			return true
+		end
+		if status == "DayCleared" then
+			return true
+		end
+		if status == "Settlement" then
+			return true
+		end
+
+		return false
+	end
+
+	method boolean PauseGameFlow()
+		self:EnsureRuntime()
+		if self.Runtime.flowPaused == true or self.Runtime.status == "Paused" then
+			return true
+		end
+
+		local status = self.Runtime.status
+		if self:CanPauseFlowStatus(status) == false then
 			return false
 		end
 
-		self.Runtime.pausedRemainingSeconds = self:GetRemainingSeconds()
+		self.Runtime.flowPaused = true
+		self.Runtime.pausedStatus = status
 		self.Runtime.pausedStartedAt = _UtilLogic.ElapsedSeconds
+		if status == "Playing" then
+			self.Runtime.pausedRemainingSeconds = self:GetRemainingSeconds()
+			self:ClearTickTimer()
+		end
+
+		self:PauseScheduledTimers()
 		self.Runtime.status = "Paused"
-		self:ClearTickTimer()
 		self:RefreshHud()
 		return true
 	end
 
-	method boolean ResumeDayTimer()
+	method boolean ResumeGameFlow()
 		self:EnsureRuntime()
-		if self.Runtime.status ~= "Paused" then
+		if self.Runtime.flowPaused ~= true and self.Runtime.status ~= "Paused" then
 			return false
 		end
 
-		self.Runtime.endsAt = _UtilLogic.ElapsedSeconds + math.max(0, self.Runtime.pausedRemainingSeconds)
-		self.Runtime.startedAt = self.Runtime.endsAt - self.Runtime.durationSeconds
-		self.Runtime.status = "Playing"
-		self.Runtime.pausedRemainingSeconds = 0
+		local previousStatus = self.Runtime.pausedStatus
+		if previousStatus == nil or previousStatus == "" then
+			previousStatus = "Playing"
+		end
+
+		self.Runtime.flowPaused = false
+		self.Runtime.pausedStatus = ""
+		self.Runtime.status = previousStatus
 		self.Runtime.pausedStartedAt = 0
-		self:StartTickTimer()
+
+		if previousStatus == "Playing" then
+			self.Runtime.endsAt = _UtilLogic.ElapsedSeconds + math.max(0, self.Runtime.pausedRemainingSeconds)
+			self.Runtime.startedAt = self.Runtime.endsAt - self.Runtime.durationSeconds
+			self.Runtime.pausedRemainingSeconds = 0
+			self:StartTickTimer()
+		end
+
+		self:ResumeScheduledTimers()
 		self:RefreshHud()
 		return true
+	end
+
+	method boolean PauseDayTimer()
+		return self:PauseGameFlow()
+	end
+
+	method boolean ResumeDayTimer()
+		return self:ResumeGameFlow()
 	end
 
 	method void AddMoney(number amount)
@@ -937,18 +1265,45 @@ script DayManager extends Component
 	method void RefreshHud()
 		self:EnsureRuntime()
 		
-		if self.DayText ~= nil then
-			self.DayText.Text = "Day " .. tostring(math.max(1, self.Runtime.day)) .. " / " .. tostring(self.MaxDay)
+		local dayText = self:GetHudText(self.DayText, self.DayTextPath, "DayText")
+		if dayText ~= nil then
+			dayText.Text = "Day " .. tostring(math.max(1, self.Runtime.day)) .. " / " .. tostring(self.MaxDay)
 		end
-		if self.MoneyText ~= nil then
-			self.MoneyText.Text = "$" .. tostring(self.Runtime.money)
+		local moneyText = self:GetHudText(self.MoneyText, self.MoneyTextPath, "MoneyText")
+		if moneyText ~= nil then
+			moneyText.Text = "$" .. tostring(self.Runtime.money)
 		end
-		if self.GoalText ~= nil then
-			self.GoalText.Text = "Goal $" .. tostring(self.Runtime.goalMoney)
+		local goalText = self:GetHudText(self.GoalText, self.GoalTextPath, "GoalText")
+		if goalText ~= nil then
+			goalText.Text = "Goal $" .. tostring(self.Runtime.goalMoney)
 		end
-		if self.TimeText ~= nil then
-			self.TimeText.Text = self:FormatTime(self:GetRemainingSeconds())
+		local timeText = self:GetHudText(self.TimeText, self.TimeTextPath, "TimeText")
+		if timeText ~= nil then
+			timeText.Text = self:FormatTime(self:GetRemainingSeconds())
 		end
+	end
+
+	method TextComponent GetHudText(TextComponent directText, string path, string fallbackName)
+		if directText ~= nil then
+			return directText
+		end
+		if path ~= nil and path ~= "" then
+			local entity = _EntityService:GetEntityByPath(path)
+			if entity ~= nil then
+				return entity.TextComponent
+			end
+		end
+
+		if fallbackName == nil or fallbackName == "" then
+			return nil
+		end
+
+		local entity = _EntityService:GetEntityByPath("/ui/" .. fallbackName)
+		if entity == nil then
+			return nil
+		end
+
+		return entity.TextComponent
 	end
 
 	method string FormatTime(number seconds)
@@ -1012,6 +1367,101 @@ script DayManager extends Component
 		return nil
 	end
 
+	method void SetNextDayTimer(any callback, number delaySeconds)
+		self:EnsureRuntime()
+		if self.Runtime.nextDayTimerId > 0 then
+			_TimerService:ClearTimer(self.Runtime.nextDayTimerId)
+			self.Runtime.nextDayTimerId = 0
+		end
+
+		local delay = math.max(0, delaySeconds or 0)
+		self.Runtime.nextDayTimerCallback = callback
+		self.Runtime.nextDayTimerRemainingSeconds = delay
+		self.Runtime.nextDayTimerEndsAt = _UtilLogic.ElapsedSeconds + delay
+		self.Runtime.nextDayTimerId = _TimerService:SetTimerOnce(function()
+			local timerCallback = self.Runtime.nextDayTimerCallback
+			self.Runtime.nextDayTimerId = 0
+			self.Runtime.nextDayTimerCallback = nil
+			self.Runtime.nextDayTimerEndsAt = 0
+			self.Runtime.nextDayTimerRemainingSeconds = 0
+			if timerCallback ~= nil then
+				timerCallback()
+			end
+		end, delay)
+	end
+
+	method void SetIntroHoldTimer(any callback, number delaySeconds)
+		self:EnsureRuntime()
+		if self.Runtime.introTimerId > 0 then
+			_TimerService:ClearTimer(self.Runtime.introTimerId)
+			self.Runtime.introTimerId = 0
+		end
+
+		local delay = math.max(0, delaySeconds or 0)
+		self.Runtime.introTimerCallback = callback
+		self.Runtime.introTimerRemainingSeconds = delay
+		self.Runtime.introTimerEndsAt = _UtilLogic.ElapsedSeconds + delay
+		self.Runtime.introTimerId = _TimerService:SetTimerOnce(function()
+			local timerCallback = self.Runtime.introTimerCallback
+			self.Runtime.introTimerId = 0
+			self.Runtime.introTimerCallback = nil
+			self.Runtime.introTimerEndsAt = 0
+			self.Runtime.introTimerRemainingSeconds = 0
+			if timerCallback ~= nil then
+				timerCallback()
+			end
+		end, delay)
+	end
+
+	method void PauseScheduledTimers()
+		self:EnsureRuntime()
+		local now = _UtilLogic.ElapsedSeconds
+
+		if self.Runtime.nextDayTimerId > 0 then
+			_TimerService:ClearTimer(self.Runtime.nextDayTimerId)
+			self.Runtime.nextDayTimerId = 0
+			self.Runtime.nextDayTimerRemainingSeconds = math.max(0, self.Runtime.nextDayTimerEndsAt - now)
+		end
+
+		if self.Runtime.introTimerId > 0 then
+			_TimerService:ClearTimer(self.Runtime.introTimerId)
+			self.Runtime.introTimerId = 0
+			self.Runtime.introTimerRemainingSeconds = math.max(0, self.Runtime.introTimerEndsAt - now)
+		end
+	end
+
+	method void ResumeScheduledTimers()
+		self:EnsureRuntime()
+
+		if self.Runtime.nextDayTimerCallback ~= nil and self.Runtime.nextDayTimerId <= 0 then
+			local callback = self.Runtime.nextDayTimerCallback
+			local remainingSeconds = math.max(0, self.Runtime.nextDayTimerRemainingSeconds)
+			if remainingSeconds <= 0 then
+				self.Runtime.nextDayTimerCallback = nil
+				self.Runtime.nextDayTimerEndsAt = 0
+				self.Runtime.nextDayTimerRemainingSeconds = 0
+				callback()
+				return
+			end
+
+			self:SetNextDayTimer(callback, remainingSeconds)
+		end
+
+		if self.Runtime.introTimerCallback ~= nil and self.Runtime.introTimerId <= 0 then
+			local callback = self.Runtime.introTimerCallback
+			local remainingSeconds = math.max(0, self.Runtime.introTimerRemainingSeconds)
+			if remainingSeconds <= 0 then
+				self.Runtime.introTimerCallback = nil
+				self.Runtime.introTimerEndsAt = 0
+				self.Runtime.introTimerRemainingSeconds = 0
+				callback()
+				return
+			end
+
+			self:SetIntroHoldTimer(callback, remainingSeconds)
+		end
+	end
+
 	method void ClearTimers()
 		self:EnsureRuntime()
 		self:ClearTickTimer()
@@ -1019,14 +1469,26 @@ script DayManager extends Component
 			_TimerService:ClearTimer(self.Runtime.nextDayTimerId)
 			self.Runtime.nextDayTimerId = 0
 		end
+		self.Runtime.nextDayTimerCallback = nil
+		self.Runtime.nextDayTimerEndsAt = 0
+		self.Runtime.nextDayTimerRemainingSeconds = 0
 		if self.Runtime.introTimerId > 0 then
 			_TimerService:ClearTimer(self.Runtime.introTimerId)
 			self.Runtime.introTimerId = 0
 		end
+		self.Runtime.introTimerCallback = nil
+		self.Runtime.introTimerEndsAt = 0
+		self.Runtime.introTimerRemainingSeconds = 0
 		if self.Runtime.introFadeTimerId > 0 then
 			_TimerService:ClearTimer(self.Runtime.introFadeTimerId)
 			self.Runtime.introFadeTimerId = 0
 		end
+		if self.Runtime.settlementTimerId > 0 then
+			_TimerService:ClearTimer(self.Runtime.settlementTimerId)
+			self.Runtime.settlementTimerId = 0
+		end
+		self:DisconnectSettlementClick()
+		self.Runtime.settlementContinue = nil
 	end
 
 	method void ClearTickTimer()

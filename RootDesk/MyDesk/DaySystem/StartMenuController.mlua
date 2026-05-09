@@ -17,6 +17,8 @@ script StartMenuController extends Component
 
 	property Entity DayIntroGroup = "a31f4e4e-7a9a-4ac5-8b8a-1e2b74d90101"
 
+	property string DaySettlementGroupPath = "/ui/DaySettlementGroup"
+
 	property Entity PauseGroup = "f7a28b22-9bd0-4f20-a7d5-c28c0f090101"
 
 	property string LeaderboardPath = "/ui/StartMenuGroup/Leaderboard"
@@ -166,6 +168,11 @@ script StartMenuController extends Component
 		self:SetEntityEnabled(self.DayInfoGroup, false)
 		self:SetEntityEnabled(self.DayIntroGroup, false)
 		self:SetEntityEnabled(self.PauseGroup, false)
+		local settlementPath = self.DaySettlementGroupPath
+		if settlementPath == nil or settlementPath == "" then
+			settlementPath = "/ui/DaySettlementGroup"
+		end
+		self:SetEntityEnabled(_EntityService:GetEntityByPath(settlementPath), false)
 	end
 
 	method void RefreshContinueButton()

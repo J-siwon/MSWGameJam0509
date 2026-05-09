@@ -24,7 +24,7 @@
           "enable": true,
           "visible": true,
           "localize": true,
-          "displayOrder": 6,
+          "displayOrder": 5,
           "pathConstraints": "//",
           "revision": 1,
           "origin": {
@@ -61,8 +61,8 @@
                 "y": 0.5
               },
               "RectSize": {
-                "x": 1920.0,
-                "y": 1080.0
+                "x": 2076.923,
+                "y": 1021.84613
               },
               "UIMode": 1,
               "UIScale": {
@@ -746,23 +746,23 @@
           "@components": [
             {
               "@type": "MOD.Core.UITransformComponent",
-              "AlignmentOption": 5,
+              "AlignmentOption": 0,
               "AnchorsMax": {
-                "x": 1.0,
-                "y": 1.0
+                "x": 0.5,
+                "y": 0.5
               },
               "AnchorsMin": {
-                "x": 1.0,
-                "y": 1.0
+                "x": 0.5,
+                "y": 0.5
               },
               "MobileOnly": false,
               "OffsetMax": {
-                "x": -1484.49487,
-                "y": -606.4396
+                "x": -524.4949,
+                "y": -66.4395752
               },
               "OffsetMin": {
-                "x": -1854.49487,
-                "y": -1033.43958
+                "x": -894.4949,
+                "y": -493.439575
               },
               "Pivot": {
                 "x": 0.5,
@@ -780,8 +780,8 @@
               },
               "UIVersion": 2,
               "anchoredPosition": {
-                "x": -1669.49487,
-                "y": -819.9396
+                "x": -709.4949,
+                "y": -279.939575
               },
               "Position": {
                 "x": -709.4949,
