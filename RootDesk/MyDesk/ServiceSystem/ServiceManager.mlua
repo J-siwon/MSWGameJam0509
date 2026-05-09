@@ -19,6 +19,8 @@ script ServiceManager extends Logic
 
 	property any progressTimerIds = nil
 
+	property any progressTimerTargets = nil
+
 	property boolean IsPaused = false
 
 	property string cupImageRUID = "95c000a4a32d9e74392498f59cd99651"
