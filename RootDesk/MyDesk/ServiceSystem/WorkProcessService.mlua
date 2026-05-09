@@ -3,6 +3,7 @@ script WorkProcessService extends Logic
 
 	method void Initialize(any gameManager)
 		gameManager.progressTimerIds = {}
+		gameManager.progressTimerTargets = {}
 	end
 
 	method void StartPrepIngredientSlot(any gameManager, any slot)
@@ -94,6 +95,7 @@ script WorkProcessService extends Logic
 	method void StartProgressTimer(any gameManager, string timerKey, any target, number duration, any onFinished)
 		-- TODO: timerKey currently uses process-type keys, so simultaneous same-type processes can cancel each other. Split by target id in a behavior-changing pass.
 		self:ClearProgressTimer(gameManager, timerKey)
+		gameManager.progressTimerTargets[timerKey] = target
 		
 		local time = 0
 		local preTime = _UtilLogic.ElapsedSeconds
@@ -128,22 +130,66 @@ script WorkProcessService extends Logic
 		if gameManager.progressTimerIds == nil then
 			gameManager.progressTimerIds = {}
 		end
+		if gameManager.progressTimerTargets == nil then
+			gameManager.progressTimerTargets = {}
+		end
 		
 		local timerId = gameManager.progressTimerIds[timerKey]
 		if timerId ~= nil and timerId ~= 0 then
 			_TimerService:ClearTimer(timerId)
 		end
 		
+		local target = gameManager.progressTimerTargets[timerKey]
+		if target ~= nil then
+			self:SetPrepSlotProgress(target, 0)
+		end
+
 		gameManager.progressTimerIds[timerKey] = 0
+		gameManager.progressTimerTargets[timerKey] = nil
 	end
 
 	method void SetPrepSlotProgress(any slot, number progress)
 		if slot == nil or slot.uiButton == nil then
 			return
 		end
-		
+
+		local timerBar = self:GetTimerBarEntity(slot)
+		if timerBar ~= nil then
+			self:SetTimerBarProgress(timerBar, progress)
+			return
+		end
+
 		local sprite = slot.uiButton.Entity.SpriteGUIRendererComponent
-		sprite.FillAmount = progress
+		if sprite ~= nil then
+			sprite.FillAmount = progress
+		end
+	end
+
+	method Entity GetTimerBarEntity(any slot)
+		if slot == nil or slot.uiButton == nil or slot.uiButton.Entity == nil then
+			return nil
+		end
+
+		return slot.uiButton.Entity:GetChildByName("TimerBar", true)
+	end
+
+	method void SetTimerBarProgress(Entity timerBar, number progress)
+		if timerBar == nil then
+			return
+		end
+
+		local clampedProgress = math.max(0, math.min(progress, 1))
+		timerBar.Enable = clampedProgress > 0
+
+		local sprite = timerBar.SpriteGUIRendererComponent
+		if sprite == nil then
+			return
+		end
+
+		sprite.Type = ImageType.Filled
+		sprite.FillMethod = FillMethodType.Horizontal
+		sprite.FillOrigin = 0
+		sprite.FillAmount = clampedProgress
 	end
 
 end

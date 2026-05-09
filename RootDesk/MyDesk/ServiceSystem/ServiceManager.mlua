@@ -19,6 +19,8 @@ script ServiceManager extends Logic
 
 	property any progressTimerIds = nil
 
+	property any progressTimerTargets = nil
+
 	property boolean IsPaused = false
 
 	property string cupImageRUID = "95c000a4a32d9e74392498f59cd99651"
@@ -163,6 +165,7 @@ script ServiceManager extends Logic
 		
 		log("WorkProcessService is not loaded.")
 		self.progressTimerIds = {}
+		self.progressTimerTargets = {}
 	end
 
 	method void ResetServiceStateForDay()
@@ -200,8 +203,14 @@ script ServiceManager extends Logic
 				end
 			end
 		end
+		if self.progressTimerTargets ~= nil and _WorkProcessService ~= nil then
+			for timerKey, target in pairs(self.progressTimerTargets) do
+				_WorkProcessService:SetPrepSlotProgress(target, 0)
+			end
+		end
 
 		self.progressTimerIds = {}
+		self.progressTimerTargets = {}
 	end
 
 	method void BindSlotButtons()
