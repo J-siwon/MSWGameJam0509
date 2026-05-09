@@ -3,6 +3,8 @@ script DataFactory extends Logic
 
 	property string IngredientDataSetName = "IngredientData"
 
+	property string IngredientImageMapDataSetName = "IngredientImageMap"
+
 	property string MixerRecipeDataSetName = "MixerRecipeData"
 
 	method any CreateGameData()
@@ -11,6 +13,7 @@ script DataFactory extends Logic
 			IngredientSlots = self:CreateIngredientSlots(),
 			CupSlots = self:CreateCupSlots(),
 			IngredientDefs = ingredientDefs,
+			IngredientImageMap = self:CreateIngredientImageMap(ingredientDefs),
 			IngredientButtonIds = self:CreateIngredientButtonIds(ingredientDefs),
 			MixerRecipes = self:CreateMixerRecipes(),
 			Mixers = self:CreateMixers(),
@@ -118,6 +121,63 @@ script DataFactory extends Logic
 		end
 		
 		return ingredientButtonIds
+	end
+
+	method any CreateIngredientImageMap(any ingredientDefs)
+		local imageMap = self:CreateIngredientImageMapFromDataSet()
+		if imageMap == nil then
+			imageMap = {}
+		end
+		
+		if ingredientDefs ~= nil then
+			for ingredientId, ingredientDef in pairs(ingredientDefs) do
+				if imageMap[ingredientId] == nil then
+					imageMap[ingredientId] = {}
+				end
+				
+				if imageMap[ingredientId].prepImageRUID == nil or imageMap[ingredientId].prepImageRUID == "" then
+					imageMap[ingredientId].prepImageRUID = ingredientDef.imageRUID
+				end
+				if imageMap[ingredientId].cupLayerImageRUID == nil or imageMap[ingredientId].cupLayerImageRUID == "" then
+					imageMap[ingredientId].cupLayerImageRUID = imageMap[ingredientId].prepImageRUID
+				end
+				if imageMap[ingredientId].mixerImageRUID == nil or imageMap[ingredientId].mixerImageRUID == "" then
+					imageMap[ingredientId].mixerImageRUID = imageMap[ingredientId].prepImageRUID
+				end
+			end
+		end
+		
+		return imageMap
+	end
+
+	method any CreateIngredientImageMapFromDataSet()
+		if _EntryService == nil or _DataService == nil then
+			return nil
+		end
+		
+		local dataSetId = _EntryService:GetDataSetIdByName(self.IngredientImageMapDataSetName)
+		if dataSetId == nil or dataSetId == "" then
+			return nil
+		end
+		
+		local rowCount = _DataService:GetRowCount(self.IngredientImageMapDataSetName)
+		if rowCount <= 0 then
+			return nil
+		end
+		
+		local imageMap = {}
+		for rowIndex = 1, rowCount do
+			local ingredientId = self:Trim(_DataService:GetCell(self.IngredientImageMapDataSetName, rowIndex, "IngredientId"))
+			if ingredientId ~= "" then
+				imageMap[ingredientId] = {
+					prepImageRUID = self:Trim(_DataService:GetCell(self.IngredientImageMapDataSetName, rowIndex, "PrepImageRUID")),
+					cupLayerImageRUID = self:Trim(_DataService:GetCell(self.IngredientImageMapDataSetName, rowIndex, "CupLayerImageRUID")),
+					mixerImageRUID = self:Trim(_DataService:GetCell(self.IngredientImageMapDataSetName, rowIndex, "MixerImageRUID")),
+				}
+			end
+		end
+		
+		return imageMap
 	end
 
 	method any CreateMixerRecipes()

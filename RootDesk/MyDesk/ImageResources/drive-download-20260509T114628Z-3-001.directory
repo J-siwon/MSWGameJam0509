@@ -1,7 +1,7 @@
 {
   "Id": "",
   "GameId": "",
-  "EntryKey": "directory://db0163d4a67048569d98a1bcb6f38440",
+  "EntryKey": "directory://d3581334ccc6468abf3c3b373bf0a0f6",
   "ContentType": "x-mod/directory",
   "Content": "",
   "Usage": 0,
@@ -13,8 +13,8 @@
   "ContentProto": {
     "Use": "Json",
     "Json": {
-      "entry_id": "directory://db0163d4a67048569d98a1bcb6f38440",
-      "name": "Character",
+      "entry_id": "directory://d3581334ccc6468abf3c3b373bf0a0f6",
+      "name": "drive-download-20260509T114628Z-3-001",
       "lock": false,
       "folding": false,
       "nameEditable": true
