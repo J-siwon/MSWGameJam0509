@@ -16,13 +16,28 @@ script UISlotViewService extends Logic
 		self:SetEntityImage(slot.uiButton.Entity, imageRUID)
 	end
 
+	method void SetSlotImageNativeSize(any slot, string imageRUID)
+		if slot == nil or slot.uiButton == nil then
+			return
+		end
+
+		local iconEntity = self:GetSlotIconEntity(slot)
+		if iconEntity ~= nil then
+			self:SetEntityImageNativeSize(iconEntity, imageRUID)
+			iconEntity.Enable = imageRUID ~= nil and imageRUID ~= ""
+			return
+		end
+
+		self:SetEntityImageNativeSize(slot.uiButton.Entity, imageRUID)
+	end
+
 	method void RefreshCupSlotImage(any gameManager, any slot)
 		if slot == nil then
 			return
 		end
 		
 		if slot.hasCup == true then
-			self:SetSlotImage(slot, gameManager.cupImageRUID)
+			self:SetSlotImageNativeSize(slot, gameManager:GetCupImageRUID(slot.cupData))
 			self:RefreshCupLayerImages(gameManager, slot)
 		else
 			self:SetSlotImage(slot, "")
@@ -122,6 +137,28 @@ script UISlotViewService extends Logic
 		end
 		
 		renderer.ImageRUID = DataRef(ruid)
+	end
+
+	method void SetEntityImageNativeSize(Entity entity, string imageRUID)
+		if entity == nil or entity.SpriteGUIRendererComponent == nil then
+			return
+		end
+
+		local ruid = imageRUID
+		if ruid == nil then
+			ruid = ""
+		end
+
+		local renderer = entity.SpriteGUIRendererComponent
+		if renderer.ImageRUID ~= nil and renderer.ImageRUID.DataId == ruid then
+			return
+		end
+
+		renderer.ImageRUID = DataRef(ruid)
+		if ruid ~= "" then
+			renderer.PreserveSprite = PreserveSpriteType.NativeSize
+			renderer:SetNativeSize()
+		end
 	end
 
 	method void ShowSelectedButtonVisual(any gameManager, ButtonComponent button)

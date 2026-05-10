@@ -25,6 +25,8 @@ script ServiceManager extends Logic
 
 	property string cupImageRUID = "c1cc66398f0e42d5be21315c1adeb34c"
 
+	property string hotCupImageRUID = "87662c3137854bf5beea2a594509ce31"
+
 	property number prepDuration = 1
 
 	property number brewShotDuration = 1
@@ -407,6 +409,14 @@ script ServiceManager extends Logic
 
 	method string GetMixerImageRUID(string ingredientId)
 		return self:GetMappedIngredientImageRUID(ingredientId, "mixerImageRUID")
+	end
+
+	method string GetCupImageRUID(any cupData)
+		if cupData ~= nil and cupData.type == "HotCup" then
+			return self.hotCupImageRUID
+		end
+
+		return self.cupImageRUID
 	end
 
 	method boolean CanAddIngredientToCup(string ingredientId)
