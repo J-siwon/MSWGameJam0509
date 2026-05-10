@@ -4,6 +4,7 @@ script CupService extends Logic
 	method any CreateCup(string cupType)
 		return {
 			type = cupType,
+			isSteamed = false,
 			maxSpaceIngredientCount = 4,
 			spaceIngredientCount = 0,
 			ingredients = {},

@@ -254,7 +254,7 @@ script UISlotViewService extends Logic
 		
 		log("Clearing selected button visual")
 		local sprite = gameManager.selectedButtonEntity.SpriteGUIRendererComponent
-		sprite.Outline = true
+		sprite.Outline = false
 		sprite.OutlineWidth = 3
 		sprite.OutlineColor = Color(0, 0, 0, 1)
 		gameManager.selectedButtonEntity = nil

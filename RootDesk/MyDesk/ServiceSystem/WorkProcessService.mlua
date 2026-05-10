@@ -131,6 +131,44 @@ script WorkProcessService extends Logic
 		log("Finished pouring water: " .. slot.id .. " / ingredient: " .. waterIngredientId)
 	end
 
+	method void StartSteamCup(any gameManager, any slot)
+		if slot == nil or slot.uiButton == nil or slot.cupData == nil then
+			return
+		end
+
+		log("Start steaming cup: " .. slot.id)
+		if gameManager.SelectionManager ~= nil and gameManager.SelectionManager.state == "PLACED_CUP" and gameManager.SelectionManager.data == slot then
+			gameManager.SelectionManager:Clear()
+		end
+
+		slot.isSteaming = true
+		slot.uiButton.Enable = false
+		gameManager:SetSteamButtonEnabled(false)
+		self:SetPrepSlotProgress(slot, 0)
+
+		local service = self
+		self:StartProgressTimer(gameManager, "SteamCup", slot, gameManager.steamDuration, function(target) service:FinishSteamCup(gameManager, target) end)
+	end
+
+	method void FinishSteamCup(any gameManager, any slot)
+		if slot == nil then
+			return
+		end
+
+		slot.isSteaming = false
+		if slot.uiButton ~= nil then
+			slot.uiButton.Enable = true
+		end
+		self:SetPrepSlotProgress(slot, 0)
+
+		if slot.hasCup == true and slot.cupData ~= nil then
+			slot.cupData.isSteamed = true
+		end
+
+		gameManager:RefreshSteamButtonState()
+		log("Finished steaming cup: " .. slot.id)
+	end
+
 	method string GetPreppedIngredientId(string ingredientId)
 		if string.sub(ingredientId, 1, 8) == "prepped_" then
 			return ingredientId

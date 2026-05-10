@@ -43,6 +43,8 @@ script ServiceManager extends Logic
 
 	property number waterPourDuration = 1
 
+	property number steamDuration = 1
+
 	property number prepButtonShowX = 880
 
 	property number prepButtonHideX = 1040
@@ -69,7 +71,7 @@ script ServiceManager extends Logic
 
 	property ButtonComponent btnColdWater = "c3ca0001-cafe-cafe-cafe-c3cafe000005"
 
-	property ButtonComponent btnHotWater = "c3ca0001-cafe-cafe-cafe-c3cafe000006"
+	property ButtonComponent btnSteam = "c3ca0001-cafe-cafe-cafe-c3cafe000006"
 
 	property ButtonComponent btnIng1 = "c3ca0001-cafe-cafe-cafe-c3cafe000007"
 
@@ -135,6 +137,7 @@ script ServiceManager extends Logic
 		self:ConnectGameButtons()
 		self:HideActionButtonsImmediately()
 		self:InitializeWaterPourButton()
+		self:InitializeSteamButton()
 	end
 
 	method any CreateInitialGameData()
@@ -204,6 +207,7 @@ script ServiceManager extends Logic
 		self:BindSlotButtons()
 		self:ResetSlotViewsForDay()
 		self:RefreshWaterPourButtonState()
+		self:RefreshSteamButtonState()
 		self:ClearOrderPreview()
 	end
 
@@ -784,6 +788,24 @@ script ServiceManager extends Logic
 		log("WorkProcessService is not loaded.")
 	end
 
+	method void StartSteamCup(any slot)
+		if _WorkProcessService ~= nil then
+			_WorkProcessService:StartSteamCup(self, slot)
+			return
+		end
+
+		log("WorkProcessService is not loaded.")
+	end
+
+	method void FinishSteamCup(any slot)
+		if _WorkProcessService ~= nil then
+			_WorkProcessService:FinishSteamCup(self, slot)
+			return
+		end
+
+		log("WorkProcessService is not loaded.")
+	end
+
 	method string GetPreppedIngredientId(string ingredientId)
 		if _WorkProcessService ~= nil then
 			return _WorkProcessService:GetPreppedIngredientId(ingredientId)
@@ -835,8 +857,13 @@ script ServiceManager extends Logic
 	method void RefreshCupSlotImage(any slot)
 		if _UISlotViewService ~= nil then
 			_UISlotViewService:RefreshCupSlotImage(self, slot)
-			if slot ~= nil and slot.id == "CupSlot_5" then
-				self:RefreshWaterPourButtonState()
+			if slot ~= nil then
+				if slot.id == "CupSlot_4" then
+					self:RefreshSteamButtonState()
+				end
+				if slot.id == "CupSlot_5" then
+					self:RefreshWaterPourButtonState()
+				end
 			end
 			return
 		end
@@ -898,19 +925,11 @@ script ServiceManager extends Logic
 	end
 
 	method void InitializeWaterPourButton()
-		self:DisableUnusedWaterButton()
 		self:RefreshWaterPourButtonState()
 	end
 
-	method void DisableUnusedWaterButton()
-		if self.btnHotWater == nil then
-			return
-		end
-
-		self.btnHotWater.Enable = false
-		if self.btnHotWater.Entity ~= nil then
-			self.btnHotWater.Entity.Enable = false
-		end
+	method void InitializeSteamButton()
+		self:RefreshSteamButtonState()
 	end
 
 	method any GetWaterPourSlot()
@@ -946,6 +965,42 @@ script ServiceManager extends Logic
 		self.btnColdWater.Enable = enabled
 		if self.btnColdWater.Entity ~= nil then
 			self.btnColdWater.Entity.Enable = true
+		end
+	end
+
+	method any GetSteamSlot()
+		if self.GameData == nil or self.GameData.CupSlots == nil then
+			return nil
+		end
+
+		return self.GameData.CupSlots[4]
+	end
+
+	method void RefreshSteamButtonState()
+		local slot = self:GetSteamSlot()
+		self:SetSteamButtonEnabled(self:CanSteamCupFromSlot(slot))
+	end
+
+	method boolean CanSteamCupFromSlot(any slot)
+		if slot == nil or slot.hasCup ~= true or slot.cupData == nil then
+			return false
+		end
+
+		if slot.isSteaming == true then
+			return false
+		end
+
+		return true
+	end
+
+	method void SetSteamButtonEnabled(boolean enabled)
+		if self.btnSteam == nil then
+			return
+		end
+
+		self.btnSteam.Enable = enabled
+		if self.btnSteam.Entity ~= nil then
+			self.btnSteam.Entity.Enable = true
 		end
 	end
 
@@ -993,6 +1048,7 @@ script ServiceManager extends Logic
 		self.btnHotCup.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickCupTypeButton("HotCup", self.btnHotCup) end)
 		self.btnIceMaker.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIceMakerButton(self.btnIceMaker) end)
 		self.btnColdWater.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickWaterButton(self.btnColdWater) end)
+		self.btnSteam.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickSteamButton(self.btnSteam) end)
 		
 		self.btnIng1.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientButton(self:GetIngredientButtonId(1), self.btnIng1) end)
 		self.btnIng2.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientButton(self:GetIngredientButtonId(2), self.btnIng2) end)
@@ -1176,6 +1232,22 @@ script ServiceManager extends Logic
 
 		log("Clicked water pour button")
 		self:StartPourWater(slot)
+	end
+
+	method void OnClickSteamButton(ButtonComponent sourceButton)
+		if self.IsPaused == true then
+			return
+		end
+
+		local slot = self:GetSteamSlot()
+		if self:CanSteamCupFromSlot(slot) == false then
+			log("Cannot steam cup. CupSlot_4 is empty or unavailable.")
+			self:RefreshSteamButtonState()
+			return
+		end
+
+		log("Clicked steam button")
+		self:StartSteamCup(slot)
 	end
 
 	method void OnClickIngredientSlot(any slot, ButtonComponent sourceButton)
