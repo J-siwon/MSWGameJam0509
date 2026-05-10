@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "directory://2af27bc8ae12455da7ba6297ab27b3d7",
+  "ContentType": "x-mod/directory",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "entry_id": "directory://2af27bc8ae12455da7ba6297ab27b3d7",
+      "name": "DrinkIconImage",
+      "lock": false,
+      "folding": false,
+      "nameEditable": true
+    }
+  }
+}

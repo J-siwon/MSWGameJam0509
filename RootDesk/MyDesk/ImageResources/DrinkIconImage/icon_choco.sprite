@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://c62d1aac184044bbb682ea579d68058b",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/c62d1aac184044bbb682ea579d68058b/639140185738304177",
+      "upload_hash": "5480172F0CBFCFE29625CA742BAB1999456B70D60BCF9F8199E4EFE38E30EAFD",
+      "name": "icon_choco",
+      "resource_guid": "c62d1aac184044bbb682ea579d68058b",
+      "resource_version": "6a00900d9e642d7cfc7f9743"
+    }
+  }
+}

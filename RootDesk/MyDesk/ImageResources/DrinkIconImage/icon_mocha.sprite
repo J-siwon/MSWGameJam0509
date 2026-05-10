@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://2e47e7b814914617a5b785061c946d73",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/2e47e7b814914617a5b785061c946d73/639140185738307735",
+      "upload_hash": "CEFBB7E4EEE0724A040BE17F092B317E6E1F7343A0179AE75F4D28C5434CAC53",
+      "name": "icon_mocha",
+      "resource_guid": "2e47e7b814914617a5b785061c946d73",
+      "resource_version": "6a00900db671dd29442a58b2"
+    }
+  }
+}

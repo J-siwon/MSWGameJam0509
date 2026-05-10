@@ -457,9 +457,9 @@ script DayManager extends Component
 		end
 
 		self:SetSettlementText(titlePath, "DAY " .. tostring(settlementDay) .. " 정산서")
-		self:SetSettlementText(previousPath, "이전 누적 골드     " .. self:FormatGold(previousTotal))
-		self:SetSettlementText(earnedPath, "오늘 번 골드       +" .. self:FormatGold(earnedMoney))
-		self:SetSettlementText(totalPath, "합계               " .. self:FormatGold(totalAfter))
+		self:SetSettlementText(previousPath, "이전 누적 메소     " .. self:FormatMeso(previousTotal))
+		self:SetSettlementText(earnedPath, "오늘 번 메소       +" .. self:FormatMeso(earnedMoney))
+		self:SetSettlementText(totalPath, "합계               " .. self:FormatMeso(totalAfter))
 
 		local footer = "클릭해서 계속"
 		if settlementDay >= self.MaxDay then
@@ -504,8 +504,8 @@ script DayManager extends Component
 		entity.TextComponent.Text = text
 	end
 
-	method string FormatGold(number amount)
-		return tostring(math.max(0, math.floor((amount or 0) + 0.5))) .. "G"
+	method string FormatMeso(number amount)
+		return tostring(math.max(0, math.floor((amount or 0) + 0.5))) .. " 메소"
 	end
 
 	method void ShowDayTransitionIntro(number day, any onCovered, any onFinished)
@@ -753,11 +753,11 @@ script DayManager extends Component
 			return
 		end
 
-		local message = "GAME OVER\nDay " .. tostring(self.Runtime.day) .. "\nEarned $" .. tostring(self.Runtime.money) .. " / Goal $" .. tostring(self.Runtime.goalMoney)
+		local message = "GAME OVER\nDay " .. tostring(self.Runtime.day) .. "\nEarned " .. self:FormatMeso(self.Runtime.money) .. " / Goal " .. self:FormatMeso(self.Runtime.goalMoney)
 		if cleared == true then
-			message = "GAME CLEAR\nTotal $" .. tostring(finalScore)
+			message = "GAME CLEAR\nTotal " .. self:FormatMeso(finalScore)
 		else
-			message = message .. "\nTotal $" .. tostring(finalScore)
+			message = message .. "\nTotal " .. self:FormatMeso(finalScore)
 		end
 
 		_UIPopup:OpenWithButtons(message, "다시하기", "메인으로 가기", function()
@@ -1267,15 +1267,15 @@ script DayManager extends Component
 		
 		local dayText = self:GetHudText(self.DayText, self.DayTextPath, "DayText")
 		if dayText ~= nil then
-			dayText.Text = "Day " .. tostring(math.max(1, self.Runtime.day)) .. " / " .. tostring(self.MaxDay)
+			dayText.Text = "Day " .. tostring(math.max(1, self.Runtime.day))
 		end
 		local moneyText = self:GetHudText(self.MoneyText, self.MoneyTextPath, "MoneyText")
 		if moneyText ~= nil then
-			moneyText.Text = "$" .. tostring(self.Runtime.money)
+			moneyText.Text = self:FormatMeso(self.Runtime.money)
 		end
 		local goalText = self:GetHudText(self.GoalText, self.GoalTextPath, "GoalText")
 		if goalText ~= nil then
-			goalText.Text = "Goal $" .. tostring(self.Runtime.goalMoney)
+			goalText.Text = "목표 " .. self:FormatMeso(self.Runtime.goalMoney)
 		end
 		local timeText = self:GetHudText(self.TimeText, self.TimeTextPath, "TimeText")
 		if timeText ~= nil then

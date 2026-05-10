@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://08b277dc4037414ca963307d196208b3",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/08b277dc4037414ca963307d196208b3/639140185738473730",
+      "upload_hash": "4C2E613D3F74DFB07D1FE2B1F15A713F035B8649EF3254273FA2B0054383EC68",
+      "name": "icon_iceamericano",
+      "resource_guid": "08b277dc4037414ca963307d196208b3",
+      "resource_version": "6a00900d314a576fe1dcbbf5"
+    }
+  }
+}

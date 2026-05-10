@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://eae01e3b81b44cb499d180d4276bad2e",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/eae01e3b81b44cb499d180d4276bad2e/639140172940292249",
+      "upload_hash": "2B173ABCB2B1591E7F18EE9F5ED1B6F59C44149F7921C338C0406DA61C0DC3BE",
+      "name": "UI_MenuGlow",
+      "resource_guid": "eae01e3b81b44cb499d180d4276bad2e",
+      "resource_version": "6a008b0ee1293a08c1289022"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://e8b13faac0fb4e22828cb202431e5c35",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/e8b13faac0fb4e22828cb202431e5c35/639140185738381069",
+      "upload_hash": "0ADFAA52EB80374A2FEEB81D1C65EFCF3A054FF6F4C0C43F767FC8E0354ECE03",
+      "name": "icon_bam",
+      "resource_guid": "e8b13faac0fb4e22828cb202431e5c35",
+      "resource_version": "6a00900d2831629eb4490515"
+    }
+  }
+}

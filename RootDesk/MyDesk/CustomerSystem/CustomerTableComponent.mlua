@@ -29,7 +29,13 @@ script CustomerTableComponent extends Component
 
 	property number SuccessEffectDelaySeconds = 0.35
 
-	property string CharacterDataSetName = "CustomerCharacterData"
+	property number MinLimitSeconds = 18
+
+	property number MaxLimitSeconds = 35
+
+	property number PriceBonusMinPercent = 0
+
+	property number PriceBonusMaxPercent = 0
 
 	property string DrinkDataSetName = "CustomerDrinkData"
 
@@ -317,7 +323,7 @@ script CustomerTableComponent extends Component
 		end
 
 		self:RemapCustomerVisualEntities(component, entity)
-		component:Setup(data.desiredDrinkId, data.characterId, data.limitSeconds, data.price, data.minPrice, data.failPrice, data.priceBonusPercent, data.waitingIconRUID, data.resolvedIconRUID, data.characterHighIconRUID, data.characterMiddleIconRUID, data.characterLowIconRUID, data.drinkIconRUID)
+		component:Setup(data.desiredDrinkId, data.limitSeconds, data.price, data.minPrice, data.failPrice, data.priceBonusPercent, data.waitingIconRUID, data.resolvedIconRUID, data.drinkIconRUID)
 		
 		data.createdAt = _UtilLogic.ElapsedSeconds
 		data.timeEndsAt = data.createdAt + data.limitSeconds
@@ -472,13 +478,17 @@ script CustomerTableComponent extends Component
 		for i = 1, #self.Runtime.customers do
 			local record = self.Runtime.customers[i]
 			local selected = record.component == self.Runtime.selectedCustomerComponent
+			local completed = cupData ~= nil and self:DoesCupMatchDrink(cupData, record.data.desiredDrinkId) == true
 			local candidate = cupData ~= nil and self:CanCupBecomeDrink(cupData, record.data.desiredDrinkId) == true
+			local unavailable = cupData ~= nil and candidate == false and completed == false
 			local showMemo = selected == true
-			local memoText = ""
+			local menuNameText = ""
+			local recipeText = ""
 			if showMemo == true then
-				memoText = self:CreateOrderMemoText(record.data.desiredDrinkId, cupData)
+				menuNameText = record.data.desiredDrinkId
+				recipeText = self:CreateOrderRecipeText(record.data.desiredDrinkId, cupData)
 			end
-			record.component:SetOrderHint(selected, candidate, memoText, showMemo)
+			record.component:SetOrderHint(selected, candidate, completed, unavailable, menuNameText, recipeText, showMemo)
 		end
 	end
 
@@ -498,7 +508,6 @@ script CustomerTableComponent extends Component
 			local remainingSeconds = self:GetRemainingSeconds(record)
 			table.insert(snapshot, {
 				desiredDrinkId = record.data.desiredDrinkId,
-				characterId = record.data.characterId,
 				remainingSeconds = remainingSeconds,
 				timeOver = remainingSeconds <= 0,
 				currentPrice = self:GetCurrentPrice(record),
@@ -689,10 +698,18 @@ script CustomerTableComponent extends Component
 	end
 
 	method string CreateOrderMemoText(string drinkId, any cupData)
+		local recipeText = self:CreateOrderRecipeText(drinkId, cupData)
+		if recipeText == "" then
+			return drinkId
+		end
+		return drinkId .. "\n" .. recipeText
+	end
+
+	method string CreateOrderRecipeText(string drinkId, any cupData)
 		local ingredients = self:GetDrinkRecipeIngredients(drinkId)
 		local cupCounts = self:CreateIngredientCounts(self:GetCupIngredients(cupData))
 		local usedCounts = {}
-		local text = drinkId
+		local text = ""
 
 		for i = 1, #ingredients do
 			local ingredientId = ingredients[i]
@@ -703,7 +720,9 @@ script CustomerTableComponent extends Component
 				usedCounts[ingredientId] = used + 1
 			end
 
-			text = text .. "\n"
+			if text ~= "" then
+				text = text .. "\n"
+			end
 			if satisfied == true then
 				text = text .. "[OK] "
 			else
@@ -907,12 +926,14 @@ script CustomerTableComponent extends Component
 		
 		component.CardBackgroundEntity = self:GetMatchingCloneChild(component.CardBackgroundEntity, spawnedRoot)
 		component.StateIconEntity = self:GetMatchingCloneChild(component.StateIconEntity, spawnedRoot)
-		component.CharacterIconEntity = self:GetMatchingCloneChild(component.CharacterIconEntity, spawnedRoot)
 		component.DrinkIconEntity = self:GetMatchingCloneChild(component.DrinkIconEntity, spawnedRoot)
 		component.TimeGaugeEntity = self:GetMatchingCloneChild(component.TimeGaugeEntity, spawnedRoot)
 		component.FlashEntity = self:GetMatchingCloneChild(component.FlashEntity, spawnedRoot)
 		component.OrderMemoBackgroundEntity = self:GetMatchingCloneChild(component.OrderMemoBackgroundEntity, spawnedRoot)
-		component.OrderMemoTextEntity = self:GetMatchingCloneChild(component.OrderMemoTextEntity, spawnedRoot)
+		component.OrderMenuNameTextEntity = self:GetMatchingCloneChild(component.OrderMenuNameTextEntity, spawnedRoot)
+		component.OrderRecipeTextEntity = self:GetMatchingCloneChild(component.OrderRecipeTextEntity, spawnedRoot)
+		component.OrderGlowEntity = self:GetMatchingCloneChild(component.OrderGlowEntity, spawnedRoot)
+		component.OrderBlackPanelEntity = self:GetMatchingCloneChild(component.OrderBlackPanelEntity, spawnedRoot)
 	end
 
 	method Entity GetMatchingCloneChild(Entity templateChild, Entity spawnedRoot)
@@ -974,18 +995,16 @@ script CustomerTableComponent extends Component
 
 	method table CreateCustomerData()
 		local desiredDrinkId = self:PickDataSetId(self.DrinkDataSetName, "Coffee")
-		local characterId = self:PickDataSetId(self.CharacterDataSetName, "Human")
-		local minLimitSeconds = self:GetNumberValue(self.CharacterDataSetName, characterId, "MinLimitSeconds", 18)
-		local maxLimitSeconds = self:GetNumberValue(self.CharacterDataSetName, characterId, "MaxLimitSeconds", minLimitSeconds)
+		local minLimitSeconds = self.MinLimitSeconds
+		local maxLimitSeconds = self.MaxLimitSeconds
 		local price = self:GetNumberValue(self.DrinkDataSetName, desiredDrinkId, "Price", 300)
 		local minPrice = self:GetNumberValue(self.DrinkDataSetName, desiredDrinkId, "MinPrice", price)
 		local failPrice = self:GetNumberValue(self.DrinkDataSetName, desiredDrinkId, "FailPrice", minPrice)
-		local minBonusPercent = self:GetNumberValue(self.CharacterDataSetName, characterId, "PriceBonusMinPercent", 0)
-		local maxBonusPercent = self:GetNumberValue(self.CharacterDataSetName, characterId, "PriceBonusMaxPercent", minBonusPercent)
+		local minBonusPercent = self.PriceBonusMinPercent
+		local maxBonusPercent = self.PriceBonusMaxPercent
 		
 		return {
 			desiredDrinkId = desiredDrinkId,
-			characterId = characterId,
 			limitSeconds = self:RandomRange(minLimitSeconds, maxLimitSeconds),
 			price = math.max(price, minPrice),
 			minPrice = math.min(price, minPrice),
@@ -993,9 +1012,6 @@ script CustomerTableComponent extends Component
 			priceBonusPercent = self:RandomRange(minBonusPercent, maxBonusPercent),
 			waitingIconRUID = self:GetTemporaryIconRUID(1),
 			resolvedIconRUID = self:GetTemporaryIconRUID(2),
-			characterHighIconRUID = self:GetIconRUID(self.CharacterDataSetName, characterId, "HighIconRUID", 2),
-			characterMiddleIconRUID = self:GetIconRUID(self.CharacterDataSetName, characterId, "MiddleIconRUID", 2),
-			characterLowIconRUID = self:GetIconRUID(self.CharacterDataSetName, characterId, "LowIconRUID", 2),
 			drinkIconRUID = self:GetIconRUID(self.DrinkDataSetName, desiredDrinkId, "IconRUID", 5),
 			state = "Waiting"
 		}

@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://862c4875fb8b4ca6aafb9e03e488d6d4",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/862c4875fb8b4ca6aafb9e03e488d6d4/639140185738373601",
+      "upload_hash": "1D663BF41416978682F3CBDDB65D68A6D750A7EE084C6845CF2D9FCDE2CB49C0",
+      "name": "icon_3slime",
+      "resource_guid": "862c4875fb8b4ca6aafb9e03e488d6d4",
+      "resource_version": "6a00900da830f340db6cabfe"
+    }
+  }
+}

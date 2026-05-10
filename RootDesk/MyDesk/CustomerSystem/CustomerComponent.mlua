@@ -3,19 +3,15 @@ script CustomerComponent extends Component
 
 	property Entity StateIconEntity = nil
 	property Entity CardBackgroundEntity = nil
-	property Entity CharacterIconEntity = nil
 	property Entity DrinkIconEntity = nil
 	property Entity TimeGaugeEntity = nil
 	property Entity FlashEntity = nil
 	property Entity OrderMemoBackgroundEntity = nil
-	property Entity OrderMemoTextEntity = nil
+	property Entity OrderMenuNameTextEntity = nil
+	property Entity OrderRecipeTextEntity = nil
+	property Entity OrderGlowEntity = nil
+	property Entity OrderBlackPanelEntity = nil
 	property string CustomerTablePath = "/ui/CustomerUIGroup/CustomerTable"
-
-	property number IconMaxSize = 100
-	property number StateIconMaxSize = 36
-	property Color CardNormalColor = Color(1.000, 1.000, 1.000, 1.000)
-	property Color CardSelectedColor = Color(1.000, 0.900, 0.420, 1.000)
-	property Color CardCandidateColor = Color(0.620, 0.900, 1.000, 1.000)
 
 	property number TimeGaugeLowRatio = 0.25
 	property number TimeGaugeHighRatio = 0.65
@@ -47,7 +43,6 @@ script CustomerComponent extends Component
 
 		self.Runtime = {
 			desiredDrinkId = "",
-			characterId = "",
 			limitSeconds = 0,
 			price = 0,
 			minPrice = 0,
@@ -56,10 +51,6 @@ script CustomerComponent extends Component
 			waitingIconRUID = "",
 			resolvedIconRUID = "",
 			drinkIconRUID = "",
-			characterBaseIconRUID = "",
-			characterHighIconRUID = "",
-			characterMiddleIconRUID = "",
-			characterLowIconRUID = "",
 			state = "Idle",
 			createdAt = 0,
 			timeEndsAt = 0,
@@ -70,11 +61,10 @@ script CustomerComponent extends Component
 		}
 	end
 
-	method void Setup(string desiredDrinkId, string characterId, number limitSeconds, number price, number minPrice, number failPrice, number priceBonusPercent, string waitingIconRUID, string resolvedIconRUID, string characterHighIconRUID, string characterMiddleIconRUID, string characterLowIconRUID, string drinkIconRUID)
+	method void Setup(string desiredDrinkId, number limitSeconds, number price, number minPrice, number failPrice, number priceBonusPercent, string waitingIconRUID, string resolvedIconRUID, string drinkIconRUID)
 		self:EnsureRuntime()
 
 		self.Runtime.desiredDrinkId = desiredDrinkId
-		self.Runtime.characterId = characterId
 		self.Runtime.limitSeconds = math.max(0, limitSeconds)
 		self.Runtime.price = math.max(price, minPrice)
 		self.Runtime.minPrice = math.min(price, minPrice)
@@ -83,20 +73,17 @@ script CustomerComponent extends Component
 		self.Runtime.waitingIconRUID = waitingIconRUID
 		self.Runtime.resolvedIconRUID = resolvedIconRUID
 		self.Runtime.drinkIconRUID = drinkIconRUID
-		self.Runtime.characterBaseIconRUID = characterHighIconRUID
-		self.Runtime.characterHighIconRUID = characterHighIconRUID
-		self.Runtime.characterMiddleIconRUID = characterMiddleIconRUID
-		self.Runtime.characterLowIconRUID = characterLowIconRUID
 		self.Runtime.createdAt = _UtilLogic.ElapsedSeconds
 		self.Runtime.timeEndsAt = self.Runtime.createdAt + self.Runtime.limitSeconds
 		self.Runtime.lastResolvePrice = 0
 		self.Runtime.state = "Waiting"
 
+		self:ResolveOrderVisualEntities()
 		self:PrepareClickArea()
 		self:ConnectClick()
 		self:RefreshVisual()
 		self:HideFlash()
-		self:SetOrderHint(false, false, "", false)
+		self:SetOrderHint(false, false, false, false, "", "", false)
 		self:StartGaugeTimer()
 	end
 
@@ -107,12 +94,69 @@ script CustomerComponent extends Component
 
 	method void PrepareClickArea()
 		self:SetRaycastTarget(self.CardBackgroundEntity, true)
-		self:SetRaycastTargetRecursive(self.CharacterIconEntity, false)
 		self:SetRaycastTargetRecursive(self.DrinkIconEntity, false)
 		self:SetRaycastTargetRecursive(self.TimeGaugeEntity, false)
 		self:SetRaycastTargetRecursive(self.FlashEntity, false)
 		self:SetRaycastTargetRecursive(self.OrderMemoBackgroundEntity, false)
-		self:SetRaycastTargetRecursive(self.OrderMemoTextEntity, false)
+		self:SetRaycastTargetRecursive(self.OrderMenuNameTextEntity, false)
+		self:SetRaycastTargetRecursive(self.OrderRecipeTextEntity, false)
+		self:SetRaycastTargetRecursive(self.OrderGlowEntity, false)
+		self:SetRaycastTargetRecursive(self.OrderBlackPanelEntity, false)
+	end
+
+	method void ResolveOrderVisualEntities()
+		local root = self.Entity
+		if root == nil then
+			root = self.OrderMemoBackgroundEntity
+		end
+
+		if self.OrderMenuNameTextEntity == nil then
+			self.OrderMenuNameTextEntity = self:FindDescendantByNames(root, { "MenuNameText", "MenuText", "OrderMenuNameText", "OrderMenuText", "OrderMemoNameText" })
+		end
+		if self.OrderRecipeTextEntity == nil then
+			self.OrderRecipeTextEntity = self:FindDescendantByNames(root, { "RecipeText", "OrderRecipeText", "OrderMemoRecipeText" })
+		end
+		if self.OrderGlowEntity == nil then
+			self.OrderGlowEntity = self:FindDescendantByNames(root, { "Glow", "OrderGlow", "SelectedGlow", "SelectGlow" })
+		end
+		if self.OrderBlackPanelEntity == nil then
+			self.OrderBlackPanelEntity = self:FindDescendantByNames(root, { "BlackPanel", "OrderBlackPanel", "UnavailablePanel", "ImpossiblePanel", "DimPanel", "Black" })
+		end
+	end
+
+	method Entity FindDescendantByNames(Entity root, table names)
+		if root == nil or names == nil then
+			return nil
+		end
+
+		for i = 1, #names do
+			local child = self:FindDescendant(root, names[i])
+			if child ~= nil then
+				return child
+			end
+		end
+		return nil
+	end
+
+	method Entity FindDescendant(Entity root, string childName)
+		if root == nil or childName == nil or childName == "" then
+			return nil
+		end
+		if root.Name == childName then
+			return root
+		end
+		if root.Children == nil then
+			return nil
+		end
+
+		for i = 1, #root.Children do
+			local child = root.Children[i]
+			local descendant = self:FindDescendant(child, childName)
+			if descendant ~= nil then
+				return descendant
+			end
+		end
+		return nil
 	end
 
 	method void SetRaycastTargetRecursive(Entity entity, boolean raycastTarget)
@@ -227,7 +271,7 @@ script CustomerComponent extends Component
 		self.Runtime.lastResolvePrice = self:CalculateCurrentPrice()
 		self:StopGaugeTimer()
 		self.Runtime.state = "Resolved"
-		self:SetIcon(self.StateIconEntity, self:GetStateIconRUID(), self.StateIconMaxSize, false)
+		self:SetIcon(self.StateIconEntity, self:GetStateIconRUID())
 		return true
 	end
 
@@ -258,36 +302,35 @@ script CustomerComponent extends Component
 
 	method void RefreshVisual()
 		self:EnsureRuntime()
-		self:SetIcon(self.StateIconEntity, self:GetStateIconRUID(), self.StateIconMaxSize, false)
-		self:SetIcon(self.DrinkIconEntity, self.Runtime.drinkIconRUID, self.IconMaxSize, true)
+		self:SetIcon(self.StateIconEntity, self:GetStateIconRUID())
+		self:SetIcon(self.DrinkIconEntity, self.Runtime.drinkIconRUID)
 		self:RefreshTimeGauge()
 	end
 
-	method void SetOrderHint(boolean selected, boolean candidate, string memoText, boolean showMemo)
-		self:SetCardColor(selected, candidate)
-		self:SetOrderMemo(memoText, showMemo)
+	method void SetOrderHint(boolean selected, boolean candidate, boolean completed, boolean unavailable, string menuNameText, string recipeText, boolean showMemo)
+		self:ResolveOrderVisualEntities()
+
+		self:SetEntityEnabled(self.OrderGlowEntity, selected == true or candidate == true or completed == true)
+		self:SetEntityEnabled(self.OrderBlackPanelEntity, unavailable == true)
+		self:SetOrderMemo(menuNameText, recipeText, showMemo)
 	end
 
-	method void SetCardColor(boolean selected, boolean candidate)
-		if self.CardBackgroundEntity == nil or self.CardBackgroundEntity.SpriteGUIRendererComponent == nil then
+	method void SetOrderMemo(string menuNameText, string recipeText, boolean showMemo)
+		self:SetEntityEnabled(self.OrderMemoBackgroundEntity, showMemo)
+		self:SetEntityEnabled(self.OrderMenuNameTextEntity, showMemo)
+		self:SetEntityEnabled(self.OrderRecipeTextEntity, showMemo)
+		self:SetText(self.OrderMenuNameTextEntity, menuNameText)
+		self:SetText(self.OrderRecipeTextEntity, recipeText)
+	end
+
+	method void SetText(Entity entity, string text)
+		if entity == nil or entity.TextComponent == nil then
 			return
 		end
-
-		local color = self.CardNormalColor
-		if selected == true then
-			color = self.CardSelectedColor
-		elseif candidate == true then
-			color = self.CardCandidateColor
+		if text == nil then
+			text = ""
 		end
-		self.CardBackgroundEntity.SpriteGUIRendererComponent.Color = color
-	end
-
-	method void SetOrderMemo(string memoText, boolean showMemo)
-		self:SetEntityEnabled(self.OrderMemoBackgroundEntity, showMemo)
-		self:SetEntityEnabled(self.OrderMemoTextEntity, showMemo)
-		if self.OrderMemoTextEntity ~= nil and self.OrderMemoTextEntity.TextComponent ~= nil then
-			self.OrderMemoTextEntity.TextComponent.Text = memoText
-		end
+		entity.TextComponent.Text = text
 	end
 
 	method void SetEntityEnabled(Entity entity, boolean enabled)
@@ -304,7 +347,6 @@ script CustomerComponent extends Component
 		end
 
 		local ratio = self:GetRemainingRatio()
-		self:SetIcon(self.CharacterIconEntity, self:GetCharacterIconRUID(ratio), self.IconMaxSize, true)
 
 		if self.TimeGaugeEntity == nil or self.TimeGaugeEntity.SpriteGUIRendererComponent == nil then
 			return
@@ -324,31 +366,6 @@ script CustomerComponent extends Component
 		else
 			renderer.Color = self.TimeGaugeMiddleColor
 		end
-	end
-
-	method string GetCharacterIconRUID(number ratio)
-		self:EnsureRuntime()
-
-		local ruid = self.Runtime.characterMiddleIconRUID
-		if ratio <= self.TimeGaugeLowRatio then
-			ruid = self.Runtime.characterLowIconRUID
-		elseif ratio >= self.TimeGaugeHighRatio then
-			ruid = self.Runtime.characterHighIconRUID
-		end
-
-		if ruid ~= "" then
-			return ruid
-		end
-		if self.Runtime.characterBaseIconRUID ~= "" then
-			return self.Runtime.characterBaseIconRUID
-		end
-		if self.Runtime.characterHighIconRUID ~= "" then
-			return self.Runtime.characterHighIconRUID
-		end
-		if self.Runtime.characterMiddleIconRUID ~= "" then
-			return self.Runtime.characterMiddleIconRUID
-		end
-		return self.Runtime.characterLowIconRUID
 	end
 
 	method void StartGaugeTimer()
@@ -429,7 +446,7 @@ script CustomerComponent extends Component
 		self.FlashEntity.SpriteGUIRendererComponent.Color = Color(color.r, color.g, color.b, 0)
 	end
 
-	method void SetIcon(Entity entity, string ruid, number maxSize, boolean keepOriginalPosition)
+	method void SetIcon(Entity entity, string ruid)
 		if ruid == "" then
 			return
 		end
@@ -454,50 +471,6 @@ script CustomerComponent extends Component
 		end
 
 		entity.SpriteGUIRendererComponent.ImageRUID = DataRef(ruid)
-		self:FitIconSize(entity, maxSize, keepOriginalPosition)
-	end
-
-	method void FitIconSize(Entity entity, number maxSize, boolean keepOriginalPosition)
-		if entity.UITransformComponent == nil or entity.SpriteGUIRendererComponent == nil then
-			return
-		end
-
-		local limit = math.max(1, maxSize)
-		local renderer = entity.SpriteGUIRendererComponent
-		local transform = entity.UITransformComponent
-		local anchoredPosition = Vector2(transform.anchoredPosition.x, transform.anchoredPosition.y)
-		local position = Vector3(transform.Position.x, transform.Position.y, transform.Position.z)
-		local pivot = Vector2(transform.Pivot.x, transform.Pivot.y)
-
-		renderer.LocalPosition = Vector2(0, 0)
-		renderer.LocalScale = Vector2(1, 1)
-		renderer.PreserveSprite = PreserveSpriteType.NativeSize
-		renderer:SetNativeSize()
-		self:ApplyIconTransform(transform, keepOriginalPosition, anchoredPosition, position, pivot)
-
-		local size = transform.RectSize
-		if size.x <= 0 or size.y <= 0 then
-			transform.RectSize = Vector2(limit, limit)
-		else
-			local scale = math.min(1, limit / size.x, limit / size.y)
-			transform.RectSize = Vector2(size.x * scale, size.y * scale)
-		end
-
-		self:ApplyIconTransform(transform, keepOriginalPosition, anchoredPosition, position, pivot)
-		renderer.PreserveSprite = PreserveSpriteType.AspectOnly
-	end
-
-	method void ApplyIconTransform(UITransformComponent transform, boolean keepOriginalPosition, Vector2 anchoredPosition, Vector3 position, Vector2 pivot)
-		if keepOriginalPosition == true then
-			transform.Pivot = pivot
-			transform.anchoredPosition = anchoredPosition
-			transform.Position = position
-			return
-		end
-
-		transform.Pivot = Vector2(0.5, 0.5)
-		transform.anchoredPosition = Vector2(0, 0)
-		transform.Position = Vector3(0, 0, 0)
 	end
 
 end
