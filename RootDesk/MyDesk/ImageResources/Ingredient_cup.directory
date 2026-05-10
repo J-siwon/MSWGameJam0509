@@ -14,7 +14,7 @@
     "Use": "Json",
     "Json": {
       "entry_id": "directory://d3581334ccc6468abf3c3b373bf0a0f6",
-      "name": "Ingredient",
+      "name": "Ingredient_cup",
       "lock": false,
       "folding": false,
       "nameEditable": true

@@ -1,27 +1,27 @@
 ﻿Id,DisplayName,UseCupSpace,CanPrep,CanMix,CanAddToCup,ImageRUID,ButtonIndex
-Ingredient_1,Coffee,true,false,true,true,,1
-Ingredient_2,Milk,true,false,false,true,,2
-Ingredient_3,Maple Syrup,false,false,false,true,,3
-Ingredient_4,Ingredient 4,true,true,true,true,,4
-Ingredient_5,Ingredient 5,true,true,true,true,,5
-Ingredient_6,Ingredient 6,true,true,true,true,,6
-Ingredient_7,Ingredient 7,true,true,true,true,,7
-Ingredient_8,Ingredient 8,true,true,true,true,,8
-prepped_Ingredient_1,Prepped Ingredient 1,true,false,true,true,,
-prepped_Ingredient_2,Prepped Ingredient 2,true,false,true,true,,
-prepped_Ingredient_3,Prepped Ingredient 3,true,false,true,true,,
-prepped_Ingredient_4,Prepped Ingredient 4,true,false,true,true,,
-prepped_Ingredient_5,Prepped Ingredient 5,true,false,true,true,,
-prepped_Ingredient_6,Prepped Ingredient 6,true,false,true,true,,
-prepped_Ingredient_7,Prepped Ingredient 7,true,false,true,true,,
-prepped_Ingredient_8,Prepped Ingredient 8,true,false,true,true,,
+Ingredient_1,Milk,true,false,true,true,,1
+Ingredient_2,Maple Syrup,false,false,true,true,,2
+Ingredient_3,Choco Syrup,false,false,true,true,,3
+Ingredient_4,Slime,true,true,true,true,,4
+Ingredient_5,Bam,true,true,true,true,,5
+Ingredient_6,Strawberry,true,true,true,true,,6
+Ingredient_7,Banana Monkey,false,true,false,false,,7
+Ingredient_8,Green Mushroom,false,true,false,false,,8
+prepped_Ingredient_1,,true,false,true,true,,
+prepped_Ingredient_2,,true,false,true,true,,
+prepped_Ingredient_3,,true,false,true,true,,
+prepped_Ingredient_4,Slime Syrup,false,false,true,true,,
+prepped_Ingredient_5,Bam Mousse,false,false,true,true,,
+prepped_Ingredient_6,Strawberry Jam,false,false,true,true,,
+prepped_Ingredient_7,Banana,true,false,true,true,,
+prepped_Ingredient_8,Green Mushroom Cap,true,false,true,true,,
 CoffeeShot_1,Coffee Shot 1,true,false,false,true,,
 CoffeeShot_2,Coffee Shot 2,true,false,false,true,,
 CoffeeShot_3,Coffee Shot 3,true,false,false,true,,
 Ice,Ice,true,false,false,true,,
 ColdWater,Cold Water,true,false,true,true,,
 HotWater,Hot Water,true,false,true,true,,
-Mixed_Cold_Ingredient_1,Mixed Cold Ingredient 1,true,false,false,true,,
-Mixed_Hot_Ingredient_2,Mixed Hot Ingredient 2,true,false,false,true,,
-Mixed_Cold_Ingredient_3,Mixed Cold Ingredient 3,true,false,false,true,,
+Mixed_Ingredient_1,Mixed Cold Ingredient 1,true,false,false,true,,
+Mixed_Ingredient_2,Mixed Hot Ingredient 2,true,false,false,true,,
+Mixed_Ingredient_3,Mixed Cold Ingredient 3,true,false,false,true,,
 Trash,Trash,false,false,false,false,,
