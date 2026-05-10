@@ -402,6 +402,17 @@ script ServiceManager extends Logic
 		return self.GameData.IngredientDefs[ingredientId]
 	end
 
+	method any GetMixedIngredientDef(string ingredientId)
+		if ingredientId == nil or ingredientId == "" then
+			return nil
+		end
+		if self.GameData == nil or self.GameData.MixedIngredientDefs == nil then
+			return nil
+		end
+
+		return self.GameData.MixedIngredientDefs[ingredientId]
+	end
+
 	method any GetIngredientImageMap(string ingredientId)
 		if ingredientId == nil or ingredientId == "" then
 			return nil
@@ -473,6 +484,33 @@ script ServiceManager extends Logic
 		return self:GetMappedIngredientImageRUID(ingredientId, "mixerImageRUID")
 	end
 
+	method string GetMixedIngredientImageRUID(string ingredientId)
+		local mixedDef = self:GetMixedIngredientDef(ingredientId)
+		if mixedDef ~= nil and mixedDef.imageRUID ~= nil then
+			return mixedDef.imageRUID
+		end
+
+		return self:GetMixerImageRUID(ingredientId)
+	end
+
+	method number GetMixedIngredientImageWidth(string ingredientId)
+		local mixedDef = self:GetMixedIngredientDef(ingredientId)
+		if mixedDef ~= nil and mixedDef.imageWidth ~= nil then
+			return mixedDef.imageWidth
+		end
+
+		return 0
+	end
+
+	method number GetMixedIngredientImageHeight(string ingredientId)
+		local mixedDef = self:GetMixedIngredientDef(ingredientId)
+		if mixedDef ~= nil and mixedDef.imageHeight ~= nil then
+			return mixedDef.imageHeight
+		end
+
+		return 0
+	end
+
 	method string GetCupImageRUID(any cupData)
 		if cupData ~= nil and cupData.type == "HotCup" then
 			return self.hotCupImageRUID
@@ -504,6 +542,53 @@ script ServiceManager extends Logic
 		end
 		
 		return true
+	end
+
+	method boolean CanAddIngredientToCupData(any cupData, string ingredientId)
+		if cupData == nil then
+			return false
+		end
+
+		if self:CanAddIngredientToCup(ingredientId) == false then
+			return false
+		end
+
+		if cupData.ingredients ~= nil then
+			for index = 1, #cupData.ingredients do
+				local existingIngredientId = cupData.ingredients[index]
+				if self:IsFinalMixedIngredient(existingIngredientId) == true then
+					log("Cup already has final ingredient: " .. existingIngredientId)
+					return false
+				end
+			end
+		end
+
+		if self:IsFirstSlotOnlyMixedIngredient(ingredientId) == true then
+			if cupData.ingredients ~= nil and #cupData.ingredients > 0 then
+				log("Ingredient can only be added as first cup ingredient: " .. ingredientId)
+				return false
+			end
+		end
+
+		return true
+	end
+
+	method boolean IsFinalMixedIngredient(string ingredientId)
+		local mixedDef = self:GetMixedIngredientDef(ingredientId)
+		if mixedDef ~= nil and mixedDef.isFinalIngredient ~= nil then
+			return mixedDef.isFinalIngredient
+		end
+
+		return false
+	end
+
+	method boolean IsFirstSlotOnlyMixedIngredient(string ingredientId)
+		local mixedDef = self:GetMixedIngredientDef(ingredientId)
+		if mixedDef ~= nil and mixedDef.firstSlotOnly ~= nil then
+			return mixedDef.firstSlotOnly
+		end
+
+		return false
 	end
 
 	method boolean CanMixIngredient(string ingredientId)
@@ -928,6 +1013,15 @@ script ServiceManager extends Logic
 		log("UISlotViewService is not loaded.")
 	end
 
+	method void ShowMixerResultLayer(any mixer, string resultId)
+		if _UISlotViewService ~= nil then
+			_UISlotViewService:ShowMixerResultLayer(self, mixer, resultId)
+			return
+		end
+
+		log("UISlotViewService is not loaded.")
+	end
+
 	method void SetSlotEffectVisible(any slot, boolean visible)
 		if _UISlotViewService ~= nil then
 			_UISlotViewService:SetSlotEffectVisible(slot, visible)
@@ -1202,12 +1296,8 @@ script ServiceManager extends Logic
 			return ""
 		end
 
-		if cupData.type == "HotCup" then
-			return "HotWater"
-		end
-
-		if cupData.type == "IceCup" or cupData.type == "ColdCup" then
-			return "ColdWater"
+		if cupData.type == "HotCup" or cupData.type == "IceCup" or cupData.type == "ColdCup" then
+			return "Water"
 		end
 
 		return ""

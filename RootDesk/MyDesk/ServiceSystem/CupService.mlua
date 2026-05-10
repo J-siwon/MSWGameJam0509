@@ -12,7 +12,7 @@ script CupService extends Logic
 	end
 
 	method boolean AddIngredientToCup(any gameManager, any cupData, string ingredientId)
-		if gameManager:CanAddIngredientToCup(ingredientId) == false then
+		if gameManager:CanAddIngredientToCupData(cupData, ingredientId) == false then
 			log("Ingredient cannot be added to cup: " .. ingredientId)
 			return false
 		end
@@ -51,7 +51,7 @@ script CupService extends Logic
 		local ingredientCounts = {}
 		
 		for index = 1, #cupData.ingredients do
-			local ingredientId = cupData.ingredients[index]
+			local ingredientId = self:GetDisplayIngredientId(cupData, cupData.ingredients[index])
 			table.insert(ingredients, ingredientId)
 			
 			if ingredientCounts[ingredientId] == nil then
@@ -67,6 +67,26 @@ script CupService extends Logic
 			spaceIngredientCount = cupData.spaceIngredientCount,
 			maxSpaceIngredientCount = cupData.maxSpaceIngredientCount,
 		}
+	end
+
+	method string GetDisplayIngredientId(any cupData, string ingredientId)
+		if ingredientId ~= "Water" then
+			return ingredientId
+		end
+
+		if cupData == nil then
+			return ingredientId
+		end
+
+		if cupData.type == "HotCup" then
+			return "HotWater"
+		end
+
+		if cupData.type == "IceCup" or cupData.type == "ColdCup" then
+			return "ColdWater"
+		end
+
+		return ingredientId
 	end
 
 	method string GetCupInfoText(any cupInfo)

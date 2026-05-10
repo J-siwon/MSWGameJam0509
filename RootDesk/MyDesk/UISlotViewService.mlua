@@ -1,6 +1,8 @@
 @Logic
 script UISlotViewService extends Logic
 
+	property any MixerLayerOriginalSizes = nil
+
 	method void SetSlotImage(any slot, string imageRUID)
 		if slot == nil or slot.uiButton == nil then
 			return
@@ -158,6 +160,43 @@ script UISlotViewService extends Logic
 		for layerIndex = 1, 4 do
 			local layerEntity = self:GetMixerLayerEntity(mixer, layerIndex)
 			if layerEntity ~= nil then
+				if layerIndex == 1 then
+					self:RememberMixerLayerOriginalSize(mixer, layerIndex, layerEntity)
+					self:RestoreMixerLayerOriginalSize(mixer, layerIndex, layerEntity)
+				end
+				self:SetEntityImage(layerEntity, "")
+				layerEntity.Enable = false
+			end
+		end
+	end
+
+	method void ShowMixerResultLayer(any gameManager, any mixer, string resultId)
+		if mixer == nil or mixer.uiButton == nil then
+			return
+		end
+
+		local resultLayer = self:GetMixerLayerEntity(mixer, 1)
+		if resultLayer == nil then
+			return
+		end
+
+		self:RememberMixerLayerOriginalSize(mixer, 1, resultLayer)
+
+		local imageRUID = gameManager:GetMixedIngredientImageRUID(resultId)
+		self:SetEntityImage(resultLayer, imageRUID)
+		resultLayer.Enable = imageRUID ~= nil and imageRUID ~= ""
+
+		local width = gameManager:GetMixedIngredientImageWidth(resultId)
+		local height = gameManager:GetMixedIngredientImageHeight(resultId)
+		if imageRUID ~= nil and imageRUID ~= "" and width > 0 and height > 0 then
+			self:SetEntityRectSize(resultLayer, width, height)
+		else
+			self:RestoreMixerLayerOriginalSize(mixer, 1, resultLayer)
+		end
+
+		for layerIndex = 2, 4 do
+			local layerEntity = self:GetMixerLayerEntity(mixer, layerIndex)
+			if layerEntity ~= nil then
 				self:SetEntityImage(layerEntity, "")
 				layerEntity.Enable = false
 			end
@@ -198,6 +237,60 @@ script UISlotViewService extends Logic
 		transform.anchoredPosition = anchoredPosition
 		transform.Position = position
 		transform.Pivot = pivot
+	end
+
+	method void EnsureMixerLayerOriginalSizes()
+		if self.MixerLayerOriginalSizes == nil then
+			self.MixerLayerOriginalSizes = {}
+		end
+	end
+
+	method string GetMixerLayerOriginalSizeKey(any mixer, number layerIndex)
+		if mixer == nil or mixer.id == nil then
+			return ""
+		end
+
+		return tostring(mixer.id) .. ":MixerLayer" .. tostring(layerIndex)
+	end
+
+	method void RememberMixerLayerOriginalSize(any mixer, number layerIndex, Entity layerEntity)
+		if layerEntity == nil or layerEntity.UITransformComponent == nil then
+			return
+		end
+
+		local key = self:GetMixerLayerOriginalSizeKey(mixer, layerIndex)
+		if key == "" then
+			return
+		end
+
+		self:EnsureMixerLayerOriginalSizes()
+		if self.MixerLayerOriginalSizes[key] ~= nil then
+			return
+		end
+
+		local rectSize = layerEntity.UITransformComponent.RectSize
+		self.MixerLayerOriginalSizes[key] = {
+			width = rectSize.x,
+			height = rectSize.y,
+		}
+	end
+
+	method void RestoreMixerLayerOriginalSize(any mixer, number layerIndex, Entity layerEntity)
+		if layerEntity == nil then
+			return
+		end
+
+		local key = self:GetMixerLayerOriginalSizeKey(mixer, layerIndex)
+		if key == "" or self.MixerLayerOriginalSizes == nil then
+			return
+		end
+
+		local originalSize = self.MixerLayerOriginalSizes[key]
+		if originalSize == nil then
+			return
+		end
+
+		self:SetEntityRectSize(layerEntity, originalSize.width, originalSize.height)
 	end
 
 	method Entity GetSlotIconEntity(any slot)

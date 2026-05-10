@@ -9,13 +9,15 @@ script DataFactory extends Logic
 
 	method any CreateGameData()
 		local ingredientDefs = self:CreateIngredientDefs()
+		local mixedRecipeData = self:CreateMixedRecipeData(ingredientDefs)
 		return {
 			IngredientSlots = self:CreateIngredientSlots(),
 			CupSlots = self:CreateCupSlots(),
 			IngredientDefs = ingredientDefs,
 			IngredientImageMap = self:CreateIngredientImageMap(ingredientDefs),
 			IngredientButtonIds = self:CreateIngredientButtonIds(ingredientDefs),
-			MixerRecipes = self:CreateMixerRecipes(),
+			MixerRecipes = mixedRecipeData.recipes,
+			MixedIngredientDefs = mixedRecipeData.mixedIngredientDefs,
 			Mixers = self:CreateMixers(),
 		}
 	end
@@ -67,12 +69,11 @@ script DataFactory extends Logic
 			CoffeeShot_2 = { useCupSpace = true, displayName = "Coffee Shot 2", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
 			CoffeeShot_3 = { useCupSpace = true, displayName = "Coffee Shot 3", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
 			Ice = { useCupSpace = true, displayName = "Ice", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
-			ColdWater = { useCupSpace = true, displayName = "Cold Water", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
-			HotWater = { useCupSpace = true, displayName = "Hot Water", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
+			Water = { useCupSpace = true, displayName = "Water", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
 			-- 믹싱 결과물은 다시 믹서에 넣지 않고 컵에만 넣는 것을 기본 규칙으로 둔다.
-			Mixed_Cold_Ingredient_1 = { useCupSpace = true, displayName = "Mixed Cold Ingredient 1", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
-			Mixed_Hot_Ingredient_2 = { useCupSpace = true, displayName = "Mixed Hot Ingredient 2", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
-			Mixed_Cold_Ingredient_3 = { useCupSpace = true, displayName = "Mixed Cold Ingredient 3", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
+			Mixed_Ingredient_1 = { useCupSpace = true, displayName = "Mixed Ingredient 1", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
+			Mixed_Ingredient_2 = { useCupSpace = true, displayName = "Mixed Ingredient 2", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
+			Mixed_Ingredient_3 = { useCupSpace = true, displayName = "Mixed Ingredient 3", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
 			Trash = { useCupSpace = false, displayName = "Trash", canPrep = false, canMix = false, canAddToCup = false, imageRUID = "" },
 		}
 	end
@@ -180,21 +181,28 @@ script DataFactory extends Logic
 		return imageMap
 	end
 
-	method any CreateMixerRecipes()
-		local recipes = self:CreateMixerRecipesFromDataSet()
-		if recipes ~= nil then
-			return recipes
+	method any CreateMixedRecipeData(any ingredientDefs)
+		local recipeData = self:CreateMixedRecipeDataFromDataSet(ingredientDefs)
+		if recipeData ~= nil then
+			return recipeData
 		end
 		
 		log("MixerRecipeData dataset is not loaded. Use fallback mixer recipes.")
 		return {
-			["ColdWater|prepped_Ingredient_1"] = "Mixed_Cold_Ingredient_1",
-			["HotWater|prepped_Ingredient_2"] = "Mixed_Hot_Ingredient_2",
-			["ColdWater|prepped_Ingredient_3"] = "Mixed_Cold_Ingredient_3",
+			recipes = {
+				["Water|prepped_Ingredient_1"] = "Mixed_Ingredient_1",
+				["Water|prepped_Ingredient_2"] = "Mixed_Ingredient_2",
+				["Water|prepped_Ingredient_3"] = "Mixed_Ingredient_3",
+			},
+			mixedIngredientDefs = {
+				Mixed_Ingredient_1 = { id = "Mixed_Ingredient_1", drinkName = "Mixed Ingredient 1", recipe = "Water|prepped_Ingredient_1", isFinalIngredient = false, firstSlotOnly = false, imageRUID = "", imageWidth = 0, imageHeight = 0 },
+				Mixed_Ingredient_2 = { id = "Mixed_Ingredient_2", drinkName = "Mixed Ingredient 2", recipe = "Water|prepped_Ingredient_2", isFinalIngredient = false, firstSlotOnly = false, imageRUID = "", imageWidth = 0, imageHeight = 0 },
+				Mixed_Ingredient_3 = { id = "Mixed_Ingredient_3", drinkName = "Mixed Ingredient 3", recipe = "Water|prepped_Ingredient_3", isFinalIngredient = false, firstSlotOnly = false, imageRUID = "", imageWidth = 0, imageHeight = 0 },
+			},
 		}
 	end
 
-	method any CreateMixerRecipesFromDataSet()
+	method any CreateMixedRecipeDataFromDataSet(any ingredientDefs)
 		if _EntryService == nil or _DataService == nil then
 			return nil
 		end
@@ -210,20 +218,35 @@ script DataFactory extends Logic
 		end
 		
 		local recipes = {}
+		local mixedIngredientDefs = {}
 		for rowIndex = 1, rowCount do
-			local ingredientsText = _DataService:GetCell(self.MixerRecipeDataSetName, rowIndex, "Ingredients")
-			local resultIngredient = _DataService:GetCell(self.MixerRecipeDataSetName, rowIndex, "ResultIngredient")
-			local recipeKey = self:CreateRecipeKeyFromText(ingredientsText)
+			local id = self:Trim(_DataService:GetCell(self.MixerRecipeDataSetName, rowIndex, "Id"))
+			local drinkName = self:Trim(_DataService:GetCell(self.MixerRecipeDataSetName, rowIndex, "DrinkName"))
+			local recipeText = self:Trim(_DataService:GetCell(self.MixerRecipeDataSetName, rowIndex, "Recipe"))
+			local recipeKey = self:CreateRecipeKeyFromText(recipeText, ingredientDefs)
 			
-			if recipeKey ~= "" and resultIngredient ~= nil and resultIngredient ~= "" then
-				recipes[recipeKey] = self:Trim(resultIngredient)
+			if recipeKey ~= "" and id ~= "" then
+				recipes[recipeKey] = id
+				mixedIngredientDefs[id] = {
+					id = id,
+					drinkName = drinkName,
+					recipe = recipeKey,
+					isFinalIngredient = self:ParseBoolean(_DataService:GetCell(self.MixerRecipeDataSetName, rowIndex, "IsFinalIngredient"), false),
+					firstSlotOnly = self:ParseBoolean(_DataService:GetCell(self.MixerRecipeDataSetName, rowIndex, "FirstSlotOnly"), false),
+					imageRUID = self:Trim(_DataService:GetCell(self.MixerRecipeDataSetName, rowIndex, "ImageRUID")),
+					imageWidth = tonumber(self:Trim(_DataService:GetCell(self.MixerRecipeDataSetName, rowIndex, "ImageWidth"))) or 0,
+					imageHeight = tonumber(self:Trim(_DataService:GetCell(self.MixerRecipeDataSetName, rowIndex, "ImageHeight"))) or 0,
+				}
 			end
 		end
 		
-		return recipes
+		return {
+			recipes = recipes,
+			mixedIngredientDefs = mixedIngredientDefs,
+		}
 	end
 
-	method string CreateRecipeKeyFromText(string ingredientsText)
+	method string CreateRecipeKeyFromText(string ingredientsText, any ingredientDefs)
 		if ingredientsText == nil or ingredientsText == "" then
 			return ""
 		end
@@ -232,14 +255,14 @@ script DataFactory extends Logic
 		for ingredientId in string.gmatch(ingredientsText, "([^|]+)") do
 			local trimmed = self:Trim(ingredientId)
 			if trimmed ~= "" then
-				table.insert(ingredients, trimmed)
+				table.insert(ingredients, self:ResolveIngredientId(trimmed, ingredientDefs))
 			end
 		end
 		
 		table.sort(ingredients)
 		
 		local key = ""
-		for index, ingredientId in pairs(ingredients) do
+		for index, ingredientId in ipairs(ingredients) do
 			if key ~= "" then
 				key = key .. "|"
 			end
@@ -247,6 +270,37 @@ script DataFactory extends Logic
 		end
 		
 		return key
+	end
+
+	method string ResolveIngredientId(string value, any ingredientDefs)
+		local normalized = self:Trim(value)
+		if normalized == "" then
+			return ""
+		end
+		
+		if ingredientDefs ~= nil and ingredientDefs[normalized] ~= nil then
+			return normalized
+		end
+		
+		local matchedId = ""
+		if ingredientDefs ~= nil then
+			for ingredientId, ingredientDef in pairs(ingredientDefs) do
+				if ingredientDef ~= nil and ingredientDef.displayName == normalized then
+					if matchedId ~= "" and matchedId ~= ingredientId then
+						log("Duplicate ingredient display name in recipe data: " .. normalized)
+						return normalized
+					end
+					
+					matchedId = ingredientId
+				end
+			end
+		end
+		
+		if matchedId ~= "" then
+			return matchedId
+		end
+		
+		return normalized
 	end
 
 	method string Trim(string value)

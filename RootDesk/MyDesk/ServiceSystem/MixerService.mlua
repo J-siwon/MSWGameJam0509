@@ -84,7 +84,7 @@ script MixerService extends Logic
 		mixer.isMixed = false
 		mixer.isTrash = false
 		mixer.resultId = nil
-		gameManager:SetSlotImage(mixer, "")
+		gameManager:ClearMixerLayerImages(mixer)
 		gameManager:SetPrepSlotProgress(mixer, 0)
 	end
 

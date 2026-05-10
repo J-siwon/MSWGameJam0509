@@ -134,8 +134,7 @@ script WorkProcessService extends Logic
 		mixer.isTrash = gameManager:IsTrashMixerResult(mixer)
 		mixer.uiButton.Enable = true
 		gameManager:SetMixerEffectVisible(mixer, false)
-		gameManager:ClearMixerLayerImages(mixer)
-		gameManager:SetSlotImage(mixer, gameManager:GetMixerImageRUID(resultId))
+		gameManager:ShowMixerResultLayer(mixer, resultId)
 		self:SetPrepSlotProgress(mixer, 0)
 		
 		log("Finished mixing: " .. mixer.id .. " / result: " .. resultId)
