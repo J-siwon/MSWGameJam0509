@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://ef1328c63c9047f5a98141b4fefc2769",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/ef1328c63c9047f5a98141b4fefc2769/639140185738510487",
+      "upload_hash": "1917DF60FF0E8FFCDB3A4D0E3B73F64DEC1B6A19D83B8831732C59AB695F75D3",
+      "name": "icon_slime_banana",
+      "resource_guid": "ef1328c63c9047f5a98141b4fefc2769",
+      "resource_version": "6a00900dd87fdc71a164fa40"
+    }
+  }
+}

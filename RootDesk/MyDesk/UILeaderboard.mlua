@@ -152,7 +152,7 @@ script UILeaderboard extends Component
 			local currentItem = self.itemTable[index]
 			if currentItem ~= nil and index <= visibleCount then
 				currentItem.Enable = true
-				self:SetRowText(currentItem, tostring(index), self:GetRecordName(records[index]), self:FormatScore(records[index].score))
+				self:SetRowText(currentItem, self:FormatRank(index), self:GetRecordName(records[index]), self:FormatScore(records[index].score))
 			elseif currentItem ~= nil then
 				currentItem.Enable = false
 			end
@@ -162,12 +162,12 @@ script UILeaderboard extends Component
 	method void RenderMyRow(table records, string localUserId, string localName)
 		local rankText = "-"
 		local nameText = localName
-		local scoreText = "$0"
+		local scoreText = "0 메소"
 
 		for index = 1, #records do
 			local record = records[index]
 			if record.userId == localUserId or (localUserId == "" and record.name == localName) then
-				rankText = tostring(index)
+				rankText = self:FormatRank(index)
 				nameText = self:GetRecordName(record)
 				scoreText = self:FormatScore(record.score)
 				break
@@ -213,7 +213,11 @@ script UILeaderboard extends Component
 	end
 
 	method string FormatScore(number score)
-		return "$" .. tostring(math.max(0, math.floor((score or 0) + 0.5)))
+		return tostring(math.max(0, math.floor((score or 0) + 0.5))) .. " 메소"
+	end
+
+	method string FormatRank(number rank)
+		return tostring(math.max(1, math.floor((rank or 1) + 0.5))) .. "등"
 	end
 
 end

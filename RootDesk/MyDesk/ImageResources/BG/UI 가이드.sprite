@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://40717a632cc44f72ae1fead45f1ddb53",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/40717a632cc44f72ae1fead45f1ddb53/639140199256598779",
+      "upload_hash": "7BB36F6BF8D53CBE2BD19C34B706BD582CC1D02295C0DA89E29F2435474CF781",
+      "name": "UI 가이드",
+      "resource_guid": "40717a632cc44f72ae1fead45f1ddb53",
+      "resource_version": "6a009555ea35bbe6373d87e3"
+    }
+  }
+}

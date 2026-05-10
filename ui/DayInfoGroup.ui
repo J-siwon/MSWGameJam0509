@@ -148,11 +148,11 @@
               "MobileOnly": false,
               "OffsetMax": {
                 "x": 303.876465,
-                "y": 484.0133
+                "y": 538.033142
               },
               "OffsetMin": {
-                "x": -64.05664,
-                "y": 404.0431
+                "x": -64.0566559,
+                "y": 437.152039
               },
               "Pivot": {
                 "x": 0.0,
@@ -160,7 +160,7 @@
               },
               "RectSize": {
                 "x": 367.9331,
-                "y": 79.9702148
+                "y": 100.881134
               },
               "UIMode": 1,
               "UIScale": {
@@ -170,12 +170,12 @@
               },
               "UIVersion": 2,
               "anchoredPosition": {
-                "x": -64.05664,
-                "y": 444.0282
+                "x": -64.0566559,
+                "y": 487.5926
               },
               "Position": {
-                "x": -64.05664,
-                "y": 444.0282,
+                "x": -64.0566559,
+                "y": 487.5926,
                 "z": 0.0
               },
               "QuaternionRotation": {
@@ -199,7 +199,7 @@
             {
               "@type": "MOD.Core.TextComponent",
               "Alignment": 4,
-              "Bold": true,
+              "Bold": false,
               "DropShadow": false,
               "DropShadowAngle": 30.0,
               "DropShadowColor": {
@@ -209,15 +209,15 @@
                 "a": 0.72
               },
               "DropShadowDistance": 32.0,
-              "Font": 0,
+              "Font": 1,
               "FontColor": {
                 "r": 1.0,
-                "g": 0.95,
-                "b": 0.78,
+                "g": 1.0,
+                "b": 1.0,
                 "a": 1.0
               },
-              "FontSize": 44,
-              "MaxSize": 44,
+              "FontSize": 64,
+              "MaxSize": 64,
               "MinSize": 12,
               "OutlineColor": {
                 "r": 0.0,
@@ -238,7 +238,7 @@
                 "bottom": 0
               },
               "SizeFit": false,
-              "Text": "Day 1 / 7",
+              "Text": "Day 1",
               "UseOutLine": false,
               "Enable": true
             }
@@ -282,12 +282,12 @@
               },
               "MobileOnly": false,
               "OffsetMax": {
-                "x": -786.137268,
-                "y": 503.2416
+                "x": -786.1374,
+                "y": 505.2643
               },
               "OffsetMin": {
-                "x": -932.3861,
-                "y": 464.278168
+                "x": -932.3862,
+                "y": 453.8539
               },
               "Pivot": {
                 "x": 0.0,
@@ -295,7 +295,7 @@
               },
               "RectSize": {
                 "x": 146.24884,
-                "y": 38.96344
+                "y": 51.410408
               },
               "UIMode": 1,
               "UIScale": {
@@ -305,12 +305,12 @@
               },
               "UIVersion": 2,
               "anchoredPosition": {
-                "x": -932.3861,
-                "y": 483.7599
+                "x": -932.3862,
+                "y": 479.5591
               },
               "Position": {
-                "x": -932.3861,
-                "y": 483.7599,
+                "x": -932.3862,
+                "y": 479.5591,
                 "z": 0.0
               },
               "QuaternionRotation": {
@@ -344,11 +344,11 @@
                 "a": 0.72
               },
               "DropShadowDistance": 32.0,
-              "Font": 0,
+              "Font": 1,
               "FontColor": {
-                "r": 1.0,
-                "g": 1.0,
-                "b": 1.0,
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
                 "a": 1.0
               },
               "FontSize": 32,
@@ -382,12 +382,12 @@
         }
       },
       {
-        "id": "7f9f3e00-6df2-4f4a-9b27-5650f0d90005",
-        "path": "/ui/DayInfoGroup/MoneyText",
-        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.TextComponent",
+        "id": "4ab205eb-f001-4545-b2e7-dce6b3912865",
+        "path": "/ui/DayInfoGroup/MoneyIcon",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent",
         "jsonString": {
-          "name": "MoneyText",
-          "path": "/ui/DayInfoGroup/MoneyText",
+          "name": "MoneyIcon",
+          "path": "/ui/DayInfoGroup/MoneyIcon",
           "nameEditable": true,
           "enable": true,
           "visible": true,
@@ -397,12 +397,12 @@
           "revision": 1,
           "origin": {
             "type": "Model",
-            "entry_id": "UIText",
+            "entry_id": "uisprite",
             "sub_entity_id": null,
-            "root_entity_id": null,
+            "root_entity_id": "4ab205eb-f001-4545-b2e7-dce6b3912865",
             "replaced_model_id": null
           },
-          "modelId": "uitext",
+          "modelId": "uisprite",
           "@components": [
             {
               "@type": "MOD.Core.UITransformComponent",
@@ -417,35 +417,30 @@
               },
               "MobileOnly": false,
               "OffsetMax": {
-                "x": -766.33606,
-                "y": 456.723267
+                "x": -909.579163,
+                "y": 446.927734
               },
               "OffsetMin": {
-                "x": -957.6792,
-                "y": 408.074951
+                "x": -953.1508,
+                "y": 404.717651
               },
               "Pivot": {
-                "x": 0.0,
+                "x": 0.5,
                 "y": 0.5
               },
               "RectSize": {
-                "x": 191.34314,
-                "y": 48.6483154
+                "x": 43.5717,
+                "y": 42.2100868
               },
               "UIMode": 1,
-              "UIScale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-              },
               "UIVersion": 2,
               "anchoredPosition": {
-                "x": -957.6792,
-                "y": 432.3991
+                "x": -931.365,
+                "y": 425.8227
               },
               "Position": {
-                "x": -957.6792,
-                "y": 432.3991,
+                "x": -931.365,
+                "y": 425.8227,
                 "z": 0.0
               },
               "QuaternionRotation": {
@@ -454,62 +449,15 @@
                 "z": 0.0,
                 "w": 1.0
               },
-              "Scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-              },
               "Enable": true
             },
             {
               "@type": "MOD.Core.SpriteGUIRendererComponent",
+              "ImageRUID": {
+                "DataId": "4f03dc400db442d6b7ac71579a22fb84"
+              },
               "OverrideSorting": false,
-              "Enable": true
-            },
-            {
-              "@type": "MOD.Core.TextComponent",
-              "Alignment": 4,
-              "Bold": true,
-              "DropShadow": false,
-              "DropShadowAngle": 30.0,
-              "DropShadowColor": {
-                "r": 0.0,
-                "g": 0.0,
-                "b": 0.0,
-                "a": 0.72
-              },
-              "DropShadowDistance": 32.0,
-              "Font": 0,
-              "FontColor": {
-                "r": 0.62,
-                "g": 1.0,
-                "b": 0.58,
-                "a": 1.0
-              },
-              "FontSize": 32,
-              "MaxSize": 40,
-              "MinSize": 12,
-              "OutlineColor": {
-                "r": 0.0,
-                "g": 0.0,
-                "b": 0.0,
-                "a": 1.0
-              },
-              "OutlineDistance": {
-                "x": 1.0,
-                "y": -1.0
-              },
-              "Overflow": 0,
-              "OverrideSorting": false,
-              "Padding": {
-                "left": 0,
-                "right": 0,
-                "top": 0,
-                "bottom": 0
-              },
-              "SizeFit": false,
-              "Text": "$0",
-              "UseOutLine": false,
+              "Type": 0,
               "Enable": true
             }
           ],
@@ -517,12 +465,12 @@
         }
       },
       {
-        "id": "7f9f3e00-6df2-4f4a-9b27-5650f0d90006",
-        "path": "/ui/DayInfoGroup/GoalText",
+        "id": "7f9f3e00-6df2-4f4a-9b27-5650f0d90005",
+        "path": "/ui/DayInfoGroup/MoneyText",
         "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.TextComponent",
         "jsonString": {
-          "name": "GoalText",
-          "path": "/ui/DayInfoGroup/GoalText",
+          "name": "MoneyText",
+          "path": "/ui/DayInfoGroup/MoneyText",
           "nameEditable": true,
           "enable": true,
           "visible": true,
@@ -552,12 +500,147 @@
               },
               "MobileOnly": false,
               "OffsetMax": {
-                "x": 306.1311,
-                "y": 407.403656
+                "x": -783.140259,
+                "y": 436.8227
               },
               "OffsetMin": {
-                "x": -64.0822754,
-                "y": 297.89035
+                "x": -943.365967,
+                "y": 406.8227
+              },
+              "Pivot": {
+                "x": 0.0,
+                "y": 0.5
+              },
+              "RectSize": {
+                "x": 160.225723,
+                "y": 30.0
+              },
+              "UIMode": 1,
+              "UIScale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              },
+              "UIVersion": 2,
+              "anchoredPosition": {
+                "x": -943.365967,
+                "y": 421.8227
+              },
+              "Position": {
+                "x": -943.365967,
+                "y": 421.8227,
+                "z": 0.0
+              },
+              "QuaternionRotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0
+              },
+              "Scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              },
+              "Enable": true
+            },
+            {
+              "@type": "MOD.Core.SpriteGUIRendererComponent",
+              "OverrideSorting": false,
+              "Enable": true
+            },
+            {
+              "@type": "MOD.Core.TextComponent",
+              "Alignment": 5,
+              "Bold": true,
+              "DropShadow": false,
+              "DropShadowAngle": 30.0,
+              "DropShadowColor": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.72
+              },
+              "DropShadowDistance": 32.0,
+              "Font": 1,
+              "FontColor": {
+                "r": 1.0,
+                "g": 1.0,
+                "b": 1.0,
+                "a": 1.0
+              },
+              "FontSize": 20,
+              "MaxSize": 40,
+              "MinSize": 12,
+              "OutlineColor": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 1.0
+              },
+              "OutlineDistance": {
+                "x": 1.0,
+                "y": -1.0
+              },
+              "Overflow": 0,
+              "OverrideSorting": false,
+              "Padding": {
+                "left": 0,
+                "right": 15,
+                "top": 0,
+                "bottom": 0
+              },
+              "SizeFit": false,
+              "Text": "0 메소",
+              "UseOutLine": false,
+              "Enable": true
+            }
+          ],
+          "@version": 1
+        }
+      },
+      {
+        "id": "7f9f3e00-6df2-4f4a-9b27-5650f0d90006",
+        "path": "/ui/DayInfoGroup/GoalText",
+        "componentNames": "MOD.Core.UITransformComponent,MOD.Core.SpriteGUIRendererComponent,MOD.Core.TextComponent",
+        "jsonString": {
+          "name": "GoalText",
+          "path": "/ui/DayInfoGroup/GoalText",
+          "nameEditable": true,
+          "enable": true,
+          "visible": true,
+          "localize": true,
+          "displayOrder": 4,
+          "pathConstraints": "///",
+          "revision": 1,
+          "origin": {
+            "type": "Model",
+            "entry_id": "UIText",
+            "sub_entity_id": null,
+            "root_entity_id": null,
+            "replaced_model_id": null
+          },
+          "modelId": "uitext",
+          "@components": [
+            {
+              "@type": "MOD.Core.UITransformComponent",
+              "AlignmentOption": 0,
+              "AnchorsMax": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "AnchorsMin": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "MobileOnly": false,
+              "OffsetMax": {
+                "x": 307.8737,
+                "y": 471.00766
+              },
+              "OffsetMin": {
+                "x": -62.33969,
+                "y": 361.494354
               },
               "Pivot": {
                 "x": 0.0,
@@ -575,12 +658,12 @@
               },
               "UIVersion": 2,
               "anchoredPosition": {
-                "x": -64.0822754,
-                "y": 352.647
+                "x": -62.33969,
+                "y": 416.251
               },
               "Position": {
-                "x": -64.0822754,
-                "y": 352.647,
+                "x": -62.33969,
+                "y": 416.251,
                 "z": 0.0
               },
               "QuaternionRotation": {
@@ -621,7 +704,7 @@
                 "b": 1.0,
                 "a": 1.0
               },
-              "FontSize": 44,
+              "FontSize": 30,
               "MaxSize": 44,
               "MinSize": 12,
               "OutlineColor": {
@@ -643,7 +726,7 @@
                 "bottom": 0
               },
               "SizeFit": false,
-              "Text": "Goal $600",
+              "Text": "목표 - 천만메소",
               "UseOutLine": false,
               "Enable": true
             }
@@ -662,7 +745,7 @@
           "enable": true,
           "visible": true,
           "localize": true,
-          "displayOrder": 4,
+          "displayOrder": 5,
           "pathConstraints": "///",
           "revision": 1,
           "origin": {

@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://fe6a9b0ff3c8442db633946a13a16990",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/fe6a9b0ff3c8442db633946a13a16990/639140172939933487",
+      "upload_hash": "05466CF99AD92E998F789123BC62A8E9443616DBFB8E72274063DB844A34FF96",
+      "name": "UI_Recipe",
+      "resource_guid": "fe6a9b0ff3c8442db633946a13a16990",
+      "resource_version": "6a008b0e281edb666b5dde3d"
+    }
+  }
+}
