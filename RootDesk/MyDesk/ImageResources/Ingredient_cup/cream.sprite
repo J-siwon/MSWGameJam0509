@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://6f88ce1184f042949ffff26f84ec4c87",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/6f88ce1184f042949ffff26f84ec4c87/639140276787951024",
+      "upload_hash": "ED922C822C440D52291B1AF7602488BFBF29A67A253A5E182E60BEC85126131A",
+      "name": "cream",
+      "resource_guid": "6f88ce1184f042949ffff26f84ec4c87",
+      "resource_version": "6a00b39ec86848c49b964fcc"
+    }
+  }
+}

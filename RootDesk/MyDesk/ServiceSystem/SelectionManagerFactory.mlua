@@ -35,9 +35,6 @@ script SelectionManagerFactory extends Logic
 			
 			if newState == "INGREDIENT_SLOT" then
 				if newData.state == "RAW" then
-					if gameManager:CanPrepIngredient(newData.ingredientId) == true then
-						gameManager:ShowPrepUI(newData)
-					end
 					gameManager:ShowDiscardUI(newData)
 				elseif newData.state == "PREPPED" then
 					gameManager:ShowDiscardUI(newData)
@@ -46,9 +43,6 @@ script SelectionManagerFactory extends Logic
 				gameManager:ShowDiscardUI(newData)
 			elseif newState == "MIXER" then
 				gameManager:ShowDiscardUI(newData)
-				if newData.isMixed == false then
-					gameManager:ShowMixUI(newData)
-				end
 			end
 		end
 		
@@ -101,10 +95,14 @@ script SelectionManagerFactory extends Logic
 						self:Clear()
 					end
 				elseif targetType == "INGREDIENT_SLOT" and target.state == "EMPTY" then
-					target.state = "RAW"
-					target.ingredientId = self.data
-					gameManager:SetSlotImage(target, gameManager:GetPrepImageRUID(target.ingredientId))
-					self:Clear()
+					if gameManager:CanPrepIngredient(self.data) == true then
+						target.state = "RAW"
+						target.ingredientId = self.data
+						gameManager:SetSlotImage(target, gameManager:GetPrepImageRUID(target.ingredientId))
+						self:Clear()
+					else
+						log("Cannot place ingredient in prep slot: " .. tostring(self.data))
+					end
 				elseif targetType == "MIXER" and target.isMixed == false then
 					if gameManager:AddIngredientToMixer(target, self.data) == true then
 						self:Clear()

@@ -1,4 +1,4 @@
-Id,DrinkName,Recipe,IsFinalIngredient,FirstSlotOnly,ImageRUID,ImageWidth,ImageHeight
+﻿Id,DrinkName,Recipe,IsFinalIngredient,FirstSlotOnly,ImageRUID,ImageWidth,ImageHeight
 Mixed_Ingredient_1,Strawberry Smoothie,Strawberry|Water|Ice,true,true,e819f1d141464fbaa9ca0a93a2158c26,118,112
 Mixed_Ingredient_2,Banana Smoothie,Banana|Water|Ice,true,true,b62b22ebc07542bd8f10b51e10692c06,118,112
 Mixed_Ingredient_3,Banana Slime Smoothie,Banana|Water|Ice|Slime,true,true,ffe949ef70714294a79d67a927bf67df,118,112

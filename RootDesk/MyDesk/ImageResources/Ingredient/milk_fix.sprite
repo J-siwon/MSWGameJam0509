@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://b69572a8686f405fb0c696a6665b397b",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/b69572a8686f405fb0c696a6665b397b/639140286012343595",
+      "upload_hash": "582DD8D8599F66FB86561F7AEE1427AA60E5BB73B523B7EA269CAEEFDFF3D470",
+      "name": "milk_fix",
+      "resource_guid": "b69572a8686f405fb0c696a6665b397b",
+      "resource_version": "6a00b739c86848c49b964fcd"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "directory://3967261051d84ea0995c17be871c1faf",
+  "ContentType": "x-mod/directory",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "entry_id": "directory://3967261051d84ea0995c17be871c1faf",
+      "name": "MixedIngredient",
+      "lock": false,
+      "folding": false,
+      "nameEditable": true
+    }
+  }
+}

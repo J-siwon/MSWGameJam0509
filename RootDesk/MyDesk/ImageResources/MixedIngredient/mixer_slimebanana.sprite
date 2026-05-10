@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://ffe949ef70714294a79d67a927bf67df",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/ffe949ef70714294a79d67a927bf67df/639140276788297368",
+      "upload_hash": "5A5AC19D44CBEA7C4DA3189A5EFDF3B90C6E6865D062F444003312A0AAC243DF",
+      "name": "mixer_slimebanana",
+      "resource_guid": "ffe949ef70714294a79d67a927bf67df",
+      "resource_version": "6a00b39e33655e622f120672"
+    }
+  }
+}

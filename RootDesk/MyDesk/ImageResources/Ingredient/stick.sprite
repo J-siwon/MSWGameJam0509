@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://5d814f1676ab4213a1fc8be1234aeed4",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/5d814f1676ab4213a1fc8be1234aeed4/639140286012367016",
+      "upload_hash": "363C601CF722ED686DEEBD772497A285E5FBF01A57E717DA9FDE91BC01C7C7BE",
+      "name": "stick",
+      "resource_guid": "5d814f1676ab4213a1fc8be1234aeed4",
+      "resource_version": "6a00b7395b1f79a0d73923ed"
+    }
+  }
+}

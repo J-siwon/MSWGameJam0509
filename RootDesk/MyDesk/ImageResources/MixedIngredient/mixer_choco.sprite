@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://498ca7e37052471bbebc0e90421940cf",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/498ca7e37052471bbebc0e90421940cf/639140276787916620",
+      "upload_hash": "E257FEA573AFA1BE37A9E9B9EE595FDB43AD3B4DE2C5D71C11705F2A1E159A78",
+      "name": "mixer_choco",
+      "resource_guid": "498ca7e37052471bbebc0e90421940cf",
+      "resource_version": "6a00b39e845cbc7122697117"
+    }
+  }
+}

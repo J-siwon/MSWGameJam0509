@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://b62b22ebc07542bd8f10b51e10692c06",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/b62b22ebc07542bd8f10b51e10692c06/639140276788048831",
+      "upload_hash": "E4CF493186CEA57411CB8366336A6B33C232FCB8671D94CAF2045204E873753E",
+      "name": "mixer_banana",
+      "resource_guid": "b62b22ebc07542bd8f10b51e10692c06",
+      "resource_version": "6a00b39e86656e13589ccea0"
+    }
+  }
+}

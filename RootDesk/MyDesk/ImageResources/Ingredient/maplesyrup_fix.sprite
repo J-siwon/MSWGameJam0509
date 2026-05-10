@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://2fa86f02250e4a0599b3bdb8ec0da46e",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/2fa86f02250e4a0599b3bdb8ec0da46e/639140286012395389",
+      "upload_hash": "D39965FCFA16F1181B3812BA6A06D4956AEC7A55A2436F29F484FDB3A5C8461B",
+      "name": "maplesyrup_fix",
+      "resource_guid": "2fa86f02250e4a0599b3bdb8ec0da46e",
+      "resource_version": "6a00b739096d83fbaa246deb"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://ecb3942bc998487d97a3df4dca2b815c",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/ecb3942bc998487d97a3df4dca2b815c/639140286012281140",
+      "upload_hash": "A344692FF13F954DE984FA60F489809709294A9C91A2E9431B4E7DAECCA68CFE",
+      "name": "jail",
+      "resource_guid": "ecb3942bc998487d97a3df4dca2b815c",
+      "resource_version": "6a00b7396076e9172600adbf"
+    }
+  }
+}

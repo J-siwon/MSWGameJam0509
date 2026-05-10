@@ -7,6 +7,10 @@ script ServiceManager extends Logic
 
 	property any selectedButtonEntity = nil
 
+	property any selectedButtonSpriteEntity = nil
+
+	property any selectedButtonSpriteOriginalPosition = nil
+
 	property any prepTargetSlot = nil
 
 	property any brewShotTargetSlot = nil
@@ -35,11 +39,11 @@ script ServiceManager extends Logic
 
 	property number hotCupImageHeight = 146
 
-	property number prepDuration = 1
+	property number prepDuration = 1.5
 
 	property number brewShotDuration = 1
 
-	property number mixDuration = 1
+	property number mixDuration = 1.5
 
 	property number waterPourDuration = 1
 
@@ -855,6 +859,15 @@ script ServiceManager extends Logic
 		log("WorkProcessService is not loaded.")
 	end
 
+	method void CancelPrepIngredientSlot(any slot)
+		if _WorkProcessService ~= nil then
+			_WorkProcessService:CancelPrepIngredientSlot(self, slot)
+			return
+		end
+		
+		log("WorkProcessService is not loaded.")
+	end
+
 	method void StartBrewShot(any slot)
 		-- 샷 내리는 중에는 해당 컵 슬롯을 비활성화해서 이동/스왑을 막는다.
 		if _WorkProcessService ~= nil then
@@ -1353,11 +1366,13 @@ script ServiceManager extends Logic
 		
 		self.slotIng1.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientSlot(self.GameData.IngredientSlots[1], self.slotIng1) end)
 		self.slotIng2.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientSlot(self.GameData.IngredientSlots[2], self.slotIng2) end)
+		self:ConnectIngredientSlotCharacterButton(1, self.slotIng1)
+		self:ConnectIngredientSlotCharacterButton(2, self.slotIng2)
 		
 		self.slotMixer1.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickMixer(self.GameData.Mixers[1], self.slotMixer1) end)
 		self.slotMixer2.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickMixer(self.GameData.Mixers[2], self.slotMixer2) end)
-		self.btnPrepAction.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickPrepAction() end)
-		self.btnMixAction.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickMixAction() end)
+		self:ConnectMixerCharacterButton(1, self.slotMixer1)
+		self:ConnectMixerCharacterButton(2, self.slotMixer2)
 		self.btnDiscardAction.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickDiscardAction() end)
 		-- DH 테스트용 버튼
 		if self.btnSubmitDrinkTest ~= nil then
@@ -1365,6 +1380,104 @@ script ServiceManager extends Logic
 		end
 		
 		log("Game buttons connected")
+	end
+
+	method void ConnectIngredientSlotCharacterButton(number index, ButtonComponent slotButton)
+		if slotButton == nil or slotButton.Entity == nil then
+			return
+		end
+
+		local characterEntity = slotButton.Entity:GetChildByName("Character", true)
+		if characterEntity == nil then
+			log("Ingredient slot character button is not found: " .. tostring(index))
+			return
+		end
+
+		characterEntity:ConnectEvent(ButtonStateChangeEvent, function(event) self:OnIngredientSlotCharacterButtonStateChanged(index, event) end)
+	end
+
+	method void OnIngredientSlotCharacterButtonStateChanged(number index, any event)
+		if self.GameData == nil or self.GameData.IngredientSlots == nil then
+			return
+		end
+
+		local slot = self.GameData.IngredientSlots[index]
+		if slot == nil then
+			return
+		end
+
+		if event ~= nil and event.state == ButtonState.Pressed then
+			if self.IsPaused == true then
+				return
+			end
+			self:StartHoldPrepIngredientSlot(slot)
+			return
+		end
+
+		self:CancelHoldPrepIngredientSlot(slot)
+	end
+
+	method void StartHoldPrepIngredientSlot(any slot)
+		if slot == nil or slot.state ~= "RAW" then
+			return
+		end
+
+		if self:CanPrepIngredient(slot.ingredientId) == false then
+			return
+		end
+
+		if self.SelectionManager ~= nil and self.SelectionManager.state == "INGREDIENT_SLOT" and self.SelectionManager.data == slot then
+			self.SelectionManager:Clear()
+		end
+
+		self:StartPrepIngredientSlot(slot)
+	end
+
+	method void CancelHoldPrepIngredientSlot(any slot)
+		if slot == nil then
+			return
+		end
+
+		self:CancelPrepIngredientSlot(slot)
+	end
+
+	method void ConnectMixerCharacterButton(number index, ButtonComponent slotButton)
+		if slotButton == nil or slotButton.Entity == nil then
+			return
+		end
+
+		local characterEntity = slotButton.Entity:GetChildByName("Character", true)
+		if characterEntity == nil then
+			log("Mixer character button is not found: " .. tostring(index))
+			return
+		end
+
+		characterEntity:ConnectEvent(ButtonClickEvent, function() self:OnClickMixerCharacterButton(index) end)
+	end
+
+	method void OnClickMixerCharacterButton(number index)
+		if self.IsPaused == true then
+			return
+		end
+
+		if self.GameData == nil or self.GameData.Mixers == nil then
+			return
+		end
+
+		local mixer = self.GameData.Mixers[index]
+		if mixer == nil then
+			return
+		end
+
+		if mixer.isMixed == false and mixer.isMixing ~= true and mixer.ingredients ~= nil and #mixer.ingredients > 0 then
+			if self.SelectionManager ~= nil and self.SelectionManager.state == "MIXER" and self.SelectionManager.data == mixer then
+				self.SelectionManager:Clear()
+			end
+			self:StartMixMixer(mixer)
+			return
+		end
+
+		log("Cannot start mixing from character: " .. tostring(mixer.id))
 	end
 
 	method void OnClickSubmitDrinkTest()

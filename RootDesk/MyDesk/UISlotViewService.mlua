@@ -97,17 +97,30 @@ script UISlotViewService extends Logic
 			maxLayerCount = 4
 		end
 		
-		for layerIndex = 1, maxLayerCount do
-			local layerEntity = self:GetCupLayerEntity(slot, layerIndex)
-			if layerEntity ~= nil then
-				local ingredientId = slot.cupData.ingredients[layerIndex]
-				local imageRUID = ""
-				if ingredientId ~= nil then
-					imageRUID = gameManager:GetCupLayerImageRUID(ingredientId)
+		local layerIndex = 1
+		for ingredientIndex = 1, #slot.cupData.ingredients do
+			if layerIndex > maxLayerCount then
+				break
+			end
+			
+			local ingredientId = slot.cupData.ingredients[ingredientIndex]
+			if ingredientId ~= nil and gameManager:IsCupSpaceIngredient(ingredientId) == true then
+				local layerEntity = self:GetCupLayerEntity(slot, layerIndex)
+				if layerEntity ~= nil then
+					local imageRUID = gameManager:GetCupLayerImageRUID(ingredientId)
+					self:SetEntityImage(layerEntity, imageRUID)
+					layerEntity.Enable = imageRUID ~= nil and imageRUID ~= ""
 				end
 				
-				self:SetEntityImage(layerEntity, imageRUID)
-				layerEntity.Enable = imageRUID ~= nil and imageRUID ~= ""
+				layerIndex = layerIndex + 1
+			end
+		end
+		
+		for clearLayerIndex = layerIndex, maxLayerCount do
+			local layerEntity = self:GetCupLayerEntity(slot, clearLayerIndex)
+			if layerEntity ~= nil then
+				self:SetEntityImage(layerEntity, "")
+				layerEntity.Enable = false
 			end
 		end
 	end
@@ -424,6 +437,18 @@ script UISlotViewService extends Logic
 		
 		log("Showing selected button visual for button: " .. button.Entity.Name)
 		gameManager.selectedButtonEntity = button.Entity
+		
+		if self:IsIngredientButtonEntity(button.Entity) == true then
+			local spriteEntity = self:FindDescendant(button.Entity, "UISprite")
+			if spriteEntity ~= nil and spriteEntity.UITransformComponent ~= nil then
+				local position = spriteEntity.UITransformComponent.anchoredPosition
+				gameManager.selectedButtonSpriteEntity = spriteEntity
+				gameManager.selectedButtonSpriteOriginalPosition = Vector2(position.x, position.y)
+				spriteEntity.UITransformComponent.anchoredPosition = Vector2(position.x, position.y + 20)
+				return
+			end
+		end
+		
 		local sprite = button.Entity.SpriteGUIRendererComponent
 		sprite.Outline = true
 		sprite.OutlineWidth = 10
@@ -436,11 +461,31 @@ script UISlotViewService extends Logic
 		end
 		
 		log("Clearing selected button visual")
-		local sprite = gameManager.selectedButtonEntity.SpriteGUIRendererComponent
-		sprite.Outline = false
-		sprite.OutlineWidth = 3
-		sprite.OutlineColor = Color(0, 0, 0, 1)
+		if gameManager.selectedButtonSpriteEntity ~= nil and gameManager.selectedButtonSpriteOriginalPosition ~= nil then
+			local spriteTransform = gameManager.selectedButtonSpriteEntity.UITransformComponent
+			if spriteTransform ~= nil then
+				spriteTransform.anchoredPosition = gameManager.selectedButtonSpriteOriginalPosition
+			end
+		else
+			local sprite = gameManager.selectedButtonEntity.SpriteGUIRendererComponent
+			if sprite ~= nil then
+				sprite.Outline = false
+				sprite.OutlineWidth = 3
+				sprite.OutlineColor = Color(0, 0, 0, 1)
+			end
+		end
+		
+		gameManager.selectedButtonSpriteEntity = nil
+		gameManager.selectedButtonSpriteOriginalPosition = nil
 		gameManager.selectedButtonEntity = nil
+	end
+
+	method boolean IsIngredientButtonEntity(Entity entity)
+		if entity == nil or entity.Name == nil then
+			return false
+		end
+		
+		return string.sub(entity.Name, 1, 6) == "BtnIng"
 	end
 
 end

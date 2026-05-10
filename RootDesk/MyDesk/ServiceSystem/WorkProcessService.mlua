@@ -23,7 +23,7 @@ script WorkProcessService extends Logic
 		gameManager:SetSlotEffectVisible(slot, true)
 		self:SetPrepSlotProgress(slot, 0)
 		local service = self
-		self:StartProgressTimer(gameManager, "Prep", slot, gameManager.prepDuration, function(target) service:FinishPrepIngredientSlot(gameManager, target) end)
+		self:StartProgressTimer(gameManager, self:GetPrepTimerKey(slot), slot, gameManager.prepDuration, function(target) service:FinishPrepIngredientSlot(gameManager, target) end)
 	end
 
 	method void FinishPrepIngredientSlot(any gameManager, any slot)
@@ -34,6 +34,21 @@ script WorkProcessService extends Logic
 		gameManager:SetSlotImage(slot, gameManager:GetPrepImageRUID(slot.ingredientId))
 		self:SetPrepSlotProgress(slot, 0)
 		log("Finished prepping ingredient slot: " .. slot.id .. " / ingredient: " .. slot.ingredientId)
+	end
+
+	method void CancelPrepIngredientSlot(any gameManager, any slot)
+		if slot == nil or slot.state ~= "PREPPING" then
+			return
+		end
+
+		self:ClearProgressTimer(gameManager, self:GetPrepTimerKey(slot))
+		slot.state = "RAW"
+		if slot.uiButton ~= nil then
+			slot.uiButton.Enable = true
+		end
+		gameManager:SetSlotEffectVisible(slot, false)
+		self:SetPrepSlotProgress(slot, 0)
+		log("Canceled prepping ingredient slot: " .. slot.id)
 	end
 
 	method void StartBrewShot(any gameManager, any slot)
@@ -229,6 +244,14 @@ script WorkProcessService extends Logic
 		end
 		
 		return "prepped_" .. ingredientId
+	end
+
+	method string GetPrepTimerKey(any slot)
+		if slot ~= nil and slot.id ~= nil and slot.id ~= "" then
+			return "Prep_" .. slot.id
+		end
+
+		return "Prep"
 	end
 
 	method void StartProgressTimer(any gameManager, string timerKey, any target, number duration, any onFinished)

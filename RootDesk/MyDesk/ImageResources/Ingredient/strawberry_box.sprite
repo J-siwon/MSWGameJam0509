@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://ef0fb740e94b4d81b965826563cfdbff",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/ef0fb740e94b4d81b965826563cfdbff/639140286012327886",
+      "upload_hash": "DBF73C468FE156839F807C50D2E49D47162AC3126EE328E1520C97F7273B1DAC",
+      "name": "strawberry_box",
+      "resource_guid": "ef0fb740e94b4d81b965826563cfdbff",
+      "resource_version": "6a00b7393b0b401fa713c948"
+    }
+  }
+}

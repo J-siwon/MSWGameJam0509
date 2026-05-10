@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://5b84e8f070ad4431b69e717c50ca9db4",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/5b84e8f070ad4431b69e717c50ca9db4/639140286012371669",
+      "upload_hash": "4B79F8242640C27791E2693634F559B08D0BA348CF03D6C3609752D21E20FD3C",
+      "name": "milk_Ing",
+      "resource_guid": "5b84e8f070ad4431b69e717c50ca9db4",
+      "resource_version": "6a00b739d523963b091bbee8"
+    }
+  }
+}
