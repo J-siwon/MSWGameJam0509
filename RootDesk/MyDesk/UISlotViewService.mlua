@@ -55,12 +55,33 @@ script UISlotViewService extends Logic
 		end
 		
 		if slot.hasCup == true then
+			self:SetSlotButtonAlpha(slot, 0)
 			self:SetSlotImageFixedSize(slot, gameManager:GetCupImageRUID(slot.cupData), gameManager:GetCupImageWidth(slot.cupData), gameManager:GetCupImageHeight(slot.cupData))
 			self:RefreshCupLayerImages(gameManager, slot)
 		else
+			self:SetSlotButtonAlpha(slot, 0.3)
 			self:SetSlotImage(slot, "")
 			self:ClearCupLayerImages(slot)
 		end
+	end
+
+	method void SetSlotButtonAlpha(any slot, number alpha)
+		if slot == nil or slot.uiButton == nil or slot.uiButton.Entity == nil then
+			return
+		end
+
+		local renderer = slot.uiButton.Entity.SpriteGUIRendererComponent
+		if renderer == nil then
+			return
+		end
+
+		local color = renderer.Color
+		if color == nil then
+			renderer.Color = Color(1, 1, 1, alpha)
+			return
+		end
+
+		renderer.Color = Color(color.r, color.g, color.b, alpha)
 	end
 
 	method void RefreshCupLayerImages(any gameManager, any slot)
