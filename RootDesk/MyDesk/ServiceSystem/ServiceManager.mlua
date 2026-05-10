@@ -73,6 +73,12 @@ script ServiceManager extends Logic
 
 	property ButtonComponent btnSteam = "c3ca0001-cafe-cafe-cafe-c3cafe000006"
 
+	property ButtonComponent btnCoffeeShot1 = "483b9289-aaf1-42eb-bcec-31d4ed1ca5e5"
+
+	property ButtonComponent btnCoffeeShot2 = "7da527da-cb35-4b11-b654-aeffdfcbe67b"
+
+	property ButtonComponent btnCoffeeShot3 = "dc9a024e-4f33-4a6f-92f0-23a044c051be"
+
 	property ButtonComponent btnIng1 = "c3ca0001-cafe-cafe-cafe-c3cafe000007"
 
 	property ButtonComponent btnIng2 = "c3ca0001-cafe-cafe-cafe-c3cafe000008"
@@ -136,6 +142,7 @@ script ServiceManager extends Logic
 		self:BindSlotButtons()
 		self:ConnectGameButtons()
 		self:HideActionButtonsImmediately()
+		self:InitializeCoffeeShotButtons()
 		self:InitializeWaterPourButton()
 		self:InitializeSteamButton()
 	end
@@ -206,6 +213,7 @@ script ServiceManager extends Logic
 
 		self:BindSlotButtons()
 		self:ResetSlotViewsForDay()
+		self:InitializeCoffeeShotButtons()
 		self:RefreshWaterPourButtonState()
 		self:RefreshSteamButtonState()
 		self:ClearOrderPreview()
@@ -759,6 +767,24 @@ script ServiceManager extends Logic
 		log("WorkProcessService is not loaded.")
 	end
 
+	method void StartCoffeeShot(any slot, ButtonComponent sourceButton, string coffeeShotId)
+		if _WorkProcessService ~= nil then
+			_WorkProcessService:StartCoffeeShot(self, slot, sourceButton, coffeeShotId)
+			return
+		end
+
+		log("WorkProcessService is not loaded.")
+	end
+
+	method void FinishCoffeeShot(any slot, ButtonComponent sourceButton, string coffeeShotId)
+		if _WorkProcessService ~= nil then
+			_WorkProcessService:FinishCoffeeShot(self, slot, sourceButton, coffeeShotId)
+			return
+		end
+
+		log("WorkProcessService is not loaded.")
+	end
+
 	method void StartMixMixer(any mixer)
 		-- 믹싱 중에는 해당 믹서컵만 비활성화하고 완료 시 결과 재료만 남긴다.
 		if _WorkProcessService ~= nil then
@@ -889,6 +915,15 @@ script ServiceManager extends Logic
 		log("UISlotViewService is not loaded.")
 	end
 
+	method void SetButtonEffectVisible(ButtonComponent button, boolean visible)
+		if _UISlotViewService ~= nil then
+			_UISlotViewService:SetButtonEffectVisible(button, visible)
+			return
+		end
+
+		log("UISlotViewService is not loaded.")
+	end
+
 	method void SetMixerEffectVisible(any mixer, boolean visible)
 		if _UISlotViewService ~= nil then
 			_UISlotViewService:SetMixerEffectVisible(mixer, visible)
@@ -902,6 +937,7 @@ script ServiceManager extends Logic
 		if _UISlotViewService ~= nil then
 			_UISlotViewService:RefreshCupSlotImage(self, slot)
 			if slot ~= nil then
+				self:RefreshCoffeeShotButtonStateBySlot(slot)
 				if slot.id == "CupSlot_4" then
 					self:RefreshSteamButtonState()
 				end
@@ -965,6 +1001,97 @@ script ServiceManager extends Logic
 			log("Swapped cups: " .. fromSlot.id .. " <-> " .. toSlot.id)
 		else
 			log("Moved cup: " .. fromSlot.id .. " -> " .. toSlot.id)
+		end
+	end
+
+	method void InitializeCoffeeShotButtons()
+		self:SetButtonEffectVisible(self.btnCoffeeShot1, false)
+		self:SetButtonEffectVisible(self.btnCoffeeShot2, false)
+		self:SetButtonEffectVisible(self.btnCoffeeShot3, false)
+		self:RefreshCoffeeShotButtonStates()
+	end
+
+	method void RefreshCoffeeShotButtonStates()
+		for index = 1, 3 do
+			self:RefreshCoffeeShotButtonState(index)
+		end
+	end
+
+	method void RefreshCoffeeShotButtonStateBySlot(any slot)
+		local index = self:GetCoffeeShotIndexForSlot(slot)
+		if index <= 0 then
+			return
+		end
+
+		self:RefreshCoffeeShotButtonState(index)
+	end
+
+	method number GetCoffeeShotIndexForSlot(any slot)
+		if slot == nil then
+			return 0
+		end
+
+		if slot.id == "CupSlot_1" then
+			return 1
+		end
+		if slot.id == "CupSlot_2" then
+			return 2
+		end
+		if slot.id == "CupSlot_3" then
+			return 3
+		end
+
+		return 0
+	end
+
+	method void RefreshCoffeeShotButtonState(number index)
+		local slot = self:GetCoffeeShotSlot(index)
+		self:SetCoffeeShotButtonEnabled(index, self:CanBrewCoffeeShotFromSlot(slot))
+	end
+
+	method any GetCoffeeShotSlot(number index)
+		if self.GameData == nil or self.GameData.CupSlots == nil then
+			return nil
+		end
+
+		return self.GameData.CupSlots[index]
+	end
+
+	method ButtonComponent GetCoffeeShotButton(number index)
+		if index == 1 then
+			return self.btnCoffeeShot1
+		end
+		if index == 2 then
+			return self.btnCoffeeShot2
+		end
+		if index == 3 then
+			return self.btnCoffeeShot3
+		end
+
+		return nil
+	end
+
+	method boolean CanBrewCoffeeShotFromSlot(any slot)
+		if slot == nil or slot.hasCup ~= true or slot.cupData == nil then
+			return false
+		end
+
+		if slot.isBrewingShot == true then
+			return false
+		end
+
+		return true
+	end
+
+	method void SetCoffeeShotButtonEnabled(number index, boolean enabled)
+		local button = self:GetCoffeeShotButton(index)
+		if button == nil then
+			return
+		end
+
+		button.Enable = enabled
+		if button.Entity ~= nil then
+			button.Entity.Enable = true
 		end
 	end
 
@@ -1093,6 +1220,9 @@ script ServiceManager extends Logic
 		self.btnIceMaker.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIceMakerButton(self.btnIceMaker) end)
 		self.btnColdWater.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickWaterButton(self.btnColdWater) end)
 		self.btnSteam.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickSteamButton(self.btnSteam) end)
+		self.btnCoffeeShot1.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickCoffeeShotButton(1, self.btnCoffeeShot1) end)
+		self.btnCoffeeShot2.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickCoffeeShotButton(2, self.btnCoffeeShot2) end)
+		self.btnCoffeeShot3.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickCoffeeShotButton(3, self.btnCoffeeShot3) end)
 		
 		self.btnIng1.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientButton(self:GetIngredientButtonId(1), self.btnIng1) end)
 		self.btnIng2.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientButton(self:GetIngredientButtonId(2), self.btnIng2) end)
@@ -1115,7 +1245,6 @@ script ServiceManager extends Logic
 		self.slotMixer1.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickMixer(self.GameData.Mixers[1], self.slotMixer1) end)
 		self.slotMixer2.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickMixer(self.GameData.Mixers[2], self.slotMixer2) end)
 		self.btnPrepAction.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickPrepAction() end)
-		self.btnBrewShotAction.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickBrewShotAction() end)
 		self.btnMixAction.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickMixAction() end)
 		self.btnDiscardAction.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickDiscardAction() end)
 		-- DH 테스트용 버튼
@@ -1278,6 +1407,23 @@ script ServiceManager extends Logic
 		self:StartPourWater(slot)
 	end
 
+	method void OnClickCoffeeShotButton(number index, ButtonComponent sourceButton)
+		if self.IsPaused == true then
+			return
+		end
+
+		local slot = self:GetCoffeeShotSlot(index)
+		if self:CanBrewCoffeeShotFromSlot(slot) == false then
+			log("Cannot brew coffee shot. CupSlot_" .. tostring(index) .. " is empty or unavailable.")
+			self:RefreshCoffeeShotButtonState(index)
+			return
+		end
+
+		local coffeeShotId = "CoffeeShot_" .. tostring(index)
+		log("Clicked coffee shot button: " .. coffeeShotId)
+		self:StartCoffeeShot(slot, sourceButton, coffeeShotId)
+	end
+
 	method void OnClickSteamButton(ButtonComponent sourceButton)
 		if self.IsPaused == true then
 			return
@@ -1372,15 +1518,6 @@ script ServiceManager extends Logic
 
 		log("Clicked prep action")
 		self.SelectionManager:HandleUIAction("PREP")
-	end
-
-	method void OnClickBrewShotAction()
-		if self.IsPaused == true then
-			return
-		end
-
-		log("Clicked brew shot action")
-		self.SelectionManager:HandleUIAction("BREW_SHOT")
 	end
 
 	method void OnClickMixAction()

@@ -233,12 +233,29 @@ script UISlotViewService extends Logic
 		effectEntity.Enable = visible
 	end
 
+	method void SetButtonEffectVisible(ButtonComponent button, boolean visible)
+		local effectEntity = self:GetButtonEffectEntity(button)
+		if effectEntity == nil then
+			return
+		end
+
+		effectEntity.Enable = visible
+	end
+
 	method Entity GetSlotEffectEntity(any slot)
 		if slot == nil or slot.uiButton == nil then
 			return nil
 		end
 
 		return self:FindDescendant(slot.uiButton.Entity, "Effect")
+	end
+
+	method Entity GetButtonEffectEntity(ButtonComponent button)
+		if button == nil or button.Entity == nil then
+			return nil
+		end
+
+		return self:FindDescendant(button.Entity, "Effect")
 	end
 
 	method void SetMixerEffectVisible(any mixer, boolean visible)

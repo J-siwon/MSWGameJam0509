@@ -58,6 +58,56 @@ script WorkProcessService extends Logic
 		log("Finished brewing shot: " .. slot.id .. " / shot: " .. slot.coffeeShotId)
 	end
 
+	method void StartCoffeeShot(any gameManager, any slot, any sourceButton, string coffeeShotId)
+		if slot == nil or slot.uiButton == nil or slot.cupData == nil then
+			return
+		end
+
+		if coffeeShotId == nil or coffeeShotId == "" then
+			return
+		end
+
+		log("Start brewing coffee shot: " .. slot.id .. " / shot: " .. coffeeShotId)
+		if gameManager.SelectionManager ~= nil and gameManager.SelectionManager.state == "PLACED_CUP" and gameManager.SelectionManager.data == slot then
+			gameManager.SelectionManager:Clear()
+		end
+
+		slot.isBrewingShot = true
+		slot.uiButton.Enable = false
+		if sourceButton ~= nil then
+			sourceButton.Enable = false
+		end
+		gameManager:SetButtonEffectVisible(sourceButton, true)
+		self:SetPrepSlotProgress(slot, 0)
+
+		local service = self
+		local timerKey = "CoffeeShot_" .. slot.id
+		self:StartProgressTimer(gameManager, timerKey, slot, gameManager.brewShotDuration, function(target) service:FinishCoffeeShot(gameManager, target, sourceButton, coffeeShotId) end)
+	end
+
+	method void FinishCoffeeShot(any gameManager, any slot, any sourceButton, string coffeeShotId)
+		if slot == nil then
+			return
+		end
+
+		slot.isBrewingShot = false
+		if slot.uiButton ~= nil then
+			slot.uiButton.Enable = true
+		end
+		if sourceButton ~= nil then
+			sourceButton.Enable = true
+		end
+		gameManager:SetButtonEffectVisible(sourceButton, false)
+		self:SetPrepSlotProgress(slot, 0)
+
+		if slot.hasCup == true and slot.cupData ~= nil then
+			gameManager:AddIngredientToCup(slot.cupData, coffeeShotId)
+		end
+
+		gameManager:RefreshCoffeeShotButtonStateBySlot(slot)
+		log("Finished brewing coffee shot: " .. slot.id .. " / shot: " .. coffeeShotId)
+	end
+
 	method void StartMixMixer(any gameManager, any mixer)
 		if mixer == nil or mixer.uiButton == nil then
 			return

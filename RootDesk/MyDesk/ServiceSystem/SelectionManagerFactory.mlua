@@ -44,9 +44,6 @@ script SelectionManagerFactory extends Logic
 				end
 			elseif newState == "PLACED_CUP" then
 				gameManager:ShowDiscardUI(newData)
-				if newData.isCoffeeMachine == true then
-					gameManager:ShowBrewShotUI(newData)
-				end
 			elseif newState == "MIXER" then
 				gameManager:ShowDiscardUI(newData)
 				if newData.isMixed == false then
@@ -235,13 +232,6 @@ script SelectionManagerFactory extends Logic
 					self:Clear()
 				else
 					log("Cannot prep ingredient: " .. tostring(slot.ingredientId))
-				end
-				
-			elseif action == "BREW_SHOT" and self.state == "PLACED_CUP" then
-				local slot = self.data
-				if slot.isCoffeeMachine == true and slot.hasCup == true then
-					gameManager:StartBrewShot(slot)
-					self:Clear()
 				end
 				
 			elseif action == "DISCARD" then
