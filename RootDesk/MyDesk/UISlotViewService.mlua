@@ -124,6 +124,46 @@ script UISlotViewService extends Logic
 		end
 	end
 
+	method void RefreshMixerLayerImages(any gameManager, any mixer)
+		if mixer == nil or mixer.ingredients == nil then
+			self:ClearMixerLayerImages(mixer)
+			return
+		end
+
+		local maxLayerCount = mixer.maxSpaceIngredientCount
+		if maxLayerCount == nil then
+			maxLayerCount = 4
+		end
+
+		for layerIndex = 1, maxLayerCount do
+			local layerEntity = self:GetMixerLayerEntity(mixer, layerIndex)
+			if layerEntity ~= nil then
+				local ingredientId = mixer.ingredients[layerIndex]
+				local imageRUID = ""
+				if ingredientId ~= nil then
+					imageRUID = gameManager:GetMixerImageRUID(ingredientId)
+				end
+
+				self:SetEntityImage(layerEntity, imageRUID)
+				layerEntity.Enable = imageRUID ~= nil and imageRUID ~= ""
+			end
+		end
+	end
+
+	method void ClearMixerLayerImages(any mixer)
+		if mixer == nil or mixer.uiButton == nil then
+			return
+		end
+
+		for layerIndex = 1, 4 do
+			local layerEntity = self:GetMixerLayerEntity(mixer, layerIndex)
+			if layerEntity ~= nil then
+				self:SetEntityImage(layerEntity, "")
+				layerEntity.Enable = false
+			end
+		end
+	end
+
 	method void SetSlotImageSize(any slot, number width, number height)
 		if slot == nil or slot.uiButton == nil then
 			return
@@ -174,6 +214,31 @@ script UISlotViewService extends Logic
 		end
 		
 		return self:FindDescendant(slot.uiButton.Entity, "CupLayer" .. tostring(layerIndex))
+	end
+
+	method Entity GetMixerLayerEntity(any mixer, number layerIndex)
+		if mixer == nil or mixer.uiButton == nil then
+			return nil
+		end
+
+		return self:FindDescendant(mixer.uiButton.Entity, "MixerLayer" .. tostring(layerIndex))
+	end
+
+	method void SetMixerEffectVisible(any mixer, boolean visible)
+		local effectEntity = self:GetMixerEffectEntity(mixer)
+		if effectEntity == nil then
+			return
+		end
+
+		effectEntity.Enable = visible
+	end
+
+	method Entity GetMixerEffectEntity(any mixer)
+		if mixer == nil or mixer.uiButton == nil then
+			return nil
+		end
+
+		return self:FindDescendant(mixer.uiButton.Entity, "Effect")
 	end
 
 	method Entity FindDescendant(Entity root, string childName)

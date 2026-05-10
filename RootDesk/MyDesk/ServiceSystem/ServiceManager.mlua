@@ -289,6 +289,8 @@ script ServiceManager extends Logic
 			self:SetSlotImage(slot, "")
 		end
 		self:SetPrepSlotProgress(slot, 0)
+		self:ClearMixerLayerImages(slot)
+		self:SetMixerEffectVisible(slot, false)
 	end
 
 	method string GetMixerResultId(any mixer)
@@ -321,7 +323,11 @@ script ServiceManager extends Logic
 
 	method boolean AddIngredientToMixer(any mixer, string ingredientId)
 		if _MixerService ~= nil then
-			return _MixerService:AddIngredientToMixer(self, mixer, ingredientId)
+			local added = _MixerService:AddIngredientToMixer(self, mixer, ingredientId)
+			if added == true then
+				self:RefreshMixerLayerImages(mixer)
+			end
+			return added
 		end
 		
 		log("MixerService is not loaded.")
@@ -340,6 +346,8 @@ script ServiceManager extends Logic
 	method void ClearMixer(any mixer)
 		if _MixerService ~= nil then
 			_MixerService:ClearMixer(self, mixer)
+			self:ClearMixerLayerImages(mixer)
+			self:SetMixerEffectVisible(mixer, false)
 			return
 		end
 		
@@ -851,6 +859,33 @@ script ServiceManager extends Logic
 			return
 		end
 		
+		log("UISlotViewService is not loaded.")
+	end
+
+	method void RefreshMixerLayerImages(any mixer)
+		if _UISlotViewService ~= nil then
+			_UISlotViewService:RefreshMixerLayerImages(self, mixer)
+			return
+		end
+
+		log("UISlotViewService is not loaded.")
+	end
+
+	method void ClearMixerLayerImages(any mixer)
+		if _UISlotViewService ~= nil then
+			_UISlotViewService:ClearMixerLayerImages(mixer)
+			return
+		end
+
+		log("UISlotViewService is not loaded.")
+	end
+
+	method void SetMixerEffectVisible(any mixer, boolean visible)
+		if _UISlotViewService ~= nil then
+			_UISlotViewService:SetMixerEffectVisible(mixer, visible)
+			return
+		end
+
 		log("UISlotViewService is not loaded.")
 	end
 

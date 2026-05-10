@@ -65,6 +65,7 @@ script WorkProcessService extends Logic
 		mixer.isMixing = true
 		gameManager.mixTargetMixer = nil
 		mixer.uiButton.Enable = false
+		gameManager:SetMixerEffectVisible(mixer, true)
 		self:SetPrepSlotProgress(mixer, 0)
 		local service = self
 		self:StartProgressTimer(gameManager, "Mix", mixer, gameManager.mixDuration, function(target) service:FinishMixMixer(gameManager, target) end)
@@ -80,6 +81,8 @@ script WorkProcessService extends Logic
 		mixer.resultId = resultId
 		mixer.isTrash = gameManager:IsTrashMixerResult(mixer)
 		mixer.uiButton.Enable = true
+		gameManager:SetMixerEffectVisible(mixer, false)
+		gameManager:ClearMixerLayerImages(mixer)
 		gameManager:SetSlotImage(mixer, gameManager:GetMixerImageRUID(resultId))
 		self:SetPrepSlotProgress(mixer, 0)
 		
