@@ -2,7 +2,7 @@ Id,DrinkName,Recipe,IsFinalIngredient,FirstSlotOnly,ImageRUID,ImageWidth,ImageHe
 Mixed_Ingredient_1,Strawberry Smoothie,Strawberry|Water|Ice,true,true,e819f1d141464fbaa9ca0a93a2158c26,118,112
 Mixed_Ingredient_2,Banana Smoothie,Banana|Water|Ice,true,true,b62b22ebc07542bd8f10b51e10692c06,118,112
 Mixed_Ingredient_3,Banana Slime Smoothie,Banana|Water|Ice|Slime,true,true,ffe949ef70714294a79d67a927bf67df,118,112
-Mixed_Ingredient_4,Quattro Slime Smoothie,Slime|Slime|Slime|Slime Syrup|Ice,true,true,053177b48c544bf3be2acf48911748c2
-Mixed_Ingredient_5,Choco Frappe,Choco Syrup|Maple Syrup|Milk|Ice,true,true,498ca7e37052471bbebc0e90421940cf
-Mixed_Ingredient_6,Matcha Frappe,Green Mushroom Cap|Maple Syrup|Milk|Ice,true,true,8ac69c63bb7343f089739698f935f7c3
-Mixed_Ingredient_7,Whipping,Milk,true,true,6f88ce1184f042949ffff26f84ec4c87
+Mixed_Ingredient_4,Quattro Slime Smoothie,Slime|Slime|Slime|Slime Syrup|Ice,true,true,053177b48c544bf3be2acf48911748c2,118,112
+Mixed_Ingredient_5,Choco Frappe,Choco Syrup|Maple Syrup|Milk|Ice,true,true,498ca7e37052471bbebc0e90421940cf,118,112
+Mixed_Ingredient_6,Matcha Frappe,Green Mushroom Cap|Maple Syrup|Milk|Ice,true,true,8ac69c63bb7343f089739698f935f7c3,118,112
+Mixed_Ingredient_7,Whipping,Milk,true,false,6f88ce1184f042949ffff26f84ec4c87,110,58
