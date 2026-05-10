@@ -31,13 +31,31 @@ script UISlotViewService extends Logic
 		self:SetEntityImageNativeSize(slot.uiButton.Entity, imageRUID)
 	end
 
+	method void SetSlotImageFixedSize(any slot, string imageRUID, number width, number height)
+		if slot == nil or slot.uiButton == nil then
+			return
+		end
+
+		local iconEntity = self:GetSlotIconEntity(slot)
+		if iconEntity ~= nil then
+			iconEntity.Enable = false
+			self:SetEntityImage(iconEntity, imageRUID)
+			self:SetEntityRectSize(iconEntity, width, height)
+			iconEntity.Enable = imageRUID ~= nil and imageRUID ~= ""
+			return
+		end
+
+		self:SetEntityImage(slot.uiButton.Entity, imageRUID)
+		self:SetEntityRectSize(slot.uiButton.Entity, width, height)
+	end
+
 	method void RefreshCupSlotImage(any gameManager, any slot)
 		if slot == nil then
 			return
 		end
 		
 		if slot.hasCup == true then
-			self:SetSlotImageNativeSize(slot, gameManager:GetCupImageRUID(slot.cupData))
+			self:SetSlotImageFixedSize(slot, gameManager:GetCupImageRUID(slot.cupData), gameManager:GetCupImageWidth(slot.cupData), gameManager:GetCupImageHeight(slot.cupData))
 			self:RefreshCupLayerImages(gameManager, slot)
 		else
 			self:SetSlotImage(slot, "")
@@ -83,6 +101,42 @@ script UISlotViewService extends Logic
 				layerEntity.Enable = false
 			end
 		end
+	end
+
+	method void SetSlotImageSize(any slot, number width, number height)
+		if slot == nil or slot.uiButton == nil then
+			return
+		end
+
+		local iconEntity = self:GetSlotIconEntity(slot)
+		if iconEntity ~= nil then
+			self:SetEntityRectSize(iconEntity, width, height)
+			return
+		end
+
+		self:SetEntityRectSize(slot.uiButton.Entity, width, height)
+	end
+
+	method void SetEntityRectSize(Entity entity, number width, number height)
+		if entity == nil or entity.UITransformComponent == nil then
+			return
+		end
+
+		local transform = entity.UITransformComponent
+		local safeWidth = math.max(1, width)
+		local safeHeight = math.max(1, height)
+		local anchoredPosition = Vector2(transform.anchoredPosition.x, transform.anchoredPosition.y)
+		local position = Vector3(transform.Position.x, transform.Position.y, transform.Position.z)
+		local pivot = Vector2(transform.Pivot.x, transform.Pivot.y)
+		local anchorsMin = Vector2(transform.AnchorsMin.x, transform.AnchorsMin.y)
+		local anchorsMax = Vector2(transform.AnchorsMax.x, transform.AnchorsMax.y)
+
+		transform.RectSize = Vector2(safeWidth, safeHeight)
+		transform.AnchorsMin = anchorsMin
+		transform.AnchorsMax = anchorsMax
+		transform.anchoredPosition = anchoredPosition
+		transform.Position = position
+		transform.Pivot = pivot
 	end
 
 	method Entity GetSlotIconEntity(any slot)

@@ -27,6 +27,14 @@ script ServiceManager extends Logic
 
 	property string hotCupImageRUID = "87662c3137854bf5beea2a594509ce31"
 
+	property number iceCupImageWidth = 138
+
+	property number iceCupImageHeight = 166
+
+	property number hotCupImageWidth = 248
+
+	property number hotCupImageHeight = 146
+
 	property number prepDuration = 1
 
 	property number brewShotDuration = 1
@@ -378,6 +386,10 @@ script ServiceManager extends Logic
 	end
 
 	method string GetMappedIngredientImageRUID(string ingredientId, string imageField)
+		if ingredientId == nil or ingredientId == "" then
+			return ""
+		end
+
 		local imageMap = self:GetIngredientImageMap(ingredientId)
 		if imageMap ~= nil then
 			local imageRUID = imageMap[imageField]
@@ -388,6 +400,14 @@ script ServiceManager extends Logic
 			imageRUID = imageMap.prepImageRUID
 			if imageRUID ~= nil and imageRUID ~= "" then
 				return imageRUID
+			end
+		end
+
+		if string.sub(ingredientId, 1, 8) == "prepped_" then
+			local baseIngredientId = string.sub(ingredientId, 9)
+			local baseImageRUID = self:GetMappedIngredientImageRUID(baseIngredientId, imageField)
+			if baseImageRUID ~= nil and baseImageRUID ~= "" then
+				return baseImageRUID
 			end
 		end
 		
@@ -417,6 +437,22 @@ script ServiceManager extends Logic
 		end
 
 		return self.cupImageRUID
+	end
+
+	method number GetCupImageWidth(any cupData)
+		if cupData ~= nil and cupData.type == "HotCup" then
+			return self.hotCupImageWidth
+		end
+
+		return self.iceCupImageWidth
+	end
+
+	method number GetCupImageHeight(any cupData)
+		if cupData ~= nil and cupData.type == "HotCup" then
+			return self.hotCupImageHeight
+		end
+
+		return self.iceCupImageHeight
 	end
 
 	method boolean CanAddIngredientToCup(string ingredientId)
