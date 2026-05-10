@@ -277,7 +277,6 @@ script DataFactory extends Logic
 		return {
 			[1] = self:CreateMixer("Mixer_1"),
 			[2] = self:CreateMixer("Mixer_2"),
-			[3] = self:CreateMixer("Mixer_3"),
 		}
 	end
 

@@ -31,6 +31,8 @@ script ServiceManager extends Logic
 
 	property number mixDuration = 1
 
+	property number waterPourDuration = 1
+
 	property number prepButtonShowX = 880
 
 	property number prepButtonHideX = 1040
@@ -93,8 +95,6 @@ script ServiceManager extends Logic
 
 	property ButtonComponent slotMixer2 = "c3ca0001-cafe-cafe-cafe-c3cafe000023"
 
-	property ButtonComponent slotMixer3 = "c3ca0001-cafe-cafe-cafe-c3cafe000024"
-
 	property ButtonComponent btnPrepAction = "c3ca0001-cafe-cafe-cafe-c3cafe000025"
 
 	property ButtonComponent btnBrewShotAction = "c3ca0001-cafe-cafe-cafe-c3cafe000026"
@@ -124,6 +124,7 @@ script ServiceManager extends Logic
 		self:BindSlotButtons()
 		self:ConnectGameButtons()
 		self:HideActionButtonsImmediately()
+		self:InitializeWaterPourButton()
 	end
 
 	method any CreateInitialGameData()
@@ -192,6 +193,7 @@ script ServiceManager extends Logic
 
 		self:BindSlotButtons()
 		self:ResetSlotViewsForDay()
+		self:RefreshWaterPourButtonState()
 		self:ClearOrderPreview()
 	end
 
@@ -229,7 +231,6 @@ script ServiceManager extends Logic
 
 		self:BindSlotButton(self.GameData.Mixers, 1, self.slotMixer1)
 		self:BindSlotButton(self.GameData.Mixers, 2, self.slotMixer2)
-		self:BindSlotButton(self.GameData.Mixers, 3, self.slotMixer3)
 	end
 
 	method void BindSlotButton(any slots, number index, ButtonComponent button)
@@ -719,6 +720,24 @@ script ServiceManager extends Logic
 		log("WorkProcessService is not loaded.")
 	end
 
+	method void StartPourWater(any slot)
+		if _WorkProcessService ~= nil then
+			_WorkProcessService:StartPourWater(self, slot)
+			return
+		end
+
+		log("WorkProcessService is not loaded.")
+	end
+
+	method void FinishPourWater(any slot)
+		if _WorkProcessService ~= nil then
+			_WorkProcessService:FinishPourWater(self, slot)
+			return
+		end
+
+		log("WorkProcessService is not loaded.")
+	end
+
 	method string GetPreppedIngredientId(string ingredientId)
 		if _WorkProcessService ~= nil then
 			return _WorkProcessService:GetPreppedIngredientId(ingredientId)
@@ -770,6 +789,9 @@ script ServiceManager extends Logic
 	method void RefreshCupSlotImage(any slot)
 		if _UISlotViewService ~= nil then
 			_UISlotViewService:RefreshCupSlotImage(self, slot)
+			if slot ~= nil and slot.id == "CupSlot_5" then
+				self:RefreshWaterPourButtonState()
+			end
 			return
 		end
 		
@@ -829,6 +851,74 @@ script ServiceManager extends Logic
 		end
 	end
 
+	method void InitializeWaterPourButton()
+		self:DisableUnusedWaterButton()
+		self:RefreshWaterPourButtonState()
+	end
+
+	method void DisableUnusedWaterButton()
+		if self.btnHotWater == nil then
+			return
+		end
+
+		self.btnHotWater.Enable = false
+		if self.btnHotWater.Entity ~= nil then
+			self.btnHotWater.Entity.Enable = false
+		end
+	end
+
+	method any GetWaterPourSlot()
+		if self.GameData == nil or self.GameData.CupSlots == nil then
+			return nil
+		end
+
+		return self.GameData.CupSlots[5]
+	end
+
+	method void RefreshWaterPourButtonState()
+		local slot = self:GetWaterPourSlot()
+		self:SetWaterPourButtonEnabled(self:CanPourWaterFromSlot(slot))
+	end
+
+	method boolean CanPourWaterFromSlot(any slot)
+		if slot == nil or slot.hasCup ~= true or slot.cupData == nil then
+			return false
+		end
+
+		if slot.isPouringWater == true then
+			return false
+		end
+
+		return self:GetWaterIngredientIdForCup(slot.cupData) ~= ""
+	end
+
+	method void SetWaterPourButtonEnabled(boolean enabled)
+		if self.btnColdWater == nil then
+			return
+		end
+
+		self.btnColdWater.Enable = enabled
+		if self.btnColdWater.Entity ~= nil then
+			self.btnColdWater.Entity.Enable = true
+		end
+	end
+
+	method string GetWaterIngredientIdForCup(any cupData)
+		if cupData == nil then
+			return ""
+		end
+
+		if cupData.type == "HotCup" then
+			return "HotWater"
+		end
+
+		if cupData.type == "IceCup" or cupData.type == "ColdCup" then
+			return "ColdWater"
+		end
+
+		return ""
+	end
+
 	method void ShowSelectedButtonVisual(ButtonComponent button)
 		-- 현재 선택된 버튼은 노란 외곽선으로 표시한다.
 		if _UISlotViewService ~= nil then
@@ -856,8 +946,7 @@ script ServiceManager extends Logic
 		self.btnIceCup.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickCupTypeButton("IceCup", self.btnIceCup) end)
 		self.btnHotCup.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickCupTypeButton("HotCup", self.btnHotCup) end)
 		self.btnIceMaker.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIceMakerButton(self.btnIceMaker) end)
-		self.btnColdWater.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickWaterButton("ColdWater", self.btnColdWater) end)
-		self.btnHotWater.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickWaterButton("HotWater", self.btnHotWater) end)
+		self.btnColdWater.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickWaterButton(self.btnColdWater) end)
 		
 		self.btnIng1.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientButton(self:GetIngredientButtonId(1), self.btnIng1) end)
 		self.btnIng2.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientButton(self:GetIngredientButtonId(2), self.btnIng2) end)
@@ -879,7 +968,6 @@ script ServiceManager extends Logic
 		
 		self.slotMixer1.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickMixer(self.GameData.Mixers[1], self.slotMixer1) end)
 		self.slotMixer2.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickMixer(self.GameData.Mixers[2], self.slotMixer2) end)
-		self.slotMixer3.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickMixer(self.GameData.Mixers[3], self.slotMixer3) end)
 		self.btnPrepAction.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickPrepAction() end)
 		self.btnBrewShotAction.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickBrewShotAction() end)
 		self.btnMixAction.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickMixAction() end)
@@ -1028,13 +1116,20 @@ script ServiceManager extends Logic
 		self.SelectionManager:HandleClick("ICE_MAKER_BTN", { uiButton = sourceButton })
 	end
 
-	method void OnClickWaterButton(string waterType, ButtonComponent sourceButton)
+	method void OnClickWaterButton(ButtonComponent sourceButton)
 		if self.IsPaused == true then
 			return
 		end
 
-		log("Clicked water button: " .. waterType)
-		self.SelectionManager:HandleClick("WATER_BTN", { waterType = waterType, uiButton = sourceButton })
+		local slot = self:GetWaterPourSlot()
+		if self:CanPourWaterFromSlot(slot) == false then
+			log("Cannot pour water. CupSlot_5 is empty or unavailable.")
+			self:RefreshWaterPourButtonState()
+			return
+		end
+
+		log("Clicked water pour button")
+		self:StartPourWater(slot)
 	end
 
 	method void OnClickIngredientSlot(any slot, ButtonComponent sourceButton)

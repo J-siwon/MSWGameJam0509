@@ -86,6 +86,51 @@ script WorkProcessService extends Logic
 		log("Finished mixing: " .. mixer.id .. " / result: " .. resultId)
 	end
 
+	method void StartPourWater(any gameManager, any slot)
+		if slot == nil or slot.uiButton == nil or slot.cupData == nil then
+			return
+		end
+
+		local waterIngredientId = gameManager:GetWaterIngredientIdForCup(slot.cupData)
+		if waterIngredientId == "" then
+			log("Cannot start pouring water: " .. slot.id .. " / cupType: " .. tostring(slot.cupData.type))
+			return
+		end
+
+		log("Start pouring water: " .. slot.id .. " / ingredient: " .. waterIngredientId)
+		if gameManager.SelectionManager ~= nil and gameManager.SelectionManager.state == "PLACED_CUP" and gameManager.SelectionManager.data == slot then
+			gameManager.SelectionManager:Clear()
+		end
+
+		slot.isPouringWater = true
+		slot.uiButton.Enable = false
+		gameManager:SetWaterPourButtonEnabled(false)
+		self:SetPrepSlotProgress(slot, 0)
+
+		local service = self
+		self:StartProgressTimer(gameManager, "WaterPour", slot, gameManager.waterPourDuration, function(target) service:FinishPourWater(gameManager, target) end)
+	end
+
+	method void FinishPourWater(any gameManager, any slot)
+		if slot == nil then
+			return
+		end
+
+		local waterIngredientId = gameManager:GetWaterIngredientIdForCup(slot.cupData)
+		slot.isPouringWater = false
+		if slot.uiButton ~= nil then
+			slot.uiButton.Enable = true
+		end
+		self:SetPrepSlotProgress(slot, 0)
+
+		if slot.hasCup == true and slot.cupData ~= nil and waterIngredientId ~= "" then
+			gameManager:AddIngredientToCup(slot.cupData, waterIngredientId)
+		end
+
+		gameManager:RefreshWaterPourButtonState()
+		log("Finished pouring water: " .. slot.id .. " / ingredient: " .. waterIngredientId)
+	end
+
 	method string GetPreppedIngredientId(string ingredientId)
 		if string.sub(ingredientId, 1, 8) == "prepped_" then
 			return ingredientId
