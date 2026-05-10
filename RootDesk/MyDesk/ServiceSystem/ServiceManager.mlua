@@ -290,7 +290,7 @@ script ServiceManager extends Logic
 		end
 		self:SetPrepSlotProgress(slot, 0)
 		self:ClearMixerLayerImages(slot)
-		self:SetMixerEffectVisible(slot, false)
+		self:SetSlotEffectVisible(slot, false)
 	end
 
 	method string GetMixerResultId(any mixer)
@@ -874,6 +874,15 @@ script ServiceManager extends Logic
 	method void ClearMixerLayerImages(any mixer)
 		if _UISlotViewService ~= nil then
 			_UISlotViewService:ClearMixerLayerImages(mixer)
+			return
+		end
+
+		log("UISlotViewService is not loaded.")
+	end
+
+	method void SetSlotEffectVisible(any slot, boolean visible)
+		if _UISlotViewService ~= nil then
+			_UISlotViewService:SetSlotEffectVisible(slot, visible)
 			return
 		end
 

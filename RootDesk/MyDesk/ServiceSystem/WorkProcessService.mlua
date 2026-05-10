@@ -20,6 +20,7 @@ script WorkProcessService extends Logic
 		slot.state = "PREPPING"
 		gameManager.prepTargetSlot = nil
 		slot.uiButton.Enable = false
+		gameManager:SetSlotEffectVisible(slot, true)
 		self:SetPrepSlotProgress(slot, 0)
 		local service = self
 		self:StartProgressTimer(gameManager, "Prep", slot, gameManager.prepDuration, function(target) service:FinishPrepIngredientSlot(gameManager, target) end)
@@ -29,6 +30,7 @@ script WorkProcessService extends Logic
 		slot.state = "PREPPED"
 		slot.ingredientId = self:GetPreppedIngredientId(slot.ingredientId)
 		slot.uiButton.Enable = true
+		gameManager:SetSlotEffectVisible(slot, false)
 		gameManager:SetSlotImage(slot, gameManager:GetPrepImageRUID(slot.ingredientId))
 		self:SetPrepSlotProgress(slot, 0)
 		log("Finished prepping ingredient slot: " .. slot.id .. " / ingredient: " .. slot.ingredientId)

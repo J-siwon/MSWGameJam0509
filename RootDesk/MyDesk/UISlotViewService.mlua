@@ -224,8 +224,8 @@ script UISlotViewService extends Logic
 		return self:FindDescendant(mixer.uiButton.Entity, "MixerLayer" .. tostring(layerIndex))
 	end
 
-	method void SetMixerEffectVisible(any mixer, boolean visible)
-		local effectEntity = self:GetMixerEffectEntity(mixer)
+	method void SetSlotEffectVisible(any slot, boolean visible)
+		local effectEntity = self:GetSlotEffectEntity(slot)
 		if effectEntity == nil then
 			return
 		end
@@ -233,12 +233,20 @@ script UISlotViewService extends Logic
 		effectEntity.Enable = visible
 	end
 
-	method Entity GetMixerEffectEntity(any mixer)
-		if mixer == nil or mixer.uiButton == nil then
+	method Entity GetSlotEffectEntity(any slot)
+		if slot == nil or slot.uiButton == nil then
 			return nil
 		end
 
-		return self:FindDescendant(mixer.uiButton.Entity, "Effect")
+		return self:FindDescendant(slot.uiButton.Entity, "Effect")
+	end
+
+	method void SetMixerEffectVisible(any mixer, boolean visible)
+		self:SetSlotEffectVisible(mixer, visible)
+	end
+
+	method Entity GetMixerEffectEntity(any mixer)
+		return self:GetSlotEffectEntity(mixer)
 	end
 
 	method Entity FindDescendant(Entity root, string childName)
