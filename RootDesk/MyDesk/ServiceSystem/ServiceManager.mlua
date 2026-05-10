@@ -293,12 +293,20 @@ script ServiceManager extends Logic
 		end
 		if slot.hasCup ~= nil then
 			self:RefreshCupSlotImage(slot)
-		else
+		elseif self:IsMixerSlotView(slot) == false then
 			self:SetSlotImage(slot, "")
 		end
 		self:SetPrepSlotProgress(slot, 0)
 		self:ClearMixerLayerImages(slot)
 		self:SetSlotEffectVisible(slot, false)
+	end
+
+	method boolean IsMixerSlotView(any slot)
+		if slot == nil or slot.uiButton == nil or slot.uiButton.Entity == nil then
+			return false
+		end
+
+		return slot.uiButton.Entity.Name == "SlotMixer1" or slot.uiButton.Entity.Name == "SlotMixer2"
 	end
 
 	method string GetMixerResultId(any mixer)
@@ -440,7 +448,21 @@ script ServiceManager extends Logic
 	end
 
 	method string GetPrepImageRUID(string ingredientId)
-		return self:GetMappedIngredientImageRUID(ingredientId, "prepImageRUID")
+		if ingredientId == nil or ingredientId == "" then
+			return ""
+		end
+
+		local imageMap = self:GetIngredientImageMap(ingredientId)
+		if imageMap ~= nil and imageMap.prepImageRUID ~= nil then
+			return imageMap.prepImageRUID
+		end
+
+		local ingredientDef = self:GetIngredientDef(ingredientId)
+		if ingredientDef ~= nil and ingredientDef.imageRUID ~= nil then
+			return ingredientDef.imageRUID
+		end
+
+		return ""
 	end
 
 	method string GetCupLayerImageRUID(string ingredientId)
