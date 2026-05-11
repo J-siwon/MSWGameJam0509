@@ -117,7 +117,7 @@ script SelectionManagerFactory extends Logic
 				end
 				
 			elseif state == "CUP_TYPE" then
-				if targetType == "CUP_SLOT" and target.hasCup == false and gameManager:IsPackageSlot(target) == false then
+				if targetType == "CUP_SLOT" and target.hasCup == false then
 					target.hasCup = true
 					target.cupData = gameManager:CreateCup(self.data)
 					gameManager:RefreshCupSlotImage(target)
