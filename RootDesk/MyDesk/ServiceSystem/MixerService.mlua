@@ -2,18 +2,40 @@
 script MixerService extends Logic
 
 	method string GetMixerResultId(any gameManager, any mixer)
+		if mixer ~= nil and mixer.hasInvalidRecipeIngredient == true then
+			log("Mixer has invalid recipe ingredient. Use Trash: " .. tostring(mixer.id))
+			return "Trash"
+		end
+
 		local recipeKey = self:GetMixerRecipeKey(mixer)
-		local resultId = gameManager.GameData.MixerRecipes[recipeKey]
-		
-		if resultId == nil then
+		local resultId = self:GetExactMixerRecipeResultId(gameManager, recipeKey)
+		if resultId == "" then
+			log("No exact mixer recipe. Use Trash: " .. tostring(recipeKey))
 			return "Trash"
 		end
 		
 		return resultId
 	end
 
+	method string GetExactMixerRecipeResultId(any gameManager, string recipeKey)
+		if recipeKey == nil or recipeKey == "" then
+			return ""
+		end
+
+		if gameManager == nil or gameManager.GameData == nil or gameManager.GameData.MixerRecipes == nil then
+			return ""
+		end
+
+		local resultId = gameManager.GameData.MixerRecipes[recipeKey]
+		if resultId == nil or resultId == "" then
+			return ""
+		end
+
+		return resultId
+	end
+
 	method boolean IsTrashMixerResult(any mixer)
-		return mixer.resultId == "Trash"
+		return mixer == nil or mixer.resultId == nil or mixer.resultId == "" or mixer.resultId == "Trash"
 	end
 
 	method any CreateMixer(string mixerId)
@@ -26,6 +48,7 @@ script MixerService extends Logic
 			isMixed = false,
 			isTrash = false,
 			resultId = nil,
+			hasInvalidRecipeIngredient = false,
 		}
 	end
 
@@ -37,6 +60,7 @@ script MixerService extends Logic
 		
 		if gameManager:CanMixIngredient(ingredientId) == false then
 			log("Ingredient cannot be added to mixer: " .. ingredientId)
+			self:MarkMixerInvalidRecipeIngredient(mixer, ingredientId)
 			return false
 		end
 		
@@ -44,6 +68,7 @@ script MixerService extends Logic
 		
 		if useMixerSpace == true and mixer.spaceIngredientCount >= mixer.maxSpaceIngredientCount then
 			log("Mixer is full. Cannot add ingredient: " .. ingredientId)
+			self:MarkMixerInvalidRecipeIngredient(mixer, ingredientId)
 			return false
 		end
 		
@@ -57,17 +82,28 @@ script MixerService extends Logic
 		return true
 	end
 
+	method void MarkMixerInvalidRecipeIngredient(any mixer, string ingredientId)
+		if mixer == nil then
+			return
+		end
+
+		mixer.hasInvalidRecipeIngredient = true
+		log("Marked mixer as invalid recipe: " .. tostring(mixer.id) .. " / ingredient: " .. tostring(ingredientId))
+	end
+
 	method string GetMixerRecipeKey(any mixer)
 		local ingredients = {}
 		
 		for index, ingredientId in pairs(mixer.ingredients) do
-			table.insert(ingredients, ingredientId)
+			if ingredientId ~= nil and ingredientId ~= "" then
+				table.insert(ingredients, ingredientId)
+			end
 		end
 		
 		table.sort(ingredients)
 		
 		local key = ""
-		for index, ingredientId in pairs(ingredients) do
+		for index, ingredientId in ipairs(ingredients) do
 			if key ~= "" then
 				key = key .. "|"
 			end
@@ -84,6 +120,7 @@ script MixerService extends Logic
 		mixer.isMixed = false
 		mixer.isTrash = false
 		mixer.resultId = nil
+		mixer.hasInvalidRecipeIngredient = false
 		gameManager:ClearMixerLayerImages(mixer)
 		gameManager:SetPrepSlotProgress(mixer, 0)
 	end

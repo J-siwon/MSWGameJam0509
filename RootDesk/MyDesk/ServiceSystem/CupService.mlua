@@ -27,7 +27,11 @@ script CupService extends Logic
 		table.insert(cupData.ingredients, ingredientId)
 		
 		if useCupSpace == true then
-			cupData.spaceIngredientCount = cupData.spaceIngredientCount + 1
+			if gameManager:IsFinalMixedIngredient(ingredientId) == true then
+				cupData.spaceIngredientCount = cupData.maxSpaceIngredientCount
+			else
+				cupData.spaceIngredientCount = cupData.spaceIngredientCount + 1
+			end
 		end
 		
 		log("Added ingredient to cup: " .. ingredientId)
@@ -78,15 +82,11 @@ script CupService extends Logic
 			return ingredientId
 		end
 
-		if cupData.type == "HotCup" then
+		if cupData.isSteamed == true then
 			return "HotWater"
 		end
 
-		if cupData.type == "IceCup" or cupData.type == "ColdCup" then
-			return "ColdWater"
-		end
-
-		return ingredientId
+		return "ColdWater"
 	end
 
 	method string GetCupInfoText(any cupInfo)

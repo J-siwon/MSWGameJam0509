@@ -550,13 +550,13 @@ script CustomerTableComponent extends Component
 
 		if #source > 0 then
 			for i = 1, #source do
-				self:AddCupIngredientValue(ingredients, source[i], nil)
+				self:AddCupIngredientValue(ingredients, cupData, source[i], nil)
 			end
 			return ingredients
 		end
 
 		for ingredientId, value in pairs(source) do
-			self:AddCupIngredientValue(ingredients, value, ingredientId)
+			self:AddCupIngredientValue(ingredients, cupData, value, ingredientId)
 		end
 		return ingredients
 	end
@@ -602,7 +602,7 @@ script CustomerTableComponent extends Component
 		return self:NormalizeIngredientId(tostring(value))
 	end
 
-	method void AddCupIngredientValue(table ingredients, any value, any key)
+	method void AddCupIngredientValue(table ingredients, any cupData, any value, any key)
 		local ingredientId = self:GetCupIngredientId(value)
 		local count = 1
 		if ingredientId == "" and key ~= nil and (value == true or type(value) == "number") then
@@ -611,6 +611,7 @@ script CustomerTableComponent extends Component
 				count = math.max(1, value)
 			end
 		end
+		ingredientId = self:NormalizeCupIngredientId(cupData, ingredientId)
 		if ingredientId ~= "" then
 			for i = 1, count do
 				table.insert(ingredients, ingredientId)
@@ -625,17 +626,44 @@ script CustomerTableComponent extends Component
 			return ingredients
 		end
 
-		if drinkId == "Coffee" then
-			return { "CoffeeShot" }
+		if drinkId == "Coffee" or drinkId == "HotAmericano" then
+			return { "CoffeeShot", "HotWater" }
+		end
+		if drinkId == "IceAmericano" then
+			return { "CoffeeShot", "ColdWater", "Ice" }
 		end
 		if drinkId == "Latte" then
-			return { "CoffeeShot", "HotWater", "prepped_Ingredient_2" }
+			return { "CoffeeShot", "HotWater", "Ingredient_1" }
+		end
+		if drinkId == "Mocha" then
+			return { "CoffeeShot", "HotWater", "Ingredient_1", "Ingredient_3" }
+		end
+		if drinkId == "BamLatte" then
+			return { "CoffeeShot", "HotWater", "Ingredient_1", "prepped_Ingredient_5" }
+		end
+		if drinkId == "StrawberrySmoothie" then
+			return { "Mixed_Ingredient_1" }
+		end
+		if drinkId == "BananaSmoothie" then
+			return { "Mixed_Ingredient_2" }
+		end
+		if drinkId == "SlimeBananaSmoothie" then
+			return { "Mixed_Ingredient_3" }
+		end
+		if drinkId == "QuattroSlimeSmoothie" then
+			return { "Mixed_Ingredient_4" }
+		end
+		if drinkId == "ChocoFrappe" then
+			return { "Mixed_Ingredient_5" }
+		end
+		if drinkId == "MatchaFrappe" then
+			return { "Mixed_Ingredient_6" }
 		end
 		if drinkId == "Ade" then
-			return { "Ice", "ColdWater", "Mixed_Cold_Ingredient_1" }
+			return { "Mixed_Ingredient_1" }
 		end
 		if drinkId == "Tea" then
-			return { "HotWater", "prepped_Ingredient_3" }
+			return { "HotWater", "Ingredient_3" }
 		end
 		return {}
 	end
@@ -660,7 +688,35 @@ script CustomerTableComponent extends Component
 		if value == "CoffeeShot_1" or value == "CoffeeShot_2" or value == "CoffeeShot_3" then
 			return "CoffeeShot"
 		end
+
+		local legacyPreppedIndex = string.match(value, "^prepped_Ingredient_([123])$")
+		if legacyPreppedIndex ~= nil then
+			return "Ingredient_" .. legacyPreppedIndex
+		end
+
+		local mixedIngredientIndex = string.match(value, "^Mixed_Cold_Ingredient_(%d+)$")
+		if mixedIngredientIndex == nil then
+			mixedIngredientIndex = string.match(value, "^Mixed_Hot_Ingredient_(%d+)$")
+		end
+		if mixedIngredientIndex ~= nil then
+			return "Mixed_Ingredient_" .. mixedIngredientIndex
+		end
+
 		return value
+	end
+
+	method string NormalizeCupIngredientId(any cupData, string ingredientId)
+		local value = self:NormalizeIngredientId(ingredientId)
+		if value ~= "Water" then
+			return value
+		end
+		if cupData == nil then
+			return value
+		end
+		if cupData.isSteamed == true then
+			return "HotWater"
+		end
+		return "ColdWater"
 	end
 
 	method table CreateIngredientCounts(table ingredients)
@@ -728,14 +784,116 @@ script CustomerTableComponent extends Component
 			else
 				text = text .. "[  ] "
 			end
-			text = text .. self:GetIngredientDisplayName(ingredientId)
+			text = text .. tostring(i) .. ". " .. self:GetRecipeStepText(ingredientId)
 		end
 		return text
+	end
+
+	method string GetRecipeStepText(string ingredientId)
+		if ingredientId == "CoffeeShot" then
+			return "샷 추출"
+		end
+		if ingredientId == "HotWater" then
+			return "물 + 스팀"
+		end
+		if ingredientId == "ColdWater" then
+			return "찬물"
+		end
+		if ingredientId == "Ice" then
+			return "얼음"
+		end
+
+		local mixedStep = self:GetMixedIngredientRecipeStepText(ingredientId)
+		if mixedStep ~= "" then
+			return mixedStep
+		end
+
+		if string.sub(ingredientId, 1, 8) == "prepped_" then
+			local baseIngredientId = string.sub(ingredientId, 9)
+			return self:GetIngredientDisplayName(baseIngredientId) .. " 손질"
+		end
+
+		return self:GetIngredientDisplayName(ingredientId) .. " 넣기"
+	end
+
+	method string GetMixedIngredientRecipeStepText(string ingredientId)
+		local normalizedIngredientId = ingredientId
+		local mixedIngredientIndex = string.match(ingredientId, "^Mixed_Cold_Ingredient_(%d+)$")
+		if mixedIngredientIndex == nil then
+			mixedIngredientIndex = string.match(ingredientId, "^Mixed_Hot_Ingredient_(%d+)$")
+		end
+		if mixedIngredientIndex ~= nil then
+			normalizedIngredientId = "Mixed_Ingredient_" .. mixedIngredientIndex
+		end
+
+		local recipeText = self:FindCellValue("MixerRecipeData", normalizedIngredientId, "Recipe")
+		if recipeText ~= nil and recipeText ~= "" then
+			local recipeIngredients = self:ParseIngredientsText(recipeText)
+			local ingredientListText = self:GetRecipeIngredientListText(recipeIngredients)
+			if ingredientListText ~= "" then
+				return "믹서: " .. ingredientListText .. " -> 컵"
+			end
+		end
+
+		return ""
+	end
+
+	method string GetRecipeIngredientListText(table recipeIngredients)
+		if recipeIngredients == nil or #recipeIngredients <= 0 then
+			return ""
+		end
+
+		local counts = {}
+		local orderedNames = {}
+		for i = 1, #recipeIngredients do
+			local name = self:Trim(recipeIngredients[i])
+			if name ~= "" then
+				name = self:GetShortRecipeIngredientName(name)
+				if counts[name] == nil then
+					counts[name] = 0
+					table.insert(orderedNames, name)
+				end
+				counts[name] = counts[name] + 1
+			end
+		end
+
+		local text = ""
+		for i = 1, #orderedNames do
+			local name = orderedNames[i]
+			if text ~= "" then
+				text = text .. " + "
+			end
+			text = text .. name
+			if counts[name] ~= nil and counts[name] > 1 then
+				text = text .. " x" .. tostring(counts[name])
+			end
+		end
+
+		return text
+	end
+
+	method string GetShortRecipeIngredientName(string name)
+		if name == "Maple Syrup" then
+			return "Maple"
+		end
+		if name == "Choco Syrup" then
+			return "Choco"
+		end
+		if name == "Green Mushroom Cap" then
+			return "Mushroom Cap"
+		end
+		return name
 	end
 
 	method string GetIngredientDisplayName(string ingredientId)
 		if ingredientId == "CoffeeShot" then
 			return "Coffee Shot"
+		end
+		if ingredientId == "HotWater" then
+			return "Hot Water"
+		end
+		if ingredientId == "ColdWater" then
+			return "Cold Water"
 		end
 		local value = self:FindCellValue("IngredientData", ingredientId, "DisplayName")
 		if value ~= nil and value ~= "" then

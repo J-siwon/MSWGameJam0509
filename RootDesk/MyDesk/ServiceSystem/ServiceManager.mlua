@@ -27,17 +27,29 @@ script ServiceManager extends Logic
 
 	property boolean IsPaused = false
 
+	property string DrinkDataSetName = "CustomerDrinkData"
+
 	property string cupImageRUID = "c1cc66398f0e42d5be21315c1adeb34c"
 
-	property string hotCupImageRUID = "87662c3137854bf5beea2a594509ce31"
+	property string hotCupImageRUID = "c1cc66398f0e42d5be21315c1adeb34c"
 
 	property number iceCupImageWidth = 138
 
 	property number iceCupImageHeight = 166
 
-	property number hotCupImageWidth = 248
+	property number hotCupImageWidth = 138
 
-	property number hotCupImageHeight = 146
+	property number hotCupImageHeight = 166
+
+	property number packagedDrinkImageWidth = 138
+
+	property number packagedDrinkImageHeight = 166
+
+	property string trashMixerImageRUID = "ecb3942bc998487d97a3df4dca2b815c"
+
+	property number trashMixerImageWidth = 118
+
+	property number trashMixerImageHeight = 112
 
 	property number prepDuration = 1.5
 
@@ -144,11 +156,13 @@ script ServiceManager extends Logic
 		self:InitializeActionButtons()
 		self:InitializeWorkProcesses()
 		self:BindSlotButtons()
+		self:InitializeIngredientButtons()
 		self:ConnectGameButtons()
 		self:HideActionButtonsImmediately()
 		self:InitializeCoffeeShotButtons()
 		self:InitializeWaterPourButton()
 		self:InitializeSteamButton()
+		self:InitializePackageButton()
 	end
 
 	method any CreateInitialGameData()
@@ -216,10 +230,12 @@ script ServiceManager extends Logic
 		end
 
 		self:BindSlotButtons()
+		self:InitializeIngredientButtons()
 		self:ResetSlotViewsForDay()
 		self:InitializeCoffeeShotButtons()
 		self:RefreshWaterPourButtonState()
 		self:RefreshSteamButtonState()
+		self:RefreshPackageButtonState()
 		self:ClearOrderPreview()
 	end
 
@@ -354,6 +370,15 @@ script ServiceManager extends Logic
 		return false
 	end
 
+	method void MarkMixerInvalidRecipeIngredient(any mixer, string ingredientId)
+		if _MixerService ~= nil then
+			_MixerService:MarkMixerInvalidRecipeIngredient(mixer, ingredientId)
+			return
+		end
+
+		log("MixerService is not loaded.")
+	end
+
 	method string GetMixerRecipeKey(any mixer)
 		if _MixerService ~= nil then
 			return _MixerService:GetMixerRecipeKey(mixer)
@@ -453,6 +478,11 @@ script ServiceManager extends Logic
 				return baseImageRUID
 			end
 		end
+
+		local mixedDef = self:GetMixedIngredientDef(ingredientId)
+		if mixedDef ~= nil and mixedDef.imageRUID ~= nil and mixedDef.imageRUID ~= "" then
+			return mixedDef.imageRUID
+		end
 		
 		local ingredientDef = self:GetIngredientDef(ingredientId)
 		if ingredientDef ~= nil and ingredientDef.imageRUID ~= nil then
@@ -468,12 +498,20 @@ script ServiceManager extends Logic
 		end
 
 		local imageMap = self:GetIngredientImageMap(ingredientId)
-		if imageMap ~= nil and imageMap.prepImageRUID ~= nil then
+		if imageMap ~= nil and imageMap.prepImageRUID ~= nil and imageMap.prepImageRUID ~= "" then
 			return imageMap.prepImageRUID
 		end
 
+		if string.sub(ingredientId, 1, 8) == "prepped_" then
+			local baseIngredientId = string.sub(ingredientId, 9)
+			local baseImageRUID = self:GetPrepImageRUID(baseIngredientId)
+			if baseImageRUID ~= nil and baseImageRUID ~= "" then
+				return baseImageRUID
+			end
+		end
+
 		local ingredientDef = self:GetIngredientDef(ingredientId)
-		if ingredientDef ~= nil and ingredientDef.imageRUID ~= nil then
+		if ingredientDef ~= nil and ingredientDef.imageRUID ~= nil and ingredientDef.imageRUID ~= "" then
 			return ingredientDef.imageRUID
 		end
 
@@ -489,6 +527,15 @@ script ServiceManager extends Logic
 	end
 
 	method string GetMixedIngredientImageRUID(string ingredientId)
+		if ingredientId == "Trash" then
+			local imageRUID = self:GetMixerImageRUID(ingredientId)
+			if imageRUID ~= nil and imageRUID ~= "" then
+				return imageRUID
+			end
+
+			return self.trashMixerImageRUID
+		end
+
 		local mixedDef = self:GetMixedIngredientDef(ingredientId)
 		if mixedDef ~= nil and mixedDef.imageRUID ~= nil then
 			return mixedDef.imageRUID
@@ -498,6 +545,10 @@ script ServiceManager extends Logic
 	end
 
 	method number GetMixedIngredientImageWidth(string ingredientId)
+		if ingredientId == "Trash" then
+			return self.trashMixerImageWidth
+		end
+
 		local mixedDef = self:GetMixedIngredientDef(ingredientId)
 		if mixedDef ~= nil and mixedDef.imageWidth ~= nil then
 			return mixedDef.imageWidth
@@ -507,6 +558,10 @@ script ServiceManager extends Logic
 	end
 
 	method number GetMixedIngredientImageHeight(string ingredientId)
+		if ingredientId == "Trash" then
+			return self.trashMixerImageHeight
+		end
+
 		local mixedDef = self:GetMixedIngredientDef(ingredientId)
 		if mixedDef ~= nil and mixedDef.imageHeight ~= nil then
 			return mixedDef.imageHeight
@@ -550,6 +605,11 @@ script ServiceManager extends Logic
 
 	method boolean CanAddIngredientToCupData(any cupData, string ingredientId)
 		if cupData == nil then
+			return false
+		end
+
+		if cupData.isPackaged == true then
+			log("Cannot add ingredient to packaged cup: " .. tostring(ingredientId))
 			return false
 		end
 
@@ -636,6 +696,370 @@ script ServiceManager extends Logic
 		return ingredientId
 	end
 
+	method void InitializeIngredientButtons()
+		for index = 1, 8 do
+			self:RefreshIngredientButton(index)
+		end
+	end
+
+	method void RefreshIngredientButton(number index)
+		local button = self:GetIngredientButton(index)
+		if button == nil or button.Entity == nil then
+			return
+		end
+
+		local ingredientId = self:GetIngredientButtonId(index)
+		if ingredientId == "" then
+			button.Enable = false
+			button.Entity.Enable = false
+			return
+		end
+
+		button.Enable = true
+		button.Entity.Enable = true
+		self:SetIngredientButtonText(button, self:GetIngredientDisplayName(ingredientId))
+
+		local imageRUID = self:GetIngredientButtonImageRUID(ingredientId)
+		if imageRUID ~= "" then
+			self:SetIngredientButtonImage(button, imageRUID)
+		end
+	end
+
+	method string GetIngredientButtonImageRUID(string ingredientId)
+		local ingredientDef = self:GetIngredientDef(ingredientId)
+		if ingredientDef ~= nil and ingredientDef.imageRUID ~= nil and ingredientDef.imageRUID ~= "" then
+			return ingredientDef.imageRUID
+		end
+
+		return self:GetPrepImageRUID(ingredientId)
+	end
+
+	method ButtonComponent GetIngredientButton(number index)
+		if index == 1 then
+			return self.btnIng1
+		end
+		if index == 2 then
+			return self.btnIng2
+		end
+		if index == 3 then
+			return self.btnIng3
+		end
+		if index == 4 then
+			return self.btnIng4
+		end
+		if index == 5 then
+			return self.btnIng5
+		end
+		if index == 6 then
+			return self.btnIng6
+		end
+		if index == 7 then
+			return self.btnIng7
+		end
+		if index == 8 then
+			return self.btnIng8
+		end
+
+		return nil
+	end
+
+	method void SetIngredientButtonText(ButtonComponent button, string text)
+		if button == nil or button.Entity == nil or button.Entity.TextComponent == nil then
+			return
+		end
+
+		button.Entity.TextComponent.Text = text
+	end
+
+	method void SetIngredientButtonImage(ButtonComponent button, string imageRUID)
+		if button == nil or button.Entity == nil then
+			return
+		end
+
+		local spriteEntity = button.Entity:GetChildByName("UISprite", true)
+		if spriteEntity == nil or spriteEntity.SpriteGUIRendererComponent == nil then
+			return
+		end
+
+		spriteEntity.SpriteGUIRendererComponent.ImageRUID = DataRef(imageRUID)
+	end
+
+	method string GetIngredientDisplayName(string ingredientId)
+		local ingredientDef = self:GetIngredientDef(ingredientId)
+		if ingredientDef ~= nil and ingredientDef.displayName ~= nil and ingredientDef.displayName ~= "" then
+			return ingredientDef.displayName
+		end
+
+		if string.sub(ingredientId, 1, 8) == "prepped_" then
+			local baseIngredientId = string.sub(ingredientId, 9)
+			ingredientDef = self:GetIngredientDef(baseIngredientId)
+			if ingredientDef ~= nil and ingredientDef.displayName ~= nil and ingredientDef.displayName ~= "" then
+				return ingredientDef.displayName
+			end
+		end
+
+		local mixedDef = self:GetMixedIngredientDef(ingredientId)
+		if mixedDef ~= nil and mixedDef.drinkName ~= nil and mixedDef.drinkName ~= "" then
+			return mixedDef.drinkName
+		end
+
+		return ingredientId
+	end
+
+	method string GetCompletedDrinkImageRUID(any cupData)
+		local completedDrink = self:GetCompletedDrinkInfo(cupData)
+		if completedDrink == nil then
+			return ""
+		end
+
+		if completedDrink.iconRUID ~= nil then
+			return completedDrink.iconRUID
+		end
+
+		return ""
+	end
+
+	method string GetPackagedCupImageRUID(any cupData)
+		if cupData == nil then
+			return ""
+		end
+
+		if cupData.packagedDrinkImageRUID ~= nil and cupData.packagedDrinkImageRUID ~= "" then
+			return cupData.packagedDrinkImageRUID
+		end
+
+		return self:GetCompletedDrinkImageRUID(cupData)
+	end
+
+	method number GetPackagedCupImageWidth(any cupData)
+		if cupData ~= nil and cupData.packagedDrinkImageWidth ~= nil and cupData.packagedDrinkImageWidth > 0 then
+			return cupData.packagedDrinkImageWidth
+		end
+
+		return self.packagedDrinkImageWidth
+	end
+
+	method number GetPackagedCupImageHeight(any cupData)
+		if cupData ~= nil and cupData.packagedDrinkImageHeight ~= nil and cupData.packagedDrinkImageHeight > 0 then
+			return cupData.packagedDrinkImageHeight
+		end
+
+		return self.packagedDrinkImageHeight
+	end
+
+	method any GetCompletedDrinkInfo(any cupData)
+		local cupIngredients = self:GetCompletedCupDrinkIngredients(cupData)
+		if cupIngredients == nil or #cupIngredients <= 0 then
+			return nil
+		end
+
+		local cupCounts = self:CreateDrinkIngredientCounts(cupIngredients)
+		local dataSetDrink = self:GetCompletedDrinkInfoFromDataSet(cupCounts)
+		if dataSetDrink ~= nil then
+			return dataSetDrink
+		end
+
+		return self:GetCompletedDrinkInfoFromFallback(cupCounts)
+	end
+
+	method table GetCompletedCupDrinkIngredients(any cupData)
+		local ingredients = {}
+		if cupData == nil or cupData.ingredients == nil then
+			return ingredients
+		end
+
+		for index = 1, #cupData.ingredients do
+			local ingredientId = self:NormalizeCupDrinkIngredientId(cupData, cupData.ingredients[index])
+			if ingredientId ~= "" then
+				table.insert(ingredients, ingredientId)
+			end
+		end
+
+		return ingredients
+	end
+
+	method any GetCompletedDrinkInfoFromDataSet(table cupCounts)
+		if _EntryService == nil or _DataService == nil then
+			return nil
+		end
+
+		local dataSetId = _EntryService:GetDataSetIdByName(self.DrinkDataSetName)
+		if dataSetId == nil or dataSetId == "" then
+			return nil
+		end
+
+		local rowCount = _DataService:GetRowCount(self.DrinkDataSetName)
+		for rowIndex = 1, rowCount do
+			local drinkId = self:Trim(_DataService:GetCell(self.DrinkDataSetName, rowIndex, "Id"))
+			local recipeText = self:Trim(_DataService:GetCell(self.DrinkDataSetName, rowIndex, "Ingredients"))
+			if drinkId ~= "" and recipeText ~= "" then
+				local recipeCounts = self:CreateDrinkIngredientCounts(self:ParseDrinkIngredientsText(recipeText))
+				if self:AreDrinkIngredientCountsEqual(cupCounts, recipeCounts) == true then
+					return {
+						id = drinkId,
+						iconRUID = self:Trim(_DataService:GetCell(self.DrinkDataSetName, rowIndex, "IconRUID")),
+						imageWidth = self.packagedDrinkImageWidth,
+						imageHeight = self.packagedDrinkImageHeight,
+					}
+				end
+			end
+		end
+
+		return nil
+	end
+
+	method any GetCompletedDrinkInfoFromFallback(table cupCounts)
+		local drinkDefs = self:GetFallbackDrinkDefinitions()
+		for index = 1, #drinkDefs do
+			local drinkDef = drinkDefs[index]
+			local recipeCounts = self:CreateDrinkIngredientCounts(self:ParseDrinkIngredientsText(drinkDef.recipe))
+			if self:AreDrinkIngredientCountsEqual(cupCounts, recipeCounts) == true then
+				return drinkDef
+			end
+		end
+
+		return nil
+	end
+
+	method table GetFallbackDrinkDefinitions()
+		return {
+			{ id = "HotAmericano", iconRUID = "1b21a0ed841f42f798f3623d0ff4a748", recipe = "CoffeeShot|HotWater", imageWidth = self.packagedDrinkImageWidth, imageHeight = self.packagedDrinkImageHeight },
+			{ id = "IceAmericano", iconRUID = "08b277dc4037414ca963307d196208b3", recipe = "CoffeeShot|ColdWater|Ice", imageWidth = self.packagedDrinkImageWidth, imageHeight = self.packagedDrinkImageHeight },
+			{ id = "Latte", iconRUID = "c63a6a0d311b45d2aafabbec52e9b294", recipe = "CoffeeShot|HotWater|Ingredient_1", imageWidth = self.packagedDrinkImageWidth, imageHeight = self.packagedDrinkImageHeight },
+			{ id = "Mocha", iconRUID = "2e47e7b814914617a5b785061c946d73", recipe = "CoffeeShot|HotWater|Ingredient_1|Ingredient_3", imageWidth = self.packagedDrinkImageWidth, imageHeight = self.packagedDrinkImageHeight },
+			{ id = "BamLatte", iconRUID = "e8b13faac0fb4e22828cb202431e5c35", recipe = "CoffeeShot|HotWater|Ingredient_1|prepped_Ingredient_5", imageWidth = self.packagedDrinkImageWidth, imageHeight = self.packagedDrinkImageHeight },
+			{ id = "StrawberrySmoothie", iconRUID = "2fcbf804078e47cb878088bf4e278cb5", recipe = "Mixed_Ingredient_1", imageWidth = self.packagedDrinkImageWidth, imageHeight = self.packagedDrinkImageHeight },
+			{ id = "BananaSmoothie", iconRUID = "e37e5eb0d6d24d71a6151f3075e122f8", recipe = "Mixed_Ingredient_2", imageWidth = self.packagedDrinkImageWidth, imageHeight = self.packagedDrinkImageHeight },
+			{ id = "SlimeBananaSmoothie", iconRUID = "ef1328c63c9047f5a98141b4fefc2769", recipe = "Mixed_Ingredient_3", imageWidth = self.packagedDrinkImageWidth, imageHeight = self.packagedDrinkImageHeight },
+			{ id = "QuattroSlimeSmoothie", iconRUID = "862c4875fb8b4ca6aafb9e03e488d6d4", recipe = "Mixed_Ingredient_4", imageWidth = self.packagedDrinkImageWidth, imageHeight = self.packagedDrinkImageHeight },
+			{ id = "ChocoFrappe", iconRUID = "c62d1aac184044bbb682ea579d68058b", recipe = "Mixed_Ingredient_5", imageWidth = self.packagedDrinkImageWidth, imageHeight = self.packagedDrinkImageHeight },
+			{ id = "MatchaFrappe", iconRUID = "66ccb9447f7c40768ce15b7afe6e0d4c", recipe = "Mixed_Ingredient_6", imageWidth = self.packagedDrinkImageWidth, imageHeight = self.packagedDrinkImageHeight },
+		}
+	end
+
+	method table ParseDrinkIngredientsText(string ingredientsText)
+		local ingredients = {}
+		if ingredientsText == nil or ingredientsText == "" then
+			return ingredients
+		end
+
+		for ingredientId in string.gmatch(ingredientsText, "([^|]+)") do
+			local normalized = self:NormalizeDrinkIngredientId(ingredientId)
+			if normalized ~= "" then
+				table.insert(ingredients, normalized)
+			end
+		end
+
+		return ingredients
+	end
+
+	method table CreateDrinkIngredientCounts(table ingredients)
+		local counts = {}
+		if ingredients == nil then
+			return counts
+		end
+
+		for index = 1, #ingredients do
+			local ingredientId = ingredients[index]
+			if ingredientId ~= nil and ingredientId ~= "" then
+				counts[ingredientId] = (counts[ingredientId] or 0) + 1
+			end
+		end
+
+		return counts
+	end
+
+	method boolean AreDrinkIngredientCountsEqual(table left, table right)
+		for ingredientId, count in pairs(left) do
+			if right[ingredientId] ~= count then
+				return false
+			end
+		end
+
+		for ingredientId, count in pairs(right) do
+			if left[ingredientId] ~= count then
+				return false
+			end
+		end
+
+		return true
+	end
+
+	method string NormalizeCupDrinkIngredientId(any cupData, string ingredientId)
+		local value = self:NormalizeDrinkIngredientId(ingredientId)
+		if value ~= "Water" then
+			return value
+		end
+
+		if cupData ~= nil and cupData.isSteamed == true then
+			return "HotWater"
+		end
+
+		return "ColdWater"
+	end
+
+	method string NormalizeDrinkIngredientId(string ingredientId)
+		local value = self:Trim(ingredientId)
+		if value == "" then
+			return ""
+		end
+
+		if value == "CoffeeShot_1" or value == "CoffeeShot_2" or value == "CoffeeShot_3" then
+			return "CoffeeShot"
+		end
+
+		local legacyPreppedIndex = string.match(value, "^prepped_Ingredient_([123])$")
+		if legacyPreppedIndex ~= nil then
+			return "Ingredient_" .. legacyPreppedIndex
+		end
+
+		local mixedIngredientIndex = string.match(value, "^Mixed_Cold_Ingredient_(%d+)$")
+		if mixedIngredientIndex == nil then
+			mixedIngredientIndex = string.match(value, "^Mixed_Hot_Ingredient_(%d+)$")
+		end
+		if mixedIngredientIndex ~= nil then
+			return "Mixed_Ingredient_" .. mixedIngredientIndex
+		end
+
+		return self:ResolveDrinkIngredientDisplayName(value)
+	end
+
+	method string ResolveDrinkIngredientDisplayName(string value)
+		if self.GameData ~= nil and self.GameData.IngredientDefs ~= nil then
+			if self.GameData.IngredientDefs[value] ~= nil then
+				return value
+			end
+
+			for ingredientId, ingredientDef in pairs(self.GameData.IngredientDefs) do
+				if ingredientDef ~= nil and ingredientDef.displayName == value then
+					return ingredientId
+				end
+			end
+		end
+
+		if self.GameData ~= nil and self.GameData.MixedIngredientDefs ~= nil then
+			if self.GameData.MixedIngredientDefs[value] ~= nil then
+				return value
+			end
+
+			for ingredientId, mixedDef in pairs(self.GameData.MixedIngredientDefs) do
+				if mixedDef ~= nil and mixedDef.drinkName == value then
+					return ingredientId
+				end
+			end
+		end
+
+		return value
+	end
+
+	method string Trim(string value)
+		if value == nil then
+			return ""
+		end
+
+		return (string.gsub(value, "^%s*(.-)%s*$", "%1"))
+	end
+
 	method any GetCupInfoFromSlot(any slot)
 		-- 다른 팀원이 메뉴 큐에서 사용할 수 있도록 컵 정보를 안전한 테이블로 변환한다.
 		if _CupService ~= nil then
@@ -697,7 +1121,7 @@ script ServiceManager extends Logic
 
 	method void ShowMixUI(any target)
 		self.mixTargetMixer = target
-		self:ShowMixButton()
+		self:HideMixButtonImmediately()
 	end
 
 	method void HideActionUI()
@@ -741,7 +1165,7 @@ script ServiceManager extends Logic
 	end
 
 	method void ShowMixButton()
-		self:ShowActionButton("Mix")
+		self:HideMixButtonImmediately()
 	end
 
 	method void HideMixButton()
@@ -1068,10 +1492,11 @@ script ServiceManager extends Logic
 			if slot ~= nil then
 				self:RefreshCoffeeShotButtonStateBySlot(slot)
 				if slot.id == "CupSlot_4" then
-					self:RefreshSteamButtonState()
+					self:RefreshPackageButtonState()
 				end
 				if slot.id == "CupSlot_5" then
 					self:RefreshWaterPourButtonState()
+					self:RefreshSteamButtonState()
 				end
 			end
 			return
@@ -1131,6 +1556,79 @@ script ServiceManager extends Logic
 		else
 			log("Moved cup: " .. fromSlot.id .. " -> " .. toSlot.id)
 		end
+	end
+
+	method boolean IsPackageSlot(any slot)
+		return slot ~= nil and (slot.isPackageSlot == true or slot.id == "CupSlot_4")
+	end
+
+	method boolean IsWaterSlot(any slot)
+		return slot ~= nil and (slot.isWaterSlot == true or slot.id == "CupSlot_5")
+	end
+
+	method any GetPackageSlot()
+		if self.GameData == nil or self.GameData.CupSlots == nil then
+			return nil
+		end
+
+		return self.GameData.CupSlots[4]
+	end
+
+	method boolean PackageCupSlot(any fromSlot, any packageSlot)
+		if fromSlot == nil or fromSlot.hasCup ~= true or fromSlot.cupData == nil then
+			return false
+		end
+
+		local completedDrink = self:GetCompletedDrinkInfo(fromSlot.cupData)
+		if completedDrink == nil or completedDrink.iconRUID == nil or completedDrink.iconRUID == "" then
+			log("Cannot package cup. No completed drink recipe.")
+			return false
+		end
+
+		local cupData = fromSlot.cupData
+		cupData.isPackaged = true
+		cupData.packagedDrinkId = completedDrink.id
+		cupData.packagedDrinkImageRUID = completedDrink.iconRUID
+		cupData.packagedDrinkImageWidth = completedDrink.imageWidth
+		cupData.packagedDrinkImageHeight = completedDrink.imageHeight
+
+		self:RefreshCupSlotImage(fromSlot)
+		self:RefreshPackageButtonState()
+		self:ClearOrderPreview()
+		log("Packaged cup in place: " .. tostring(fromSlot.id))
+		return true
+	end
+
+	method any GetFirstPackageableCupSlot()
+		if self.GameData == nil or self.GameData.CupSlots == nil then
+			return nil
+		end
+
+		for i = 1, #self.GameData.CupSlots do
+			local slot = self.GameData.CupSlots[i]
+			if slot ~= nil and self:IsPackageSlot(slot) == false and slot.hasCup == true and slot.cupData ~= nil and slot.cupData.isPackaged ~= true then
+				if self:GetCompletedDrinkImageRUID(slot.cupData) ~= "" then
+					return slot
+				end
+			end
+		end
+
+		return nil
+	end
+
+	method any GetFirstPackagedCupSlot()
+		if self.GameData == nil or self.GameData.CupSlots == nil then
+			return nil
+		end
+
+		for i = 1, #self.GameData.CupSlots do
+			local slot = self.GameData.CupSlots[i]
+			if slot ~= nil and slot.hasCup == true and slot.cupData ~= nil and slot.cupData.isPackaged == true then
+				return slot
+			end
+		end
+
+		return nil
 	end
 
 	method void InitializeCoffeeShotButtons()
@@ -1205,6 +1703,10 @@ script ServiceManager extends Logic
 			return false
 		end
 
+		if slot.cupData.isPackaged == true then
+			return false
+		end
+
 		if slot.isBrewingShot == true then
 			return false
 		end
@@ -1226,10 +1728,33 @@ script ServiceManager extends Logic
 
 	method void InitializeWaterPourButton()
 		self:RefreshWaterPourButtonState()
+		self:SetButtonEffectVisible(self.btnColdWater, false)
 	end
 
 	method void InitializeSteamButton()
 		self:RefreshSteamButtonState()
+	end
+
+	method void InitializePackageButton()
+		if self.btnHotCup ~= nil and self.btnHotCup.Entity ~= nil and self.btnHotCup.Entity.TextComponent ~= nil then
+			self.btnHotCup.Entity.TextComponent.Text = "포장"
+		end
+		self:RefreshPackageButtonState()
+	end
+
+	method void RefreshPackageButtonState()
+		self:SetPackageButtonEnabled(true)
+	end
+
+	method void SetPackageButtonEnabled(boolean enabled)
+		if self.btnHotCup == nil then
+			return
+		end
+
+		self.btnHotCup.Enable = enabled
+		if self.btnHotCup.Entity ~= nil then
+			self.btnHotCup.Entity.Enable = true
+		end
 	end
 
 	method any GetWaterPourSlot()
@@ -1241,12 +1766,24 @@ script ServiceManager extends Logic
 	end
 
 	method void RefreshWaterPourButtonState()
+		self:SetWaterPourButtonEnabled(self:CanUseWaterButton())
+	end
+
+	method boolean CanUseWaterButton()
 		local slot = self:GetWaterPourSlot()
-		self:SetWaterPourButtonEnabled(self:CanPourWaterFromSlot(slot))
+		if slot ~= nil and slot.isPouringWater == true then
+			return false
+		end
+
+		return self:CanPourWaterFromSlot(slot)
 	end
 
 	method boolean CanPourWaterFromSlot(any slot)
 		if slot == nil or slot.hasCup ~= true or slot.cupData == nil then
+			return false
+		end
+
+		if slot.cupData.isPackaged == true then
 			return false
 		end
 
@@ -1269,11 +1806,7 @@ script ServiceManager extends Logic
 	end
 
 	method any GetSteamSlot()
-		if self.GameData == nil or self.GameData.CupSlots == nil then
-			return nil
-		end
-
-		return self.GameData.CupSlots[4]
+		return self:GetWaterPourSlot()
 	end
 
 	method void RefreshSteamButtonState()
@@ -1286,11 +1819,33 @@ script ServiceManager extends Logic
 			return false
 		end
 
+		if slot.cupData.isPackaged == true then
+			return false
+		end
+
 		if slot.isSteaming == true then
 			return false
 		end
 
-		return true
+		if slot.cupData.isSteamed == true then
+			return false
+		end
+
+		return self:CupHasIngredient(slot.cupData, "Water")
+	end
+
+	method boolean CupHasIngredient(any cupData, string ingredientId)
+		if cupData == nil or cupData.ingredients == nil then
+			return false
+		end
+
+		for index = 1, #cupData.ingredients do
+			if cupData.ingredients[index] == ingredientId then
+				return true
+			end
+		end
+
+		return false
 	end
 
 	method void SetSteamButtonEnabled(boolean enabled)
@@ -1341,7 +1896,7 @@ script ServiceManager extends Logic
 		log("Connect game buttons")
 		
 		self.btnIceCup.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickCupTypeButton("IceCup", self.btnIceCup) end)
-		self.btnHotCup.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickCupTypeButton("HotCup", self.btnHotCup) end)
+		self.btnHotCup.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickPackageButton(self.btnHotCup) end)
 		self.btnIceMaker.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickIceMakerButton(self.btnIceMaker) end)
 		self.btnColdWater.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickWaterButton(self.btnColdWater) end)
 		self.btnSteam.Entity:ConnectEvent(ButtonClickEvent, function() self:OnClickSteamButton(self.btnSteam) end)
@@ -1393,10 +1948,14 @@ script ServiceManager extends Logic
 			return
 		end
 
-		characterEntity:ConnectEvent(ButtonStateChangeEvent, function(event) self:OnIngredientSlotCharacterButtonStateChanged(index, event) end)
+		characterEntity:ConnectEvent(ButtonClickEvent, function() self:OnClickIngredientSlotCharacterButton(index) end)
 	end
 
-	method void OnIngredientSlotCharacterButtonStateChanged(number index, any event)
+	method void OnClickIngredientSlotCharacterButton(number index)
+		if self.IsPaused == true then
+			return
+		end
+
 		if self.GameData == nil or self.GameData.IngredientSlots == nil then
 			return
 		end
@@ -1406,18 +1965,10 @@ script ServiceManager extends Logic
 			return
 		end
 
-		if event ~= nil and event.state == ButtonState.Pressed then
-			if self.IsPaused == true then
-				return
-			end
-			self:StartHoldPrepIngredientSlot(slot)
-			return
-		end
-
-		self:CancelHoldPrepIngredientSlot(slot)
+		self:StartClickPrepIngredientSlot(slot)
 	end
 
-	method void StartHoldPrepIngredientSlot(any slot)
+	method void StartClickPrepIngredientSlot(any slot)
 		if slot == nil or slot.state ~= "RAW" then
 			return
 		end
@@ -1431,14 +1982,6 @@ script ServiceManager extends Logic
 		end
 
 		self:StartPrepIngredientSlot(slot)
-	end
-
-	method void CancelHoldPrepIngredientSlot(any slot)
-		if slot == nil then
-			return
-		end
-
-		self:CancelPrepIngredientSlot(slot)
 	end
 
 	method void ConnectMixerCharacterButton(number index, ButtonComponent slotButton)
@@ -1469,7 +2012,17 @@ script ServiceManager extends Logic
 			return
 		end
 
-		if mixer.isMixed == false and mixer.isMixing ~= true and mixer.ingredients ~= nil and #mixer.ingredients > 0 then
+		local selectionState = "NONE"
+		if self.SelectionManager ~= nil then
+			selectionState = self.SelectionManager.state
+		end
+
+		local canStartFromClick = false
+		if self.SelectionManager ~= nil and selectionState == "MIXER" and self.SelectionManager.data == mixer then
+			canStartFromClick = true
+		end
+
+		if canStartFromClick == true and mixer.isMixed == false and mixer.isMixing ~= true and mixer.ingredients ~= nil and (#mixer.ingredients > 0 or mixer.hasInvalidRecipeIngredient == true) then
 			if self.SelectionManager ~= nil and self.SelectionManager.state == "MIXER" and self.SelectionManager.data == mixer then
 				self.SelectionManager:Clear()
 			end
@@ -1477,7 +2030,12 @@ script ServiceManager extends Logic
 			return
 		end
 
-		log("Cannot start mixing from character: " .. tostring(mixer.id))
+		if self.SelectionManager ~= nil then
+			self.SelectionManager:HandleClick("MIXER", mixer)
+			return
+		end
+
+		log("Cannot handle mixer click from character: " .. tostring(mixer.id))
 	end
 
 	method void OnClickSubmitDrinkTest()
@@ -1486,11 +2044,15 @@ script ServiceManager extends Logic
 		end
 
 		local slot = self:GetSelectedCupSlot()
-		if slot == nil then
-			slot = self:GetFirstFilledCupSlot()
+		if slot ~= nil and (slot.cupData == nil or slot.cupData.isPackaged ~= true) then
+			log("Submit failed. Package the drink first.")
+			return
 		end
 		if slot == nil then
-			log("Submit failed. No cup selected.")
+			slot = self:GetFirstPackagedCupSlot()
+		end
+		if slot == nil then
+			log("Submit failed. No packaged drink.")
 			return
 		end
 
@@ -1499,6 +2061,11 @@ script ServiceManager extends Logic
 
 	method boolean SubmitCupSlot(any slot)
 		if slot == nil or slot.hasCup ~= true or slot.cupData == nil then
+			return false
+		end
+
+		if slot.cupData.isPackaged ~= true then
+			log("Submit failed. Package the drink first.")
 			return false
 		end
 
@@ -1607,9 +2174,40 @@ script ServiceManager extends Logic
 		self.SelectionManager:HandleClick("CUP_TYPE_BTN", { cupType = cupType, uiButton = sourceButton })
 	end
 
+	method void OnClickPackageButton(ButtonComponent sourceButton)
+		if self.IsPaused == true then
+			return
+		end
+
+		local sourceSlot = self:GetSelectedCupSlot()
+		if sourceSlot == nil or self:IsPackageSlot(sourceSlot) == true then
+			sourceSlot = self:GetFirstPackageableCupSlot()
+		end
+		if sourceSlot == nil then
+			log("Cannot package cup. Select a completed drink first.")
+			return
+		end
+
+		if self:PackageCupSlot(sourceSlot, nil) == true and self.SelectionManager ~= nil then
+			self.SelectionManager:Clear()
+		end
+	end
+
 	method void OnClickIceMakerButton(ButtonComponent sourceButton)
 		if self.IsPaused == true then
 			return
+		end
+
+		if self.SelectionManager ~= nil and self.SelectionManager.state == "MIXER" then
+			local mixer = self.SelectionManager.data
+			if mixer ~= nil and mixer.isMixed == false and mixer.isMixing ~= true then
+				if self:AddIngredientToMixer(mixer, "Ice") == true then
+					self.SelectionManager:Clear()
+				elseif mixer.hasInvalidRecipeIngredient == true then
+					self.SelectionManager:Select("MIXER", mixer)
+				end
+				return
+			end
 		end
 
 		log("Clicked ice maker button")
@@ -1621,9 +2219,21 @@ script ServiceManager extends Logic
 			return
 		end
 
+		if self.SelectionManager ~= nil and self.SelectionManager.state == "MIXER" then
+			log("Water cannot be added to mixer. Use ice instead.")
+			local mixer = self.SelectionManager.data
+			self:MarkMixerInvalidRecipeIngredient(mixer, "Water")
+			if mixer ~= nil then
+				self.SelectionManager:Select("MIXER", mixer)
+			else
+				self.SelectionManager:Clear()
+			end
+			return
+		end
+
 		local slot = self:GetWaterPourSlot()
 		if self:CanPourWaterFromSlot(slot) == false then
-			log("Cannot pour water. CupSlot_5 is empty or unavailable.")
+			log("Cannot pour water. Put a cup in CupSlot_5.")
 			self:RefreshWaterPourButtonState()
 			return
 		end
@@ -1656,7 +2266,7 @@ script ServiceManager extends Logic
 
 		local slot = self:GetSteamSlot()
 		if self:CanSteamCupFromSlot(slot) == false then
-			log("Cannot steam cup. CupSlot_4 is empty or unavailable.")
+			log("Cannot steam cup. CupSlot_5 is empty or unavailable.")
 			self:RefreshSteamButtonState()
 			return
 		end

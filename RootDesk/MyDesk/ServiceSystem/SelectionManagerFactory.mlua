@@ -85,7 +85,7 @@ script SelectionManagerFactory extends Logic
 					self:Select("INGREDIENT_SLOT", target)
 				elseif targetType == "CUP_SLOT" and target.hasCup == true then
 					self:Select("PLACED_CUP", target)
-				elseif targetType == "MIXER" and target.isMixing ~= true and (#target.ingredients > 0 or target.isMixed == true) then
+				elseif targetType == "MIXER" and target.isMixing ~= true and (#target.ingredients > 0 or target.isMixed == true or target.hasInvalidRecipeIngredient == true) then
 					self:Select("MIXER", target)
 				end
 				
@@ -106,11 +106,13 @@ script SelectionManagerFactory extends Logic
 				elseif targetType == "MIXER" and target.isMixed == false then
 					if gameManager:AddIngredientToMixer(target, self.data) == true then
 						self:Clear()
+					elseif target.hasInvalidRecipeIngredient == true then
+						self:Select("MIXER", target)
 					end
 				end
 				
 			elseif state == "CUP_TYPE" then
-				if targetType == "CUP_SLOT" and target.hasCup == false then
+				if targetType == "CUP_SLOT" and target.hasCup == false and gameManager:IsPackageSlot(target) == false then
 					target.hasCup = true
 					target.cupData = gameManager:CreateCup(self.data)
 					gameManager:RefreshCupSlotImage(target)
@@ -122,17 +124,23 @@ script SelectionManagerFactory extends Logic
 					if gameManager:AddIngredientToCup(target.cupData, "Ice") == true then
 						self:Clear()
 					end
+				elseif targetType == "MIXER" and target.isMixed == false then
+					if gameManager:AddIngredientToMixer(target, "Ice") == true then
+						self:Clear()
+					elseif target.hasInvalidRecipeIngredient == true then
+						self:Select("MIXER", target)
+					end
 				end
 				
 			elseif state == "WATER" then
-				if targetType == "CUP_SLOT" and target.hasCup == true then
+				if targetType == "CUP_SLOT" and target.hasCup == true and gameManager:IsWaterSlot(target) == true then
 					if gameManager:AddIngredientToCup(target.cupData, self.data) == true then
 						self:Clear()
 					end
-				elseif targetType == "MIXER" and target.isMixed == false then
-					if gameManager:AddIngredientToMixer(target, self.data) == true then
-						self:Clear()
-					end
+				elseif targetType == "MIXER" then
+					log("Water cannot be added to mixer. Use ice instead.")
+					gameManager:MarkMixerInvalidRecipeIngredient(target, self.data)
+					self:Select("MIXER", target)
 				end
 				
 			elseif state == "INGREDIENT_SLOT" then
@@ -147,6 +155,9 @@ script SelectionManagerFactory extends Logic
 							gameManager:SetPrepSlotProgress(slot, 0)
 							handled = true
 							self:Clear()
+						elseif target.hasInvalidRecipeIngredient == true then
+							handled = true
+							self:Select("MIXER", target)
 						end
 					elseif targetType == "CUP_SLOT" and target.hasCup == true then
 						if gameManager:AddIngredientToCup(target.cupData, slot.ingredientId) == true then
@@ -183,7 +194,11 @@ script SelectionManagerFactory extends Logic
 				
 			elseif state == "PLACED_CUP" then
 				if targetType == "CUP_SLOT" then
-					gameManager:MoveOrSwapCupSlot(self.data, target)
+					if gameManager:IsPackageSlot(target) == true then
+						gameManager:PackageCupSlot(self.data, nil)
+					else
+						gameManager:MoveOrSwapCupSlot(self.data, target)
+					end
 				end
 				self:Clear()
 			end
@@ -256,7 +271,7 @@ script SelectionManagerFactory extends Logic
 				
 			elseif action == "MIX" and self.state == "MIXER" then
 				local mixer = self.data
-				if mixer.isMixed == false and mixer.isMixing ~= true and #mixer.ingredients > 0 then
+				if mixer.isMixed == false and mixer.isMixing ~= true and (#mixer.ingredients > 0 or mixer.hasInvalidRecipeIngredient == true) then
 					gameManager:StartMixMixer(mixer)
 					self:Clear()
 				end

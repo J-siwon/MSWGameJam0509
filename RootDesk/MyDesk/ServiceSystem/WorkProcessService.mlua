@@ -62,7 +62,7 @@ script WorkProcessService extends Logic
 		slot.uiButton.Enable = false
 		self:SetPrepSlotProgress(slot, 0)
 		local service = self
-		self:StartProgressTimer(gameManager, "BrewShot", slot, gameManager.brewShotDuration, function(target) service:FinishBrewShot(gameManager, target) end)
+		self:StartProgressTimer(gameManager, "BrewShot_" .. slot.id, slot, gameManager.brewShotDuration, function(target) service:FinishBrewShot(gameManager, target) end)
 	end
 
 	method void FinishBrewShot(any gameManager, any slot)
@@ -135,7 +135,7 @@ script WorkProcessService extends Logic
 		gameManager:SetMixerEffectVisible(mixer, true)
 		self:SetPrepSlotProgress(mixer, 0)
 		local service = self
-		self:StartProgressTimer(gameManager, "Mix", mixer, gameManager.mixDuration, function(target) service:FinishMixMixer(gameManager, target) end)
+		self:StartProgressTimer(gameManager, "Mix_" .. mixer.id, mixer, gameManager.mixDuration, function(target) service:FinishMixMixer(gameManager, target) end)
 	end
 
 	method void FinishMixMixer(any gameManager, any mixer)
@@ -174,10 +174,11 @@ script WorkProcessService extends Logic
 		slot.isPouringWater = true
 		slot.uiButton.Enable = false
 		gameManager:SetWaterPourButtonEnabled(false)
+		gameManager:SetButtonEffectVisible(gameManager.btnColdWater, true)
 		self:SetPrepSlotProgress(slot, 0)
 
 		local service = self
-		self:StartProgressTimer(gameManager, "WaterPour", slot, gameManager.waterPourDuration, function(target) service:FinishPourWater(gameManager, target) end)
+		self:StartProgressTimer(gameManager, "WaterPour_" .. slot.id, slot, gameManager.waterPourDuration, function(target) service:FinishPourWater(gameManager, target) end)
 	end
 
 	method void FinishPourWater(any gameManager, any slot)
@@ -190,6 +191,7 @@ script WorkProcessService extends Logic
 		if slot.uiButton ~= nil then
 			slot.uiButton.Enable = true
 		end
+		gameManager:SetButtonEffectVisible(gameManager.btnColdWater, false)
 		self:SetPrepSlotProgress(slot, 0)
 
 		if slot.hasCup == true and slot.cupData ~= nil and waterIngredientId ~= "" then
@@ -216,7 +218,7 @@ script WorkProcessService extends Logic
 		self:SetPrepSlotProgress(slot, 0)
 
 		local service = self
-		self:StartProgressTimer(gameManager, "SteamCup", slot, gameManager.steamDuration, function(target) service:FinishSteamCup(gameManager, target) end)
+		self:StartProgressTimer(gameManager, "SteamCup_" .. slot.id, slot, gameManager.steamDuration, function(target) service:FinishSteamCup(gameManager, target) end)
 	end
 
 	method void FinishSteamCup(any gameManager, any slot)
@@ -232,6 +234,7 @@ script WorkProcessService extends Logic
 
 		if slot.hasCup == true and slot.cupData ~= nil then
 			slot.cupData.isSteamed = true
+			gameManager:RefreshCupSlotImage(slot)
 		end
 
 		gameManager:RefreshSteamButtonState()
@@ -255,7 +258,6 @@ script WorkProcessService extends Logic
 	end
 
 	method void StartProgressTimer(any gameManager, string timerKey, any target, number duration, any onFinished)
-		-- TODO: timerKey currently uses process-type keys, so simultaneous same-type processes can cancel each other. Split by target id in a behavior-changing pass.
 		self:ClearProgressTimer(gameManager, timerKey)
 		gameManager.progressTimerTargets[timerKey] = target
 		
@@ -335,6 +337,24 @@ script WorkProcessService extends Logic
 		return slot.uiButton.Entity:GetChildByName("TimerBar", true)
 	end
 
+	method Entity GetTimerBarFillEntity(Entity timerBar)
+		if timerBar == nil then
+			return nil
+		end
+
+		local fillEntity = timerBar:GetChildByName("TimeGauge_Fill", true)
+		if fillEntity ~= nil then
+			return fillEntity
+		end
+
+		fillEntity = timerBar:GetChildByName("TimerBar_Fill", true)
+		if fillEntity ~= nil then
+			return fillEntity
+		end
+
+		return timerBar
+	end
+
 	method void SetTimerBarProgress(Entity timerBar, number progress)
 		if timerBar == nil then
 			return
@@ -342,16 +362,31 @@ script WorkProcessService extends Logic
 
 		local clampedProgress = math.max(0, math.min(progress, 1))
 		timerBar.Enable = clampedProgress > 0
+		timerBar.Visible = clampedProgress > 0
 
-		local sprite = timerBar.SpriteGUIRendererComponent
+		local fillEntity = self:GetTimerBarFillEntity(timerBar)
+		if fillEntity == nil then
+			return
+		end
+
+		local sprite = fillEntity.SpriteGUIRendererComponent
 		if sprite == nil then
 			return
 		end
 
+		local remainingRatio = 1 - clampedProgress
 		sprite.Type = ImageType.Filled
 		sprite.FillMethod = FillMethodType.Horizontal
 		sprite.FillOrigin = 0
-		sprite.FillAmount = clampedProgress
+		sprite.FillAmount = remainingRatio
+
+		if remainingRatio <= 0.25 then
+			sprite.Color = Color(1.000, 0.230, 0.180, 1.000)
+		elseif remainingRatio >= 0.65 then
+			sprite.Color = Color(0.180, 0.850, 0.360, 1.000)
+		else
+			sprite.Color = Color(1.000, 0.760, 0.180, 1.000)
+		end
 	end
 
 end

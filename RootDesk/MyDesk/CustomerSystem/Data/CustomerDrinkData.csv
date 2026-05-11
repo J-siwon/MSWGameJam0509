@@ -1,5 +1,12 @@
-﻿Id,IconRUID,Price,MinPrice,FailPrice,Ingredients
-Coffee,4b0e92dd6438484888003858f2e2ba80,300,100,50,HotWater
-Latte,5dedc243f5904fd3a9f1f8b02aa4408f,420,140,70,CoffeeShot|HotWater|prepped_Ingredient_2
-Ade,ba8a5f1c30ab442fb25ee4127e239b1d,360,120,60,Ice|ColdWater|Mixed_Cold_Ingredient_1
-Tea,5dac5303750744f78c7291eeb64e6ee5,260,80,40,HotWater|prepped_Ingredient_3
+Id,IconRUID,Price,MinPrice,FailPrice,Ingredients
+HotAmericano,1b21a0ed841f42f798f3623d0ff4a748,300,100,50,CoffeeShot|HotWater
+IceAmericano,08b277dc4037414ca963307d196208b3,340,115,55,CoffeeShot|ColdWater|Ice
+Latte,c63a6a0d311b45d2aafabbec52e9b294,420,140,70,CoffeeShot|HotWater|Ingredient_1
+Mocha,2e47e7b814914617a5b785061c946d73,500,165,80,CoffeeShot|HotWater|Ingredient_1|Ingredient_3
+BamLatte,e8b13faac0fb4e22828cb202431e5c35,540,180,90,CoffeeShot|HotWater|Ingredient_1|prepped_Ingredient_5
+StrawberrySmoothie,2fcbf804078e47cb878088bf4e278cb5,520,170,85,Mixed_Ingredient_1
+BananaSmoothie,e37e5eb0d6d24d71a6151f3075e122f8,520,170,85,Mixed_Ingredient_2
+SlimeBananaSmoothie,ef1328c63c9047f5a98141b4fefc2769,650,215,105,Mixed_Ingredient_3
+QuattroSlimeSmoothie,862c4875fb8b4ca6aafb9e03e488d6d4,720,240,120,Mixed_Ingredient_4
+ChocoFrappe,c62d1aac184044bbb682ea579d68058b,580,190,95,Mixed_Ingredient_5
+MatchaFrappe,66ccb9447f7c40768ce15b7afe6e0d4c,620,205,100,Mixed_Ingredient_6

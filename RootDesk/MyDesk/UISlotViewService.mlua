@@ -3,6 +3,10 @@ script UISlotViewService extends Logic
 
 	property any MixerLayerOriginalSizes = nil
 
+	property any CupLayerOriginalTransforms = nil
+
+	property any MixerLayerOriginalTransforms = nil
+
 	method void SetSlotImage(any slot, string imageRUID)
 		if slot == nil or slot.uiButton == nil then
 			return
@@ -10,6 +14,9 @@ script UISlotViewService extends Logic
 		
 		local iconEntity = self:GetSlotIconEntity(slot)
 		if iconEntity ~= nil then
+			if slot.uiButton.Entity ~= iconEntity then
+				self:SetEntityImage(slot.uiButton.Entity, "")
+			end
 			self:SetEntityImage(iconEntity, imageRUID)
 			iconEntity.Enable = imageRUID ~= nil and imageRUID ~= ""
 			return
@@ -25,12 +32,34 @@ script UISlotViewService extends Logic
 
 		local iconEntity = self:GetSlotIconEntity(slot)
 		if iconEntity ~= nil then
+			if slot.uiButton.Entity ~= iconEntity then
+				self:SetEntityImage(slot.uiButton.Entity, "")
+			end
 			self:SetEntityImageNativeSize(iconEntity, imageRUID)
 			iconEntity.Enable = imageRUID ~= nil and imageRUID ~= ""
 			return
 		end
 
 		self:SetEntityImageNativeSize(slot.uiButton.Entity, imageRUID)
+	end
+
+	method void SetSlotImageFitSize(any slot, string imageRUID, number width, number height)
+		if slot == nil or slot.uiButton == nil then
+			return
+		end
+
+		local iconEntity = self:GetSlotIconEntity(slot)
+		if iconEntity ~= nil then
+			if slot.uiButton.Entity ~= iconEntity then
+				self:SetEntityImage(slot.uiButton.Entity, "")
+			end
+			iconEntity.Enable = false
+			self:SetEntityImageFitSize(iconEntity, imageRUID, width, height)
+			iconEntity.Enable = imageRUID ~= nil and imageRUID ~= ""
+			return
+		end
+
+		self:SetEntityImageFitSize(slot.uiButton.Entity, imageRUID, width, height)
 	end
 
 	method void SetSlotImageFixedSize(any slot, string imageRUID, number width, number height)
@@ -40,14 +69,19 @@ script UISlotViewService extends Logic
 
 		local iconEntity = self:GetSlotIconEntity(slot)
 		if iconEntity ~= nil then
+			if slot.uiButton.Entity ~= iconEntity then
+				self:SetEntityImage(slot.uiButton.Entity, "")
+			end
 			iconEntity.Enable = false
 			self:SetEntityImage(iconEntity, imageRUID)
+			self:SetEntityPreserveSprite(iconEntity, PreserveSpriteType.None)
 			self:SetEntityRectSize(iconEntity, width, height)
 			iconEntity.Enable = imageRUID ~= nil and imageRUID ~= ""
 			return
 		end
 
 		self:SetEntityImage(slot.uiButton.Entity, imageRUID)
+		self:SetEntityPreserveSprite(slot.uiButton.Entity, PreserveSpriteType.None)
 		self:SetEntityRectSize(slot.uiButton.Entity, width, height)
 	end
 
@@ -58,6 +92,13 @@ script UISlotViewService extends Logic
 		
 		if slot.hasCup == true then
 			self:SetSlotButtonAlpha(slot, 0)
+			if slot.cupData ~= nil and slot.cupData.isPackaged == true then
+				local packagedImageRUID = gameManager:GetPackagedCupImageRUID(slot.cupData)
+				self:SetSlotImageFitSize(slot, packagedImageRUID, gameManager:GetPackagedCupImageWidth(slot.cupData), gameManager:GetPackagedCupImageHeight(slot.cupData))
+				self:ClearCupLayerImages(slot)
+				return
+			end
+
 			self:SetSlotImageFixedSize(slot, gameManager:GetCupImageRUID(slot.cupData), gameManager:GetCupImageWidth(slot.cupData), gameManager:GetCupImageHeight(slot.cupData))
 			self:RefreshCupLayerImages(gameManager, slot)
 		else
@@ -96,7 +137,21 @@ script UISlotViewService extends Logic
 		if maxLayerCount == nil then
 			maxLayerCount = 4
 		end
-		
+
+		for restoreLayerIndex = 1, maxLayerCount do
+			local restoreLayerEntity = self:GetCupLayerEntity(slot, restoreLayerIndex)
+			if restoreLayerEntity ~= nil then
+				self:RememberCupLayerOriginalTransform(slot, restoreLayerIndex, restoreLayerEntity)
+				self:RestoreCupLayerOriginalTransform(slot, restoreLayerIndex, restoreLayerEntity)
+			end
+		end
+
+		local fullIngredientId = self:GetFullCupIngredientId(gameManager, slot.cupData)
+		if fullIngredientId ~= "" then
+			self:ShowFullCupIngredientLayer(gameManager, slot, fullIngredientId, maxLayerCount)
+			return
+		end
+
 		local layerIndex = 1
 		for ingredientIndex = 1, #slot.cupData.ingredients do
 			if layerIndex > maxLayerCount then
@@ -107,6 +162,7 @@ script UISlotViewService extends Logic
 			if ingredientId ~= nil and gameManager:IsCupSpaceIngredient(ingredientId) == true then
 				local layerEntity = self:GetCupLayerEntity(slot, layerIndex)
 				if layerEntity ~= nil then
+					self:ApplyCupLayerClip(slot, layerIndex, maxLayerCount, layerEntity)
 					local imageRUID = gameManager:GetCupLayerImageRUID(ingredientId)
 					self:SetEntityImage(layerEntity, imageRUID)
 					layerEntity.Enable = imageRUID ~= nil and imageRUID ~= ""
@@ -133,8 +189,57 @@ script UISlotViewService extends Logic
 		for layerIndex = 1, 4 do
 			local layerEntity = self:GetCupLayerEntity(slot, layerIndex)
 			if layerEntity ~= nil then
+				self:RememberCupLayerOriginalTransform(slot, layerIndex, layerEntity)
+				self:RestoreCupLayerOriginalTransform(slot, layerIndex, layerEntity)
 				self:SetEntityImage(layerEntity, "")
 				layerEntity.Enable = false
+			end
+		end
+	end
+
+	method string GetFullCupIngredientId(any gameManager, any cupData)
+		if cupData == nil or cupData.ingredients == nil then
+			return ""
+		end
+
+		for ingredientIndex = 1, #cupData.ingredients do
+			local ingredientId = cupData.ingredients[ingredientIndex]
+			if ingredientId ~= nil and gameManager:IsFinalMixedIngredient(ingredientId) == true then
+				return ingredientId
+			end
+		end
+
+		return ""
+	end
+
+	method void ShowFullCupIngredientLayer(any gameManager, any slot, string ingredientId, number maxLayerCount)
+		local layerEntity = self:GetCupLayerEntity(slot, 1)
+		if layerEntity == nil then
+			return
+		end
+
+		local fullRect = self:GetCupLayerFullRect(slot, maxLayerCount)
+		local width = gameManager:GetMixedIngredientImageWidth(ingredientId)
+		local height = gameManager:GetMixedIngredientImageHeight(ingredientId)
+		if fullRect ~= nil then
+			self:SetEntityAnchoredPosition(layerEntity, fullRect.x, fullRect.y)
+			if width <= 0 then
+				width = fullRect.width
+			end
+			if height <= 0 then
+				height = fullRect.height
+			end
+		end
+
+		local imageRUID = gameManager:GetCupLayerImageRUID(ingredientId)
+		self:SetEntityImageFitSize(layerEntity, imageRUID, width, height)
+		layerEntity.Enable = imageRUID ~= nil and imageRUID ~= ""
+
+		for clearLayerIndex = 2, maxLayerCount do
+			local clearLayerEntity = self:GetCupLayerEntity(slot, clearLayerIndex)
+			if clearLayerEntity ~= nil then
+				self:SetEntityImage(clearLayerEntity, "")
+				clearLayerEntity.Enable = false
 			end
 		end
 	end
@@ -150,15 +255,27 @@ script UISlotViewService extends Logic
 			maxLayerCount = 4
 		end
 
+		local displayIngredients = {}
+		for ingredientIndex = 1, #mixer.ingredients do
+			local ingredientId = mixer.ingredients[ingredientIndex]
+			if ingredientId ~= nil and gameManager:IsCupSpaceIngredient(ingredientId) == true then
+				table.insert(displayIngredients, ingredientId)
+			end
+		end
+
 		for layerIndex = 1, maxLayerCount do
 			local layerEntity = self:GetMixerLayerEntity(mixer, layerIndex)
 			if layerEntity ~= nil then
-				local ingredientId = mixer.ingredients[layerIndex]
+				self:RememberMixerLayerOriginalTransform(mixer, layerIndex, layerEntity)
+				self:RestoreMixerLayerOriginalTransform(mixer, layerIndex, layerEntity)
+
+				local ingredientId = displayIngredients[layerIndex]
 				local imageRUID = ""
 				if ingredientId ~= nil then
 					imageRUID = gameManager:GetMixerImageRUID(ingredientId)
 				end
 
+				self:ApplyMixerLayerClip(mixer, layerIndex, maxLayerCount, layerEntity)
 				self:SetEntityImage(layerEntity, imageRUID)
 				layerEntity.Enable = imageRUID ~= nil and imageRUID ~= ""
 			end
@@ -173,10 +290,8 @@ script UISlotViewService extends Logic
 		for layerIndex = 1, 4 do
 			local layerEntity = self:GetMixerLayerEntity(mixer, layerIndex)
 			if layerEntity ~= nil then
-				if layerIndex == 1 then
-					self:RememberMixerLayerOriginalSize(mixer, layerIndex, layerEntity)
-					self:RestoreMixerLayerOriginalSize(mixer, layerIndex, layerEntity)
-				end
+				self:RememberMixerLayerOriginalTransform(mixer, layerIndex, layerEntity)
+				self:RestoreMixerLayerOriginalTransform(mixer, layerIndex, layerEntity)
 				self:SetEntityImage(layerEntity, "")
 				layerEntity.Enable = false
 			end
@@ -188,14 +303,26 @@ script UISlotViewService extends Logic
 			return
 		end
 
+		local maxLayerCount = mixer.maxSpaceIngredientCount
+		if maxLayerCount == nil then
+			maxLayerCount = 4
+		end
+
 		local resultLayer = self:GetMixerLayerEntity(mixer, 1)
 		if resultLayer == nil then
 			return
 		end
 
-		self:RememberMixerLayerOriginalSize(mixer, 1, resultLayer)
+		for layerIndex = 1, maxLayerCount do
+			local layerEntity = self:GetMixerLayerEntity(mixer, layerIndex)
+			if layerEntity ~= nil then
+				self:RememberMixerLayerOriginalTransform(mixer, layerIndex, layerEntity)
+				self:RestoreMixerLayerOriginalTransform(mixer, layerIndex, layerEntity)
+			end
+		end
 
 		local imageRUID = gameManager:GetMixedIngredientImageRUID(resultId)
+		self:SetEntityImage(resultLayer, "")
 		self:SetEntityImage(resultLayer, imageRUID)
 		resultLayer.Enable = imageRUID ~= nil and imageRUID ~= ""
 
@@ -204,10 +331,10 @@ script UISlotViewService extends Logic
 		if imageRUID ~= nil and imageRUID ~= "" and width > 0 and height > 0 then
 			self:SetEntityRectSize(resultLayer, width, height)
 		else
-			self:RestoreMixerLayerOriginalSize(mixer, 1, resultLayer)
+			self:RestoreMixerLayerOriginalTransform(mixer, 1, resultLayer)
 		end
 
-		for layerIndex = 2, 4 do
+		for layerIndex = 2, maxLayerCount do
 			local layerEntity = self:GetMixerLayerEntity(mixer, layerIndex)
 			if layerEntity ~= nil then
 				self:SetEntityImage(layerEntity, "")
@@ -250,6 +377,274 @@ script UISlotViewService extends Logic
 		transform.anchoredPosition = anchoredPosition
 		transform.Position = position
 		transform.Pivot = pivot
+	end
+
+	method void SetEntityAnchoredPosition(Entity entity, number x, number y)
+		if entity == nil or entity.UITransformComponent == nil then
+			return
+		end
+
+		entity.UITransformComponent.anchoredPosition = Vector2(x, y)
+	end
+
+	method void EnsureCupLayerOriginalTransforms()
+		if self.CupLayerOriginalTransforms == nil then
+			self.CupLayerOriginalTransforms = {}
+		end
+	end
+
+	method string GetCupLayerOriginalTransformKey(any slot, number layerIndex)
+		if slot == nil or slot.id == nil then
+			return ""
+		end
+
+		return tostring(slot.id) .. ":CupLayer" .. tostring(layerIndex)
+	end
+
+	method any GetCupLayerOriginalTransform(any slot, number layerIndex)
+		local key = self:GetCupLayerOriginalTransformKey(slot, layerIndex)
+		if key == "" or self.CupLayerOriginalTransforms == nil then
+			return nil
+		end
+
+		return self.CupLayerOriginalTransforms[key]
+	end
+
+	method void RememberCupLayerOriginalTransform(any slot, number layerIndex, Entity layerEntity)
+		if layerEntity == nil or layerEntity.UITransformComponent == nil then
+			return
+		end
+
+		local key = self:GetCupLayerOriginalTransformKey(slot, layerIndex)
+		if key == "" then
+			return
+		end
+
+		self:EnsureCupLayerOriginalTransforms()
+		if self.CupLayerOriginalTransforms[key] ~= nil then
+			return
+		end
+
+		local transform = layerEntity.UITransformComponent
+		local rectSize = transform.RectSize
+		local position = transform.anchoredPosition
+		self.CupLayerOriginalTransforms[key] = {
+			width = rectSize.x,
+			height = rectSize.y,
+			x = position.x,
+			y = position.y,
+		}
+	end
+
+	method void RestoreCupLayerOriginalTransform(any slot, number layerIndex, Entity layerEntity)
+		if layerEntity == nil then
+			return
+		end
+
+		local originalTransform = self:GetCupLayerOriginalTransform(slot, layerIndex)
+		if originalTransform == nil then
+			return
+		end
+
+		self:SetEntityRectSize(layerEntity, originalTransform.width, originalTransform.height)
+		self:SetEntityAnchoredPosition(layerEntity, originalTransform.x, originalTransform.y)
+	end
+
+	method any GetCupLayerFullRect(any slot, number maxLayerCount)
+		local minY = nil
+		local maxY = nil
+		local maxSafeWidth = nil
+		local centerX = 0
+
+		for layerIndex = 1, maxLayerCount do
+			local transform = self:GetCupLayerOriginalTransform(slot, layerIndex)
+			if transform ~= nil then
+				local layerMinY = transform.y
+				local layerMaxY = transform.y + transform.height
+				if minY == nil or layerMinY < minY then
+					minY = layerMinY
+				end
+				if maxY == nil or layerMaxY > maxY then
+					maxY = layerMaxY
+				end
+				local safeWidth = self:GetCupLayerSafeWidth(slot, layerIndex, maxLayerCount)
+				if maxSafeWidth == nil or safeWidth > maxSafeWidth then
+					maxSafeWidth = safeWidth
+				end
+				if layerIndex == 1 then
+					centerX = transform.x
+				end
+			end
+		end
+
+		if minY == nil or maxY == nil then
+			return nil
+		end
+
+		return {
+			width = maxSafeWidth,
+			height = maxY - minY,
+			x = centerX,
+			y = (minY + maxY) / 2,
+		}
+	end
+
+	method void ApplyCupLayerClip(any slot, number layerIndex, number maxLayerCount, Entity layerEntity)
+		local transform = self:GetCupLayerOriginalTransform(slot, layerIndex)
+		if transform == nil then
+			return
+		end
+
+		local safeWidth = self:GetCupLayerSafeWidth(slot, layerIndex, maxLayerCount)
+		self:SetEntityRectSize(layerEntity, safeWidth, transform.height)
+		self:SetEntityAnchoredPosition(layerEntity, transform.x, transform.y)
+	end
+
+	method number GetCupLayerSafeWidth(any slot, number layerIndex, number maxLayerCount)
+		local transform = self:GetCupLayerOriginalTransform(slot, layerIndex)
+		if transform == nil then
+			return 1
+		end
+
+		if maxLayerCount == nil or maxLayerCount <= 1 then
+			return transform.width
+		end
+
+		local bottomScale = 0.70
+		local topScale = 0.98
+		local progress = (layerIndex - 1) / (maxLayerCount - 1)
+		local scale = bottomScale + (topScale - bottomScale) * progress
+		return math.max(1, transform.width * scale)
+	end
+
+	method void EnsureMixerLayerOriginalTransforms()
+		if self.MixerLayerOriginalTransforms == nil then
+			self.MixerLayerOriginalTransforms = {}
+		end
+	end
+
+	method string GetMixerLayerOriginalTransformKey(any mixer, number layerIndex)
+		if mixer == nil or mixer.id == nil then
+			return ""
+		end
+
+		return tostring(mixer.id) .. ":MixerLayer" .. tostring(layerIndex)
+	end
+
+	method any GetMixerLayerOriginalTransform(any mixer, number layerIndex)
+		local key = self:GetMixerLayerOriginalTransformKey(mixer, layerIndex)
+		if key == "" or self.MixerLayerOriginalTransforms == nil then
+			return nil
+		end
+
+		return self.MixerLayerOriginalTransforms[key]
+	end
+
+	method void RememberMixerLayerOriginalTransform(any mixer, number layerIndex, Entity layerEntity)
+		if layerEntity == nil or layerEntity.UITransformComponent == nil then
+			return
+		end
+
+		local key = self:GetMixerLayerOriginalTransformKey(mixer, layerIndex)
+		if key == "" then
+			return
+		end
+
+		self:EnsureMixerLayerOriginalTransforms()
+		if self.MixerLayerOriginalTransforms[key] ~= nil then
+			return
+		end
+
+		local transform = layerEntity.UITransformComponent
+		local rectSize = transform.RectSize
+		local position = transform.anchoredPosition
+		self.MixerLayerOriginalTransforms[key] = {
+			width = rectSize.x,
+			height = rectSize.y,
+			x = position.x,
+			y = position.y,
+		}
+	end
+
+	method void RestoreMixerLayerOriginalTransform(any mixer, number layerIndex, Entity layerEntity)
+		if layerEntity == nil then
+			return
+		end
+
+		local originalTransform = self:GetMixerLayerOriginalTransform(mixer, layerIndex)
+		if originalTransform == nil then
+			return
+		end
+
+		self:SetEntityRectSize(layerEntity, originalTransform.width, originalTransform.height)
+		self:SetEntityAnchoredPosition(layerEntity, originalTransform.x, originalTransform.y)
+	end
+
+	method any GetMixerLayerFullRect(any mixer, number maxLayerCount)
+		local minY = nil
+		local maxY = nil
+		local minSafeWidth = nil
+		local centerX = 0
+
+		for layerIndex = 1, maxLayerCount do
+			local transform = self:GetMixerLayerOriginalTransform(mixer, layerIndex)
+			if transform ~= nil then
+				local layerMinY = transform.y
+				local layerMaxY = transform.y + transform.height
+				if minY == nil or layerMinY < minY then
+					minY = layerMinY
+				end
+				if maxY == nil or layerMaxY > maxY then
+					maxY = layerMaxY
+				end
+				local safeWidth = self:GetMixerLayerSafeWidth(mixer, layerIndex, maxLayerCount)
+				if minSafeWidth == nil or safeWidth < minSafeWidth then
+					minSafeWidth = safeWidth
+				end
+				if layerIndex == 1 then
+					centerX = transform.x
+				end
+			end
+		end
+
+		if minY == nil or maxY == nil then
+			return nil
+		end
+
+		return {
+			width = minSafeWidth,
+			height = maxY - minY,
+			x = centerX,
+			y = (minY + maxY) / 2,
+		}
+	end
+
+	method void ApplyMixerLayerClip(any mixer, number layerIndex, number maxLayerCount, Entity layerEntity)
+		local transform = self:GetMixerLayerOriginalTransform(mixer, layerIndex)
+		if transform == nil then
+			return
+		end
+
+		local safeWidth = self:GetMixerLayerSafeWidth(mixer, layerIndex, maxLayerCount)
+		self:SetEntityRectSize(layerEntity, safeWidth, transform.height)
+		self:SetEntityAnchoredPosition(layerEntity, transform.x, transform.y)
+	end
+
+	method number GetMixerLayerSafeWidth(any mixer, number layerIndex, number maxLayerCount)
+		local transform = self:GetMixerLayerOriginalTransform(mixer, layerIndex)
+		if transform == nil then
+			return 1
+		end
+
+		if maxLayerCount == nil or maxLayerCount <= 1 then
+			return transform.width
+		end
+
+		local bottomScale = 0.70
+		local topScale = 0.98
+		local progress = (layerIndex - 1) / (maxLayerCount - 1)
+		local scale = bottomScale + (topScale - bottomScale) * progress
+		return math.max(1, transform.width * scale)
 	end
 
 	method void EnsureMixerLayerOriginalSizes()
@@ -311,7 +706,12 @@ script UISlotViewService extends Logic
 			return nil
 		end
 		
-		return self:FindDescendant(slot.uiButton.Entity, "SlotIcon")
+		local slotIcon = self:FindDescendant(slot.uiButton.Entity, "SlotIcon")
+		if slotIcon ~= nil then
+			return slotIcon
+		end
+
+		return nil
 	end
 
 	method Entity GetCupLayerEntity(any slot, number layerIndex)
@@ -421,15 +821,32 @@ script UISlotViewService extends Logic
 		end
 
 		local renderer = entity.SpriteGUIRendererComponent
-		if renderer.ImageRUID ~= nil and renderer.ImageRUID.DataId == ruid then
-			return
+		if renderer.ImageRUID == nil or renderer.ImageRUID.DataId ~= ruid then
+			renderer.ImageRUID = DataRef(ruid)
 		end
 
-		renderer.ImageRUID = DataRef(ruid)
 		if ruid ~= "" then
 			renderer.PreserveSprite = PreserveSpriteType.NativeSize
 			renderer:SetNativeSize()
 		end
+	end
+
+	method void SetEntityImageFitSize(Entity entity, string imageRUID, number width, number height)
+		if entity == nil or entity.SpriteGUIRendererComponent == nil then
+			return
+		end
+
+		self:SetEntityImage(entity, imageRUID)
+		self:SetEntityPreserveSprite(entity, PreserveSpriteType.AspectOnly)
+		self:SetEntityRectSize(entity, width, height)
+	end
+
+	method void SetEntityPreserveSprite(Entity entity, PreserveSpriteType preserveType)
+		if entity == nil or entity.SpriteGUIRendererComponent == nil then
+			return
+		end
+
+		entity.SpriteGUIRendererComponent.PreserveSprite = preserveType
 	end
 
 	method void ShowSelectedButtonVisual(any gameManager, ButtonComponent button)

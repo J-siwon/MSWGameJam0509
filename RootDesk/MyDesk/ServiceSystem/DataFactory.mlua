@@ -34,8 +34,8 @@ script DataFactory extends Logic
 			[1] = { id = "CupSlot_1", isCoffeeMachine = true, coffeeShotId = "CoffeeShot_1", hasCup = false, cupData = nil },
 			[2] = { id = "CupSlot_2", isCoffeeMachine = true, coffeeShotId = "CoffeeShot_2", hasCup = false, cupData = nil },
 			[3] = { id = "CupSlot_3", isCoffeeMachine = true, coffeeShotId = "CoffeeShot_3", hasCup = false, cupData = nil },
-			[4] = { id = "CupSlot_4", isCoffeeMachine = false, hasCup = false, cupData = nil },
-			[5] = { id = "CupSlot_5", isCoffeeMachine = false, hasCup = false, cupData = nil },
+			[4] = { id = "CupSlot_4", isCoffeeMachine = false, isPackageSlot = true, hasCup = false, cupData = nil },
+			[5] = { id = "CupSlot_5", isCoffeeMachine = false, isWaterSlot = true, hasCup = false, cupData = nil },
 		}
 	end
 
@@ -48,33 +48,33 @@ script DataFactory extends Logic
 		log("IngredientData dataset is not loaded. Use fallback ingredient definitions.")
 		return {
 			-- 원재료는 손질 가능하며, 손질 후 컵/믹서에 넣을 수 있다.
-			Ingredient_1 = { useCupSpace = true, displayName = "Ingredient 1", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
-			Ingredient_2 = { useCupSpace = true, displayName = "Ingredient 2", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
-			Ingredient_3 = { useCupSpace = true, displayName = "Ingredient 3", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
-			Ingredient_4 = { useCupSpace = true, displayName = "Ingredient 4", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
-			Ingredient_5 = { useCupSpace = true, displayName = "Ingredient 5", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
-			Ingredient_6 = { useCupSpace = true, displayName = "Ingredient 6", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
-			Ingredient_7 = { useCupSpace = true, displayName = "Ingredient 7", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
-			Ingredient_8 = { useCupSpace = true, displayName = "Ingredient 8", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
+			Ingredient_1 = { useCupSpace = true, displayName = "Milk", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
+			Ingredient_2 = { useCupSpace = false, displayName = "Maple Syrup", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
+			Ingredient_3 = { useCupSpace = false, displayName = "Choco Syrup", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
+			Ingredient_4 = { useCupSpace = true, displayName = "Slime", canPrep = true, canMix = true, canAddToCup = true, imageRUID = "" },
+			Ingredient_5 = { useCupSpace = true, displayName = "Bam", canPrep = true, canMix = false, canAddToCup = false, imageRUID = "" },
+			Ingredient_6 = { useCupSpace = true, displayName = "Strawberry", canPrep = true, canMix = false, canAddToCup = false, imageRUID = "" },
+			Ingredient_7 = { useCupSpace = false, displayName = "Banana Monkey", canPrep = true, canMix = false, canAddToCup = false, imageRUID = "" },
+			Ingredient_8 = { useCupSpace = false, displayName = "Green Mushroom", canPrep = true, canMix = false, canAddToCup = false, imageRUID = "" },
 			prepped_Ingredient_1 = { useCupSpace = true, displayName = "Prepped Ingredient 1", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
 			prepped_Ingredient_2 = { useCupSpace = true, displayName = "Prepped Ingredient 2", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
 			prepped_Ingredient_3 = { useCupSpace = true, displayName = "Prepped Ingredient 3", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
-			prepped_Ingredient_4 = { useCupSpace = true, displayName = "Prepped Ingredient 4", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
-			prepped_Ingredient_5 = { useCupSpace = true, displayName = "Prepped Ingredient 5", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
-			prepped_Ingredient_6 = { useCupSpace = true, displayName = "Prepped Ingredient 6", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
-			prepped_Ingredient_7 = { useCupSpace = true, displayName = "Prepped Ingredient 7", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
-			prepped_Ingredient_8 = { useCupSpace = true, displayName = "Prepped Ingredient 8", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
+			prepped_Ingredient_4 = { useCupSpace = false, displayName = "Slime Syrup", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
+			prepped_Ingredient_5 = { useCupSpace = true, displayName = "Sliced Bam", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
+			prepped_Ingredient_6 = { useCupSpace = true, displayName = "Sliced Strawberry", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
+			prepped_Ingredient_7 = { useCupSpace = true, displayName = "Banana", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
+			prepped_Ingredient_8 = { useCupSpace = true, displayName = "Green Mushroom Cap", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
 			-- 샷과 물/얼음은 버튼 액션으로 생성되는 특수 재료다.
 			CoffeeShot_1 = { useCupSpace = true, displayName = "Coffee Shot 1", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
 			CoffeeShot_2 = { useCupSpace = true, displayName = "Coffee Shot 2", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
 			CoffeeShot_3 = { useCupSpace = true, displayName = "Coffee Shot 3", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
-			Ice = { useCupSpace = true, displayName = "Ice", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
-			Water = { useCupSpace = true, displayName = "Water", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
+			Ice = { useCupSpace = true, displayName = "Ice", canPrep = false, canMix = true, canAddToCup = true, imageRUID = "" },
+			Water = { useCupSpace = true, displayName = "Water", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
 			-- 믹싱 결과물은 다시 믹서에 넣지 않고 컵에만 넣는 것을 기본 규칙으로 둔다.
 			Mixed_Ingredient_1 = { useCupSpace = true, displayName = "Mixed Ingredient 1", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
 			Mixed_Ingredient_2 = { useCupSpace = true, displayName = "Mixed Ingredient 2", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
 			Mixed_Ingredient_3 = { useCupSpace = true, displayName = "Mixed Ingredient 3", canPrep = false, canMix = false, canAddToCup = true, imageRUID = "" },
-			Trash = { useCupSpace = false, displayName = "Trash", canPrep = false, canMix = false, canAddToCup = false, imageRUID = "" },
+			Trash = { useCupSpace = false, displayName = "Trash", canPrep = false, canMix = false, canAddToCup = false, imageRUID = "ecb3942bc998487d97a3df4dca2b815c" },
 		}
 	end
 
@@ -143,7 +143,11 @@ script DataFactory extends Logic
 					imageMap[ingredientId].cupLayerImageRUID = imageMap[ingredientId].prepImageRUID
 				end
 				if imageMap[ingredientId].mixerImageRUID == nil or imageMap[ingredientId].mixerImageRUID == "" then
-					imageMap[ingredientId].mixerImageRUID = imageMap[ingredientId].prepImageRUID
+					if imageMap[ingredientId].cupLayerImageRUID ~= nil and imageMap[ingredientId].cupLayerImageRUID ~= "" then
+						imageMap[ingredientId].mixerImageRUID = imageMap[ingredientId].cupLayerImageRUID
+					else
+						imageMap[ingredientId].mixerImageRUID = imageMap[ingredientId].prepImageRUID
+					end
 				end
 			end
 		end
@@ -190,14 +194,14 @@ script DataFactory extends Logic
 		log("MixerRecipeData dataset is not loaded. Use fallback mixer recipes.")
 		return {
 			recipes = {
-				["Water|prepped_Ingredient_1"] = "Mixed_Ingredient_1",
-				["Water|prepped_Ingredient_2"] = "Mixed_Ingredient_2",
-				["Water|prepped_Ingredient_3"] = "Mixed_Ingredient_3",
+				["Ice|prepped_Ingredient_1"] = "Mixed_Ingredient_1",
+				["Ice|prepped_Ingredient_2"] = "Mixed_Ingredient_2",
+				["Ice|prepped_Ingredient_3"] = "Mixed_Ingredient_3",
 			},
 			mixedIngredientDefs = {
-				Mixed_Ingredient_1 = { id = "Mixed_Ingredient_1", drinkName = "Mixed Ingredient 1", recipe = "Water|prepped_Ingredient_1", isFinalIngredient = false, firstSlotOnly = false, imageRUID = "", imageWidth = 0, imageHeight = 0 },
-				Mixed_Ingredient_2 = { id = "Mixed_Ingredient_2", drinkName = "Mixed Ingredient 2", recipe = "Water|prepped_Ingredient_2", isFinalIngredient = false, firstSlotOnly = false, imageRUID = "", imageWidth = 0, imageHeight = 0 },
-				Mixed_Ingredient_3 = { id = "Mixed_Ingredient_3", drinkName = "Mixed Ingredient 3", recipe = "Water|prepped_Ingredient_3", isFinalIngredient = false, firstSlotOnly = false, imageRUID = "", imageWidth = 0, imageHeight = 0 },
+				Mixed_Ingredient_1 = { id = "Mixed_Ingredient_1", drinkName = "Mixed Ingredient 1", recipe = "Ice|prepped_Ingredient_1", isFinalIngredient = true, firstSlotOnly = true, imageRUID = "", imageWidth = 0, imageHeight = 0 },
+				Mixed_Ingredient_2 = { id = "Mixed_Ingredient_2", drinkName = "Mixed Ingredient 2", recipe = "Ice|prepped_Ingredient_2", isFinalIngredient = true, firstSlotOnly = true, imageRUID = "", imageWidth = 0, imageHeight = 0 },
+				Mixed_Ingredient_3 = { id = "Mixed_Ingredient_3", drinkName = "Mixed Ingredient 3", recipe = "Ice|prepped_Ingredient_3", isFinalIngredient = true, firstSlotOnly = true, imageRUID = "", imageWidth = 0, imageHeight = 0 },
 			},
 		}
 	end
@@ -344,6 +348,7 @@ script DataFactory extends Logic
 			isMixed = false,
 			isTrash = false,
 			resultId = nil,
+			hasInvalidRecipeIngredient = false,
 		}
 	end
 

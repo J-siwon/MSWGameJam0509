@@ -1102,6 +1102,11 @@ script DayManager extends Component
 			return false
 		end
 
+		if cupData == nil or cupData.isPackaged ~= true then
+			log("Submit failed. Package the drink first.")
+			return false
+		end
+
 		local customerTable = self:GetCustomerTable()
 		if customerTable == nil then
 			log("DayManager: CustomerTableEntity is not set.")
