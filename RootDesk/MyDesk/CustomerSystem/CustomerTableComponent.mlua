@@ -741,6 +741,26 @@ script CustomerTableComponent extends Component
 		if value ~= nil and value ~= "" then
 			return value
 		end
+
+		if string.sub(ingredientId, 1, 8) == "prepped_" then
+			local baseIngredientId = string.sub(ingredientId, 9)
+			value = self:FindCellValue("IngredientData", baseIngredientId, "DisplayName")
+			if value ~= nil and value ~= "" then
+				return value
+			end
+		end
+
+		local mixedIngredientIndex = string.match(ingredientId, "^Mixed_Cold_Ingredient_(%d+)$")
+		if mixedIngredientIndex == nil then
+			mixedIngredientIndex = string.match(ingredientId, "^Mixed_Hot_Ingredient_(%d+)$")
+		end
+		if mixedIngredientIndex ~= nil then
+			value = self:FindCellValue("IngredientData", "Mixed_Ingredient_" .. mixedIngredientIndex, "DisplayName")
+			if value ~= nil and value ~= "" then
+				return value
+			end
+		end
+
 		return ingredientId
 	end
 

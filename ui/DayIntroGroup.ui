@@ -281,7 +281,7 @@
               "@type": "MOD.Core.TextComponent",
               "Alignment": 4,
               "Bold": true,
-              "Font": 0,
+              "Font": 1,
               "FontColor": {
                 "r": 1.0,
                 "g": 1.0,
