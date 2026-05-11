@@ -62,6 +62,22 @@ script UISlotViewService extends Logic
 		self:SetEntityImageFitSize(slot.uiButton.Entity, imageRUID, width, height)
 	end
 
+	method void SetSlotIconImageFitSize(any slot, string imageRUID, number width, number height)
+		if slot == nil or slot.uiButton == nil then
+			return
+		end
+
+		local iconEntity = self:GetSlotIconEntity(slot)
+		if iconEntity == nil then
+			log("SlotIcon is not found for packaged image: " .. tostring(slot.id))
+			return
+		end
+
+		iconEntity.Enable = false
+		self:SetEntityImageFitSize(iconEntity, imageRUID, width, height)
+		iconEntity.Enable = imageRUID ~= nil and imageRUID ~= ""
+	end
+
 	method void SetSlotImageFixedSize(any slot, string imageRUID, number width, number height)
 		if slot == nil or slot.uiButton == nil then
 			return
@@ -94,7 +110,7 @@ script UISlotViewService extends Logic
 			self:SetSlotButtonAlpha(slot, 0)
 			if slot.cupData ~= nil and slot.cupData.isPackaged == true then
 				local packagedImageRUID = gameManager:GetPackagedCupImageRUID(slot.cupData)
-				self:SetSlotImageFitSize(slot, packagedImageRUID, gameManager:GetPackagedCupImageWidth(slot.cupData), gameManager:GetPackagedCupImageHeight(slot.cupData))
+				self:SetSlotIconImageFitSize(slot, packagedImageRUID, gameManager:GetPackagedCupImageWidth(slot.cupData), gameManager:GetPackagedCupImageHeight(slot.cupData))
 				self:ClearCupLayerImages(slot)
 				return
 			end
@@ -138,6 +154,8 @@ script UISlotViewService extends Logic
 			maxLayerCount = 4
 		end
 
+		self:ClearLastWhippingImage(slot)
+
 		for restoreLayerIndex = 1, maxLayerCount do
 			local restoreLayerEntity = self:GetCupLayerEntity(slot, restoreLayerIndex)
 			if restoreLayerEntity ~= nil then
@@ -149,23 +167,25 @@ script UISlotViewService extends Logic
 		local fullIngredientId = self:GetFullCupIngredientId(gameManager, slot.cupData)
 		if fullIngredientId ~= "" then
 			self:ShowFullCupIngredientLayer(gameManager, slot, fullIngredientId, maxLayerCount)
+			self:RefreshLastWhippingImage(gameManager, slot, self:GetLastWhippingIngredientId(gameManager, slot.cupData))
 			return
 		end
 
 		local layerIndex = 1
+		local lastWhippingIngredientId = ""
 		for ingredientIndex = 1, #slot.cupData.ingredients do
-			if layerIndex > maxLayerCount then
-				break
-			end
-			
 			local ingredientId = slot.cupData.ingredients[ingredientIndex]
 			if ingredientId ~= nil and gameManager:IsCupSpaceIngredient(ingredientId) == true then
-				local layerEntity = self:GetCupLayerEntity(slot, layerIndex)
-				if layerEntity ~= nil then
-					self:ApplyCupLayerClip(slot, layerIndex, maxLayerCount, layerEntity)
-					local imageRUID = gameManager:GetCupLayerImageRUID(ingredientId)
-					self:SetEntityImage(layerEntity, imageRUID)
-					layerEntity.Enable = imageRUID ~= nil and imageRUID ~= ""
+				if layerIndex <= maxLayerCount then
+					local layerEntity = self:GetCupLayerEntity(slot, layerIndex)
+					if layerEntity ~= nil then
+						self:ApplyCupLayerClip(slot, layerIndex, maxLayerCount, layerEntity)
+						local imageRUID = gameManager:GetCupLayerImageRUID(ingredientId)
+						self:SetEntityImage(layerEntity, imageRUID)
+						layerEntity.Enable = imageRUID ~= nil and imageRUID ~= ""
+					end
+				elseif gameManager:IsWhippingIngredient(ingredientId) == true then
+					lastWhippingIngredientId = ingredientId
 				end
 				
 				layerIndex = layerIndex + 1
@@ -179,12 +199,16 @@ script UISlotViewService extends Logic
 				layerEntity.Enable = false
 			end
 		end
+
+		self:RefreshLastWhippingImage(gameManager, slot, lastWhippingIngredientId)
 	end
 
 	method void ClearCupLayerImages(any slot)
 		if slot == nil or slot.uiButton == nil then
 			return
 		end
+
+		self:ClearLastWhippingImage(slot)
 		
 		for layerIndex = 1, 4 do
 			local layerEntity = self:GetCupLayerEntity(slot, layerIndex)
@@ -204,12 +228,59 @@ script UISlotViewService extends Logic
 
 		for ingredientIndex = 1, #cupData.ingredients do
 			local ingredientId = cupData.ingredients[ingredientIndex]
-			if ingredientId ~= nil and gameManager:IsFinalMixedIngredient(ingredientId) == true then
+			if ingredientId ~= nil and gameManager:IsFinalMixedIngredient(ingredientId) == true and gameManager:IsWhippingIngredient(ingredientId) == false then
 				return ingredientId
 			end
 		end
 
 		return ""
+	end
+
+	method string GetLastWhippingIngredientId(any gameManager, any cupData)
+		if cupData == nil or cupData.ingredients == nil then
+			return ""
+		end
+
+		for ingredientIndex = 1, #cupData.ingredients do
+			local ingredientId = cupData.ingredients[ingredientIndex]
+			if ingredientId ~= nil and gameManager:IsWhippingIngredient(ingredientId) == true then
+				return ingredientId
+			end
+		end
+
+		return ""
+	end
+
+	method void RefreshLastWhippingImage(any gameManager, any slot, string ingredientId)
+		local lastWhippingEntity = self:GetLastWhippingEntity(slot)
+		if lastWhippingEntity == nil then
+			return
+		end
+
+		if ingredientId == nil or ingredientId == "" then
+			self:ClearLastWhippingImage(slot)
+			return
+		end
+
+		local imageRUID = gameManager:GetCupLayerImageRUID(ingredientId)
+		local width = gameManager:GetMixedIngredientImageWidth(ingredientId)
+		local height = gameManager:GetMixedIngredientImageHeight(ingredientId)
+		if width > 0 and height > 0 then
+			self:SetEntityImageFitSize(lastWhippingEntity, imageRUID, width, height)
+		else
+			self:SetEntityImage(lastWhippingEntity, imageRUID)
+		end
+		lastWhippingEntity.Enable = imageRUID ~= nil and imageRUID ~= ""
+	end
+
+	method void ClearLastWhippingImage(any slot)
+		local lastWhippingEntity = self:GetLastWhippingEntity(slot)
+		if lastWhippingEntity == nil then
+			return
+		end
+
+		self:SetEntityImage(lastWhippingEntity, "")
+		lastWhippingEntity.Enable = false
 	end
 
 	method void ShowFullCupIngredientLayer(any gameManager, any slot, string ingredientId, number maxLayerCount)
@@ -222,7 +293,6 @@ script UISlotViewService extends Logic
 		local width = gameManager:GetMixedIngredientImageWidth(ingredientId)
 		local height = gameManager:GetMixedIngredientImageHeight(ingredientId)
 		if fullRect ~= nil then
-			self:SetEntityAnchoredPosition(layerEntity, fullRect.x, fullRect.y)
 			if width <= 0 then
 				width = fullRect.width
 			end
@@ -447,7 +517,7 @@ script UISlotViewService extends Logic
 		end
 
 		self:SetEntityRectSize(layerEntity, originalTransform.width, originalTransform.height)
-		self:SetEntityAnchoredPosition(layerEntity, originalTransform.x, originalTransform.y)
+		self:SetEntityAnchoredPosition(layerEntity, originalTransform.x, self:GetCupLayerDisplayY(layerIndex, originalTransform.y))
 	end
 
 	method any GetCupLayerFullRect(any slot, number maxLayerCount)
@@ -497,7 +567,15 @@ script UISlotViewService extends Logic
 
 		local safeWidth = self:GetCupLayerSafeWidth(slot, layerIndex, maxLayerCount)
 		self:SetEntityRectSize(layerEntity, safeWidth, transform.height)
-		self:SetEntityAnchoredPosition(layerEntity, transform.x, transform.y)
+		self:SetEntityAnchoredPosition(layerEntity, transform.x, self:GetCupLayerDisplayY(layerIndex, transform.y))
+	end
+
+	method number GetCupLayerDisplayY(number layerIndex, number fallbackY)
+		if layerIndex == 1 then
+			return 0
+		end
+
+		return fallbackY
 	end
 
 	method number GetCupLayerSafeWidth(any slot, number layerIndex, number maxLayerCount)
@@ -720,6 +798,14 @@ script UISlotViewService extends Logic
 		end
 		
 		return self:FindDescendant(slot.uiButton.Entity, "CupLayer" .. tostring(layerIndex))
+	end
+
+	method Entity GetLastWhippingEntity(any slot)
+		if slot == nil or slot.uiButton == nil then
+			return nil
+		end
+		
+		return self:FindDescendant(slot.uiButton.Entity, "LastWhipping")
 	end
 
 	method Entity GetMixerLayerEntity(any mixer, number layerIndex)

@@ -1,0 +1,23 @@
+{
+  "Id": "",
+  "GameId": "",
+  "EntryKey": "sprite://c2cda22287664cd4b255dd2722b354c4",
+  "ContentType": "x-mod/sprite",
+  "Content": "",
+  "Usage": 0,
+  "UsePublish": 1,
+  "UseService": 0,
+  "CoreVersion": "26.3.0.0",
+  "StudioVersion": "0.1.0.0",
+  "DynamicLoading": 0,
+  "ContentProto": {
+    "Use": "Json",
+    "Json": {
+      "upload_keyname": "a1/ce/a1ce39e1924c45be84d9dd6bd7ae1456/sprite/c2cda22287664cd4b255dd2722b354c4/639141051666185617",
+      "upload_hash": "28D68EE4C75E3AF5DEFC2BC6E82D112E41E8D7A836571B032AD7B5A6A88F917D",
+      "name": "iceMaker",
+      "resource_guid": "c2cda22287664cd4b255dd2722b354c4",
+      "resource_version": "6a01e24ec86848c49b9651b8"
+    }
+  }
+}

@@ -294,7 +294,7 @@
           "name": "CompleteTopButton",
           "path": "/ui/CustomerUIGroup/CustomerTable/CompleteTopButton",
           "nameEditable": true,
-          "enable": true,
+          "enable": false,
           "visible": true,
           "localize": true,
           "displayOrder": 1,

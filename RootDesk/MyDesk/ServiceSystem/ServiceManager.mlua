@@ -618,9 +618,14 @@ script ServiceManager extends Logic
 		end
 
 		if cupData.ingredients ~= nil then
+			local isAddingWhipping = self:IsWhippingIngredient(ingredientId)
 			for index = 1, #cupData.ingredients do
 				local existingIngredientId = cupData.ingredients[index]
-				if self:IsFinalMixedIngredient(existingIngredientId) == true then
+				if self:IsWhippingIngredient(existingIngredientId) == true then
+					log("Cup already has whipping.")
+					return false
+				end
+				if self:IsFinalMixedIngredient(existingIngredientId) == true and isAddingWhipping == false then
 					log("Cup already has final ingredient: " .. existingIngredientId)
 					return false
 				end
@@ -635,6 +640,10 @@ script ServiceManager extends Logic
 		end
 
 		return true
+	end
+
+	method boolean IsWhippingIngredient(string ingredientId)
+		return ingredientId == "Mixed_Ingredient_7"
 	end
 
 	method boolean IsFinalMixedIngredient(string ingredientId)
@@ -876,6 +885,21 @@ script ServiceManager extends Logic
 		end
 
 		return ingredients
+	end
+
+	method boolean HasCompletedDrinkIngredient(any cupData, string targetIngredientId)
+		if targetIngredientId == nil or targetIngredientId == "" then
+			return false
+		end
+
+		local ingredients = self:GetCompletedCupDrinkIngredients(cupData)
+		for index = 1, #ingredients do
+			if ingredients[index] == targetIngredientId then
+				return true
+			end
+		end
+
+		return false
 	end
 
 	method any GetCompletedDrinkInfoFromDataSet(table cupCounts)
@@ -1493,10 +1517,10 @@ script ServiceManager extends Logic
 				self:RefreshCoffeeShotButtonStateBySlot(slot)
 				if slot.id == "CupSlot_4" then
 					self:RefreshPackageButtonState()
+					self:RefreshSteamButtonState()
 				end
 				if slot.id == "CupSlot_5" then
 					self:RefreshWaterPourButtonState()
-					self:RefreshSteamButtonState()
 				end
 			end
 			return
@@ -1579,6 +1603,13 @@ script ServiceManager extends Logic
 			return false
 		end
 
+		if packageSlot ~= nil and packageSlot ~= fromSlot then
+			if fromSlot.isBrewingShot == true or packageSlot.isBrewingShot == true then
+				log("Cannot package cup while brewing shot")
+				return false
+			end
+		end
+
 		local completedDrink = self:GetCompletedDrinkInfo(fromSlot.cupData)
 		if completedDrink == nil or completedDrink.iconRUID == nil or completedDrink.iconRUID == "" then
 			log("Cannot package cup. No completed drink recipe.")
@@ -1591,11 +1622,30 @@ script ServiceManager extends Logic
 		cupData.packagedDrinkImageRUID = completedDrink.iconRUID
 		cupData.packagedDrinkImageWidth = completedDrink.imageWidth
 		cupData.packagedDrinkImageHeight = completedDrink.imageHeight
+		if self:HasCompletedDrinkIngredient(cupData, "HotWater") == true then
+			cupData.packagedDrinkImageWidth = self.hotCupImageWidth
+			cupData.packagedDrinkImageHeight = self.hotCupImageHeight
+		end
 
-		self:RefreshCupSlotImage(fromSlot)
+		if packageSlot ~= nil and packageSlot ~= fromSlot then
+			local targetHasCup = packageSlot.hasCup
+			local targetCupData = packageSlot.cupData
+
+			packageSlot.hasCup = true
+			packageSlot.cupData = cupData
+
+			fromSlot.hasCup = targetHasCup
+			fromSlot.cupData = targetCupData
+
+			self:RefreshCupSlotImage(fromSlot)
+			self:RefreshCupSlotImage(packageSlot)
+			log("Packaged cup and moved: " .. tostring(fromSlot.id) .. " -> " .. tostring(packageSlot.id))
+		else
+			self:RefreshCupSlotImage(fromSlot)
+			log("Packaged cup in place: " .. tostring(fromSlot.id))
+		end
 		self:RefreshPackageButtonState()
 		self:ClearOrderPreview()
-		log("Packaged cup in place: " .. tostring(fromSlot.id))
 		return true
 	end
 
@@ -1806,7 +1856,11 @@ script ServiceManager extends Logic
 	end
 
 	method any GetSteamSlot()
-		return self:GetWaterPourSlot()
+		if self.GameData == nil or self.GameData.CupSlots == nil then
+			return nil
+		end
+
+		return self.GameData.CupSlots[4]
 	end
 
 	method void RefreshSteamButtonState()
@@ -1831,7 +1885,7 @@ script ServiceManager extends Logic
 			return false
 		end
 
-		return self:CupHasIngredient(slot.cupData, "Water")
+		return true
 	end
 
 	method boolean CupHasIngredient(any cupData, string ingredientId)
@@ -2179,18 +2233,12 @@ script ServiceManager extends Logic
 			return
 		end
 
-		local sourceSlot = self:GetSelectedCupSlot()
-		if sourceSlot == nil or self:IsPackageSlot(sourceSlot) == true then
-			sourceSlot = self:GetFirstPackageableCupSlot()
-		end
-		if sourceSlot == nil then
-			log("Cannot package cup. Select a completed drink first.")
+		if self.SelectionManager == nil then
 			return
 		end
 
-		if self:PackageCupSlot(sourceSlot, nil) == true and self.SelectionManager ~= nil then
-			self.SelectionManager:Clear()
-		end
+		log("Clicked package button")
+		self.SelectionManager:HandleClick("PACKAGE_BTN", { uiButton = sourceButton })
 	end
 
 	method void OnClickIceMakerButton(ButtonComponent sourceButton)
@@ -2266,7 +2314,7 @@ script ServiceManager extends Logic
 
 		local slot = self:GetSteamSlot()
 		if self:CanSteamCupFromSlot(slot) == false then
-			log("Cannot steam cup. CupSlot_5 is empty or unavailable.")
+			log("Cannot steam cup. CupSlot_4 is empty or unavailable.")
 			self:RefreshSteamButtonState()
 			return
 		end

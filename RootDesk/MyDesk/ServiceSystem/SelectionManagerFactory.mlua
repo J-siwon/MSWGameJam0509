@@ -77,6 +77,11 @@ script SelectionManagerFactory extends Logic
 				self:Select("WATER", target.waterType, target.uiButton)
 				return
 			end
+
+			if targetType == "PACKAGE_BTN" then
+				self:Select("PACKAGE", nil, target.uiButton)
+				return
+			end
 			
 			local state = self.state
 			
@@ -142,6 +147,19 @@ script SelectionManagerFactory extends Logic
 					gameManager:MarkMixerInvalidRecipeIngredient(target, self.data)
 					self:Select("MIXER", target)
 				end
+
+			elseif state == "PACKAGE" then
+				if targetType == "CUP_SLOT" and target.hasCup == true and target.cupData ~= nil and target.cupData.isPackaged ~= true then
+					if gameManager:GetCompletedDrinkImageRUID(target.cupData) ~= "" then
+						gameManager:PackageCupSlot(target, nil)
+					else
+						log("Cannot package cup. No completed drink recipe.")
+					end
+				else
+					log("Cannot package cup. Select a completed drink first.")
+				end
+				
+				self:Clear()
 				
 			elseif state == "INGREDIENT_SLOT" then
 				local slot = self.data
@@ -194,9 +212,11 @@ script SelectionManagerFactory extends Logic
 				
 			elseif state == "PLACED_CUP" then
 				if targetType == "CUP_SLOT" then
-					if gameManager:IsPackageSlot(target) == true then
-						gameManager:PackageCupSlot(self.data, nil)
-					else
+					local handled = false
+					if gameManager:IsPackageSlot(target) == true and self.data ~= nil and self.data.cupData ~= nil and gameManager:GetCompletedDrinkImageRUID(self.data.cupData) ~= "" then
+						handled = gameManager:PackageCupSlot(self.data, target)
+					end
+					if handled == false then
 						gameManager:MoveOrSwapCupSlot(self.data, target)
 					end
 				end
@@ -219,6 +239,10 @@ script SelectionManagerFactory extends Logic
 			
 			if self.state == "WATER" and targetType == "WATER_BTN" then
 				return self.data == target.waterType
+			end
+
+			if self.state == "PACKAGE" and targetType == "PACKAGE_BTN" then
+				return true
 			end
 			
 			if self.state == "INGREDIENT_SLOT" and targetType == "INGREDIENT_SLOT" then

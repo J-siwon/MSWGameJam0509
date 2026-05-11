@@ -18,8 +18,9 @@ script CupService extends Logic
 		end
 		
 		local useCupSpace = gameManager:IsCupSpaceIngredient(ingredientId)
+		local isWhippingIngredient = gameManager:IsWhippingIngredient(ingredientId)
 		
-		if useCupSpace == true and cupData.spaceIngredientCount >= cupData.maxSpaceIngredientCount then
+		if useCupSpace == true and cupData.spaceIngredientCount >= cupData.maxSpaceIngredientCount and isWhippingIngredient == false then
 			log("Cup is full. Cannot add ingredient: " .. ingredientId)
 			return false
 		end
