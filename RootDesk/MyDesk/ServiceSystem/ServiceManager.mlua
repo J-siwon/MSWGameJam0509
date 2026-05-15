@@ -61,6 +61,8 @@ script ServiceManager extends Logic
 
 	property number steamDuration = 1
 
+	property string TimeConfigDataSetName = "GameTimeConfig"
+
 	property number prepButtonShowX = 880
 
 	property number prepButtonHideX = 1040
@@ -146,6 +148,7 @@ script ServiceManager extends Logic
 	@ExecSpace("ClientOnly")
 	method void OnBeginPlay()
 		-- ServiceManager는 데이터 생성, 선택 규칙, UI 버튼 연결을 조율하는 시작점이다.
+		self:ApplyTimeConfig()
 		self.GameData = self:CreateInitialGameData()
 		self.SelectionManager = self:CreateInitialSelectionManager()
 		if self.GameData == nil or self.SelectionManager == nil then
@@ -163,6 +166,42 @@ script ServiceManager extends Logic
 		self:InitializeWaterPourButton()
 		self:InitializeSteamButton()
 		self:InitializePackageButton()
+	end
+
+	method void ApplyTimeConfig()
+		self.prepDuration = math.max(0.01, self:GetTimeConfigSeconds("PrepDurationSeconds", self.prepDuration))
+		self.brewShotDuration = math.max(0.01, self:GetTimeConfigSeconds("CoffeeDurationSeconds", self.brewShotDuration))
+		self.mixDuration = math.max(0.01, self:GetTimeConfigSeconds("MixerDurationSeconds", self.mixDuration))
+		self.waterPourDuration = math.max(0.01, self:GetTimeConfigSeconds("WaterDurationSeconds", self.waterPourDuration))
+		self.steamDuration = math.max(0.01, self:GetTimeConfigSeconds("SteamDurationSeconds", self.steamDuration))
+	end
+
+	method number GetTimeConfigSeconds(string key, number fallback)
+		if _EntryService == nil or _DataService == nil then
+			return fallback
+		end
+		if self.TimeConfigDataSetName == nil or self.TimeConfigDataSetName == "" then
+			return fallback
+		end
+
+		local dataSetId = _EntryService:GetDataSetIdByName(self.TimeConfigDataSetName)
+		if dataSetId == nil or dataSetId == "" then
+			return fallback
+		end
+
+		local rowCount = _DataService:GetRowCount(self.TimeConfigDataSetName)
+		for rowIndex = 1, rowCount do
+			local rowKey = _DataService:GetCell(self.TimeConfigDataSetName, rowIndex, "Key")
+			if rowKey == key then
+				local seconds = tonumber(_DataService:GetCell(self.TimeConfigDataSetName, rowIndex, "Seconds"))
+				if seconds ~= nil then
+					return math.max(0, seconds)
+				end
+				return fallback
+			end
+		end
+
+		return fallback
 	end
 
 	method any CreateInitialGameData()

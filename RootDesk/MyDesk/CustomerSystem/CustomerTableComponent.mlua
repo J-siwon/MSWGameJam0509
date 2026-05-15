@@ -39,6 +39,8 @@ script CustomerTableComponent extends Component
 
 	property string DrinkDataSetName = "CustomerDrinkData"
 
+	property string TimeConfigDataSetName = "GameTimeConfig"
+
 	property any Runtime = nil
 
 	method void OnBeginPlay()
@@ -1173,8 +1175,8 @@ script CustomerTableComponent extends Component
 
 	method table CreateCustomerData()
 		local desiredDrinkId = self:PickDataSetId(self.DrinkDataSetName, "Coffee")
-		local minLimitSeconds = self.MinLimitSeconds
-		local maxLimitSeconds = self.MaxLimitSeconds
+		local minLimitSeconds = self:GetTimeConfigSeconds("DrinkMinLimitSeconds", self.MinLimitSeconds)
+		local maxLimitSeconds = self:GetTimeConfigSeconds("DrinkMaxLimitSeconds", self.MaxLimitSeconds)
 		local price = self:GetNumberValue(self.DrinkDataSetName, desiredDrinkId, "Price", 300)
 		local minPrice = self:GetNumberValue(self.DrinkDataSetName, desiredDrinkId, "MinPrice", price)
 		local failPrice = self:GetNumberValue(self.DrinkDataSetName, desiredDrinkId, "FailPrice", minPrice)
@@ -1218,6 +1220,34 @@ script CustomerTableComponent extends Component
 			return fallback
 		end
 		return numberValue
+	end
+
+	method number GetTimeConfigSeconds(string key, number fallback)
+		if _EntryService == nil or _DataService == nil then
+			return fallback
+		end
+		if self.TimeConfigDataSetName == nil or self.TimeConfigDataSetName == "" then
+			return fallback
+		end
+
+		local dataSetId = _EntryService:GetDataSetIdByName(self.TimeConfigDataSetName)
+		if dataSetId == nil or dataSetId == "" then
+			return fallback
+		end
+
+		local rowCount = _DataService:GetRowCount(self.TimeConfigDataSetName)
+		for rowIndex = 1, rowCount do
+			local rowKey = _DataService:GetCell(self.TimeConfigDataSetName, rowIndex, "Key")
+			if rowKey == key then
+				local seconds = tonumber(_DataService:GetCell(self.TimeConfigDataSetName, rowIndex, "Seconds"))
+				if seconds ~= nil then
+					return math.max(0, seconds)
+				end
+				return fallback
+			end
+		end
+
+		return fallback
 	end
 
 	method string FindCellValue(string dataSetName, string id, string columnName)

@@ -1,0 +1,9 @@
+Key,Seconds
+PrepDurationSeconds,3
+CoffeeDurationSeconds,5
+MixerDurationSeconds,5
+WaterDurationSeconds,1
+SteamDurationSeconds,0.5
+DrinkMinLimitSeconds,30
+DrinkMaxLimitSeconds,60
+DayDurationSeconds,240

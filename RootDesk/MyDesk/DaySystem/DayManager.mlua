@@ -7,6 +7,8 @@ script DayManager extends Component
 
 	property string DayGoalDataSetName = "DayGoalData"
 
+	property string TimeConfigDataSetName = "GameTimeConfig"
+
 	property number MaxDay = 7
 
 	property number DefaultDayDurationSeconds = 180
@@ -1632,7 +1634,7 @@ script DayManager extends Component
 		
 		return {
 			goalMoney = self.DefaultGoalMoney + (day - 1) * 400,
-			durationSeconds = self.DefaultDayDurationSeconds,
+			durationSeconds = self:GetTimeConfigSeconds("DayDurationSeconds", self.DefaultDayDurationSeconds),
 			spawnIntervalSeconds = math.max(1.5, self.DefaultSpawnIntervalSeconds - (day - 1) * 0.25),
 			maxCustomerCount = self.DefaultMaxCustomerCount
 		}
@@ -1654,7 +1656,7 @@ script DayManager extends Component
 			if rowDay == day then
 				return {
 					goalMoney = self:GetNumberCell(rowIndex, "GoalMoney", self.DefaultGoalMoney),
-					durationSeconds = self:GetNumberCell(rowIndex, "DurationSeconds", self.DefaultDayDurationSeconds),
+					durationSeconds = self:GetTimeConfigSeconds("DayDurationSeconds", self.DefaultDayDurationSeconds),
 					spawnIntervalSeconds = self:GetNumberCell(rowIndex, "SpawnIntervalSeconds", self.DefaultSpawnIntervalSeconds),
 					maxCustomerCount = self:GetNumberCell(rowIndex, "MaxCustomerCount", self.DefaultMaxCustomerCount)
 				}
@@ -1675,6 +1677,34 @@ script DayManager extends Component
 			return fallback
 		end
 		return numberValue
+	end
+
+	method number GetTimeConfigSeconds(string key, number fallback)
+		if _EntryService == nil or _DataService == nil then
+			return fallback
+		end
+		if self.TimeConfigDataSetName == nil or self.TimeConfigDataSetName == "" then
+			return fallback
+		end
+
+		local dataSetId = _EntryService:GetDataSetIdByName(self.TimeConfigDataSetName)
+		if dataSetId == nil or dataSetId == "" then
+			return fallback
+		end
+
+		local rowCount = _DataService:GetRowCount(self.TimeConfigDataSetName)
+		for rowIndex = 1, rowCount do
+			local rowKey = _DataService:GetCell(self.TimeConfigDataSetName, rowIndex, "Key")
+			if rowKey == key then
+				local seconds = tonumber(_DataService:GetCell(self.TimeConfigDataSetName, rowIndex, "Seconds"))
+				if seconds ~= nil then
+					return math.max(0, seconds)
+				end
+				return fallback
+			end
+		end
+
+		return fallback
 	end
 
 end
