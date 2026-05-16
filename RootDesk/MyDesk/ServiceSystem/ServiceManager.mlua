@@ -1402,6 +1402,30 @@ script ServiceManager extends Logic
 		log("WorkProcessService is not loaded.")
 	end
 
+	method boolean CanStartMixMixer(any mixer)
+		if mixer == nil then
+			return false
+		end
+		if mixer.isMixed == true or mixer.isMixing == true then
+			return false
+		end
+		if mixer.hasInvalidRecipeIngredient == true then
+			return true
+		end
+		if mixer.ingredients ~= nil and #mixer.ingredients > 0 then
+			return true
+		end
+		return false
+	end
+
+	method any GetMixActionTargetMixer()
+		if self.SelectionManager ~= nil and self.SelectionManager.state == "MIXER" and self:CanStartMixMixer(self.SelectionManager.data) == true then
+			return self.SelectionManager.data
+		end
+
+		return nil
+	end
+
 	method void FinishMixMixer(any mixer)
 		if _WorkProcessService ~= nil then
 			_WorkProcessService:FinishMixMixer(self, mixer)
@@ -2105,17 +2129,7 @@ script ServiceManager extends Logic
 			return
 		end
 
-		local selectionState = "NONE"
-		if self.SelectionManager ~= nil then
-			selectionState = self.SelectionManager.state
-		end
-
-		local canStartFromClick = false
-		if self.SelectionManager ~= nil and selectionState == "MIXER" and self.SelectionManager.data == mixer then
-			canStartFromClick = true
-		end
-
-		if canStartFromClick == true and mixer.isMixed == false and mixer.isMixing ~= true and mixer.ingredients ~= nil and (#mixer.ingredients > 0 or mixer.hasInvalidRecipeIngredient == true) then
+		if self:CanStartMixMixer(mixer) == true then
 			if self.SelectionManager ~= nil and self.SelectionManager.state == "MIXER" and self.SelectionManager.data == mixer then
 				self.SelectionManager:Clear()
 			end
@@ -2123,12 +2137,7 @@ script ServiceManager extends Logic
 			return
 		end
 
-		if self.SelectionManager ~= nil then
-			self.SelectionManager:HandleClick("MIXER", mixer)
-			return
-		end
-
-		log("Cannot handle mixer click from character: " .. tostring(mixer.id))
+		log("Cannot mix. Mixer is not ready: " .. tostring(mixer.id))
 	end
 
 	method void OnClickSubmitDrinkTest()
@@ -2448,7 +2457,17 @@ script ServiceManager extends Logic
 		end
 
 		log("Clicked mix action")
-		self.SelectionManager:HandleUIAction("MIX")
+		local mixer = self:GetMixActionTargetMixer()
+		if mixer == nil then
+			log("Cannot mix. No mixer is ready.")
+			return
+		end
+
+		if self.SelectionManager ~= nil and self.SelectionManager.state == "MIXER" and self.SelectionManager.data == mixer then
+			self.SelectionManager:Clear()
+		end
+
+		self:StartMixMixer(mixer)
 	end
 
 	method void OnClickDiscardAction()
